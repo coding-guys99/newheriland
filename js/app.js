@@ -210,3 +210,84 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   });
 })();
 }
+
+
+// ===== Explore UI: render 4x3 city wall & basic interactions =====
+(() => {
+  const wall = document.getElementById('cityWall');
+  const head = document.getElementById('resultHead');
+  const sk   = document.getElementById('skList');
+  const list = document.getElementById('merchantList');
+  if(!wall || !head) return;
+
+  // Demo 12 城市（icon 先用 emoji；之後可換 SVG）
+  const CITIES = [
+    {id:'kuching', name:'Kuching', icon:'🏛️', count:128},
+    {id:'miri',    name:'Miri',    icon:'⛽',  count:64},
+    {id:'sibu',    name:'Sibu',    icon:'🛶',  count:52},
+    {id:'bintulu', name:'Bintulu', icon:'⚓',  count:40},
+    {id:'sarikei', name:'Sarikei', icon:'🍍',  count:24},
+    {id:'limbang', name:'Limbang', icon:'🌉',  count:16},
+    {id:'lawas',   name:'Lawas',   icon:'🌿',  count:14},
+    {id:'mukah',   name:'Mukah',   icon:'🐟',  count:18},
+    {id:'kapit',   name:'Kapit',   icon:'⛰️',  count:12},
+    {id:'betong',  name:'Betong',  icon:'🏞️', count:11},
+    {id:'samarahan',name:'Samarahan',icon:'🎓',count:20},
+    {id:'serian',  name:'Serian',  icon:'🌲',  count:9}
+  ];
+
+  // Render 4x3
+  wall.innerHTML = '';
+  CITIES.slice(0,12).forEach((c, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'citycell';
+    btn.setAttribute('role','tab');
+    btn.dataset.id = c.id;
+    if(i===0) btn.setAttribute('aria-selected','true');
+    else      btn.setAttribute('aria-selected','false');
+    btn.innerHTML = `
+      <span class="ico">${c.icon}</span>
+      <span class="name">${c.name}</span>
+      <span class="count">${c.count}</span>
+    `;
+    wall.appendChild(btn);
+  });
+
+  function selectCity(id){
+    // 樣式
+    wall.querySelectorAll('.citycell').forEach(b=>{
+      const on = b.dataset.id === id;
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    // 標題與骨架
+    const city = CITIES.find(x=>x.id===id);
+    head.textContent = `${city?.name || 'City'} — ${city?.count || 0} places`;
+    sk.hidden = false;
+    list.hidden = true;
+
+    // 平滑捲到清單頂
+    document.getElementById('cityResults')?.scrollIntoView({behavior:'smooth', block:'start'});
+
+    // 先不做資料；用 timeout 模擬載入後仍顯示骨架（你之後替換）
+    // setTimeout(() => { sk.hidden = true; list.hidden = false; /* render merchants(...) */ }, 800);
+  }
+
+  // 點擊
+  wall.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.citycell');
+    if(!btn) return;
+    selectCity(btn.dataset.id);
+  });
+
+  // 鍵盤左右切換
+  wall.addEventListener('keydown', (e)=>{
+    const cells = Array.from(wall.querySelectorAll('.citycell'));
+    const cur = cells.findIndex(b => b.getAttribute('aria-selected') === 'true');
+    if(e.key === 'ArrowRight'){ e.preventDefault(); const n = cells[Math.min(cur+1, cells.length-1)]; n?.focus(); n?.click(); }
+    if(e.key === 'ArrowLeft'){  e.preventDefault(); const p = cells[Math.max(cur-1, 0)];             p?.focus(); p?.click(); }
+  });
+
+  // 預設選取第一個
+  const first = wall.querySelector('.citycell');
+  if(first) selectCity(first.dataset.id);
+})();
