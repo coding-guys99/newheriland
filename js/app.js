@@ -265,9 +265,6 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     sk.hidden = false;
     list.hidden = true;
 
-    // 平滑捲到清單頂
-    document.getElementById('cityResults')?.scrollIntoView({behavior:'smooth', block:'start'});
-
     // 先不做資料；用 timeout 模擬載入後仍顯示骨架（你之後替換）
     // setTimeout(() => { sk.hidden = true; list.hidden = false; /* render merchants(...) */ }, 800);
   }
