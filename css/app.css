@@ -474,3 +474,38 @@ main { min-height: calc(100dvh - 88px); }
   .merchant-list{ background: color-mix(in srgb, #0b0f12 78%, transparent); border-color: rgba(255,255,255,.08); }
   .merchant-list .item + .item{ border-top-color: rgba(255,255,255,.08); }
 }
+
+/* 讓箭頭能定位 */
+.citycell{ position: relative; }
+
+/* 選中時顯示下方小箭頭 */
+.citycell[aria-selected="true"]::after{
+  content:"";
+  position:absolute;
+  left:50%; bottom:-8px; transform:translateX(-50%);
+  width:0; height:0;
+  border-left:7px solid transparent;
+  border-right:7px solid transparent;
+  border-top:8px solid rgba(0,0,0,.12);            /* 外邊投影 */
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,.12));
+}
+/* 內層白箭頭，做出立體邊 */
+.citycell[aria-selected="true"]::before{
+  content:"";
+  position:absolute;
+  left:50%; bottom:-7px; transform:translateX(-50%);
+  width:0; height:0;
+  border-left:6px solid transparent;
+  border-right:6px solid transparent;
+  border-top:7px solid #fff;                        /* 深色模式會被覆蓋 */
+}
+
+/* 深色模式的箭頭顏色 */
+@media (prefers-color-scheme: dark){
+  .citycell[aria-selected="true"]::before{
+    border-top-color: color-mix(in srgb, #0b0f12 78%, transparent);
+  }
+}
+
+/* 給箭頭留點空隙，避免被切到 */
+.citywall{ padding-bottom: 18px; }
