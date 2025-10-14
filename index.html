@@ -78,12 +78,119 @@
       <div class="card">收藏清單</div>
     </section>
 
-    <!-- Add (Creator 入口) -->
-    <section data-page="add" aria-labelledby="h-add" class="section" hidden>
-      <h1 id="h-add" data-focusable-heading>Add</h1>
-      <p>建立新地點 / 新清單（未來可接本機草稿、自動儲存）。</p>
-      <div class="card">Creator placeholder</div>
-    </section>
+    <!-- Add (Creator) -->
+<section data-page="add" aria-labelledby="h-add" class="section add-page" hidden>
+  <header class="subappbar add-header">
+    <h1 id="h-add" class="add-title" data-focusable-heading>New Place</h1>
+    <small class="add-sub">Create a new listing</small>
+  </header>
+
+  <form id="addForm" class="add-form" novalidate>
+    <!-- 基本資訊 -->
+    <div class="groupcard">
+      <div class="g-head">Basic</div>
+      <div class="g-body">
+        <label class="field">
+          <span class="f-label">Name <b aria-hidden="true">*</b></span>
+          <input type="text" id="fName" placeholder="e.g. Top Spot Food Court" required>
+        </label>
+
+        <label class="field">
+          <span class="f-label">Short description</span>
+          <textarea id="fDesc" rows="3" placeholder="One–two lines about this place"></textarea>
+        </label>
+      </div>
+    </div>
+
+    <!-- 所屬城市 / 分類 -->
+    <div class="groupcard">
+      <div class="g-head">Location & Category</div>
+      <div class="g-body">
+        <label class="field">
+          <span class="f-label">City</span>
+          <div class="select-wrap">
+            <select id="fCity">
+              <option value="">Select a city</option>
+              <option>Kuching</option>
+              <option>Miri</option>
+              <option>Sibu</option>
+              <option>Bintulu</option>
+              <option>Mukah</option>
+              <option>Serian</option>
+            </select>
+          </div>
+        </label>
+
+        <div class="field">
+          <span class="f-label">Type</span>
+          <div class="chips" id="typeChips" role="group" aria-label="Type">
+            <button type="button" class="chip" data-val="food">Food</button>
+            <button type="button" class="chip" data-val="stay">Stay</button>
+            <button type="button" class="chip" data-val="nature">Nature</button>
+            <button type="button" class="chip" data-val="culture">Culture</button>
+            <button type="button" class="chip" data-val="shopping">Shopping</button>
+            <button type="button" class="chip" data-val="experience">Experience</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="f-label">Tags</span>
+          <div class="chips chips--multi" id="tagChips" role="group" aria-label="Tags">
+            <button type="button" class="chip" data-val="seafood">Seafood</button>
+            <button type="button" class="chip" data-val="dessert">Dessert</button>
+            <button type="button" class="chip" data-val="family">Family</button>
+            <button type="button" class="chip" data-val="local">Local</button>
+            <button type="button" class="chip" data-val="market">Market</button>
+            <button type="button" class="chip" data-val="museum">Museum</button>
+            <button type="button" class="chip" data-val="waterfall">Waterfall</button>
+            <button type="button" class="chip" data-val="beach">Beach</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 聯絡資訊 -->
+    <div class="groupcard">
+      <div class="g-head">Contact</div>
+      <div class="g-body g-grid">
+        <label class="field">
+          <span class="f-label">Phone</span>
+          <input type="tel" id="fPhone" placeholder="+60 …">
+        </label>
+        <label class="field">
+          <span class="f-label">Website</span>
+          <input type="url" id="fWeb" placeholder="https://…">
+        </label>
+        <label class="field grid-full">
+          <span class="f-label">Address</span>
+          <input type="text" id="fAddr" placeholder="Street, city">
+        </label>
+      </div>
+    </div>
+
+    <!-- 照片上傳（純 UI + 預覽） -->
+    <div class="groupcard">
+      <div class="g-head">Photos</div>
+      <div class="g-body">
+        <div class="uploader" id="uploader">
+          <input id="fPhotos" type="file" accept="image/*" multiple aria-label="Upload photos">
+          <div class="uix">
+            <div class="u-ico">📷</div>
+            <div class="u-txt">Drop images here or tap to upload</div>
+            <div class="u-hint">Up to 10 photos</div>
+          </div>
+        </div>
+        <div class="gallery" id="previewGrid" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- 置底操作列（先純 UI） -->
+    <div class="add-cta">
+      <button type="button" class="btn ghost" id="btnPreview">Preview</button>
+      <button type="submit" class="btn primary" id="btnSave">Save</button>
+    </div>
+  </form>
+</section>
 
     <!-- ====== Settings（二級） ====== -->
     <section id="p-settings" class="overlay-page" hidden aria-labelledby="h-settings" data-page="settings">
