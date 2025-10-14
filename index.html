@@ -32,22 +32,23 @@
     </section>
 
     <!-- Explore -->
-    <section data-page="explore" aria-labelledby="h-explore" class="section" hidden>
+<section data-page="explore" aria-labelledby="h-explore" class="section" hidden>
   <h1 id="h-explore" data-focusable-heading>Explore</h1>
 
   <!-- 城市牆：固定 4 x 3 -->
   <div class="citywall" role="tablist" aria-label="Cities" id="cityWall">
-    <!-- 由 JS 插入 12 顆；保留一顆 noscript 以免空白 -->
-    <button class="citycell" role="tab" aria-selected="true">
-      <span class="ico">🏛️</span>
-      <span class="name">Kuching</span>
-      <span class="count">128</span>
-    </button>
+    <noscript>
+      <button class="citycell" role="tab" aria-selected="true">
+        <span class="ico">🏛️</span>
+        <span class="name">Kuching</span>
+        <span class="count">128</span>
+      </button>
+    </noscript>
   </div>
 
-  <!-- 清單區：標題 + 骨架（未來換成實際清單） -->
+  <!-- 清單區：標題 + 骨架 / 空 / 錯誤 / 實際清單 -->
   <div class="cityresults" id="cityResults">
-    <div class="result-head" id="resultHead">Pick a city above</div>
+    <div class="result-head" id="resultHead" aria-live="polite">Pick a city above</div>
 
     <!-- 骨架列表（預設隱藏） -->
     <div class="skeleton-list" id="skList" hidden>
@@ -59,8 +60,20 @@
       <div class="sk-row"></div>
     </div>
 
-    <!-- 之後放實際清單 -->
-    <div class="merchant-list" id="merchantList" hidden></div>
+    <!-- 空資料（預設隱藏） -->
+    <div class="empty-list" id="emptyList" hidden>
+      <div class="empty-ico">🗒️</div>
+      <p>No places yet. Try another city.</p>
+    </div>
+
+    <!-- 載入錯誤（預設隱藏） -->
+    <div class="error-list" id="errList" hidden role="alert">
+      <div class="error-ico">⚠️</div>
+      <p>Failed to load. Pull to retry.</p>
+    </div>
+
+    <!-- 實際清單（預設隱藏；之後每筆用 role="listitem"） -->
+    <div class="merchant-list" id="merchantList" role="list" hidden></div>
   </div>
 </section>
 
