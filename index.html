@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>HeriLand — Tabs + Settings</title>
+
+  <!-- 你的 CSS（沿用現有 app.css） -->
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+
+  <!-- 頂部：品牌 + 齒輪 -->
+  <header class="header">
+    <div class="inner">
+      <div class="brand">HeriLand</div>
+      <div class="header-actions" style="display:flex;align-items:center;gap:10px">
+        <small style="font-size:12px;color:#6b7280">Testing</small>
+        <button id="btnOpenSettings" class="icon-btn" aria-label="Settings" title="Settings">⚙︎</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- ====== 主頁們（單頁多分頁） ====== -->
+
+    <!-- Home -->
+    <section data-page="home" aria-labelledby="h-home" class="section">
+      <h1 id="h-home" data-focusable-heading>Home</h1>
+      <p>這裡放首頁內容（hero / chips / rows）。</p>
+      <div class="card">一些卡片內容…</div>
+    </section>
+
+    <!-- Explore -->
+    <section data-page="explore" aria-labelledby="h-explore" class="section" hidden>
+      <h1 id="h-explore" data-focusable-heading>Explore</h1>
+      <p>探索清單 / 篩選工具列…</p>
+      <div class="card">列表或網格區塊</div>
+    </section>
+
+    <!-- Map -->
+    <section data-page="map" aria-labelledby="h-map" class="section" hidden>
+      <h1 id="h-map" data-focusable-heading>Map</h1>
+      <p>地圖容器（此頁可維持自身狀態）。</p>
+      <div class="card">地圖 placeholder</div>
+    </section>
+
+    <!-- Saved -->
+    <section data-page="saved" aria-labelledby="h-saved" class="section" hidden>
+      <h1 id="h-saved" data-focusable-heading>Saved</h1>
+      <p>收藏與清單。</p>
+      <div class="card">收藏清單</div>
+    </section>
+
+    <!-- Add (Creator 入口) -->
+    <section data-page="add" aria-labelledby="h-add" class="section" hidden>
+      <h1 id="h-add" data-focusable-heading>Add</h1>
+      <p>建立新地點 / 新清單（未來可接本機草稿、自動儲存）。</p>
+      <div class="card">Creator placeholder</div>
+    </section>
+
+    <!-- ====== Settings（二級） ====== -->
+    <section id="p-settings" class="overlay-page" hidden aria-labelledby="h-settings" data-page="settings">
+      <header class="subappbar settings-header">
+        <button class="icon-btn back" id="btnSettingsBack" aria-label="Back">←</button>
+        <h1 id="h-settings" class="settings-title" tabindex="-1">Settings</h1>
+      </header>
+
+      <!-- MY ACTIVITY 一張卡 -->
+      <div class="set-section">
+        <h2 class="set-overline">MY ACTIVITY</h2>
+        <div class="set-groupcard">
+          <div class="activity-row">
+            <button class="activity-btn">Creator</button>
+            <button class="activity-btn">Favorites</button>
+            <button class="activity-btn">Drafts</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PREFERENCES 一張卡 -->
+      <div class="set-section">
+        <h2 class="set-overline">PREFERENCES</h2>
+        <div class="set-groupcard">
+          <button class="set-item" data-target="settings-language" role="listitem" aria-controls="settings-language">
+            <span class="label">Language</span><span class="value">English</span><span class="chev">›</span>
+          </button>
+          <button class="set-item" data-target="settings-currency" role="listitem" aria-controls="settings-currency">
+            <span class="label">Currency</span><span class="value">USD</span><span class="chev">›</span>
+          </button>
+          <div class="set-item" role="listitem" aria-live="polite">
+            <span class="label">Time Format</span><span class="value">24h</span>
+          </div>
+          <div class="set-item" role="listitem">
+            <span class="label">Dark Mode</span>
+            <label class="switch"><input type="checkbox" id="toggleDark"/><i></i></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRIVACY 一張卡 -->
+      <div class="set-section">
+        <h2 class="set-overline">PRIVACY</h2>
+        <div class="set-groupcard">
+          <button class="set-item" data-target="settings-privacy" role="listitem" aria-controls="settings-privacy">
+            <span class="label">Privacy</span><span class="chev only">›</span>
+          </button>
+          <div class="set-item" role="listitem">
+            <span class="label">Accessibility</span>
+            <label class="switch"><input type="checkbox" id="toggleA11y"/><i></i></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABOUT 一張卡 -->
+      <div class="set-section">
+        <h2 class="set-overline">ABOUT</h2>
+        <div class="set-groupcard">
+          <div class="set-item" role="listitem">
+            <span class="label">Version</span><span class="value">v1.0.0</span>
+          </div>
+          <button class="set-item" data-target="settings-policy" role="listitem" aria-controls="settings-policy">
+            <span class="label">Policy</span><span class="chev only">›</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== Settings 第三級（通用樣板） ====== -->
+    <section id="settings-language" class="overlay-page tertiary" hidden aria-labelledby="h-language">
+      <header class="subappbar settings-header">
+        <button class="icon-btn back sub-back" aria-label="Back">←</button>
+        <h1 id="h-language" class="settings-title" tabindex="-1">Language</h1>
+      </header>
+      <div class="settings-panel">
+        <button class="option">English</button>
+        <button class="option">繁體中文</button>
+        <button class="option">Bahasa Melayu</button>
+      </div>
+    </section>
+
+    <section id="settings-currency" class="overlay-page tertiary" hidden aria-labelledby="h-currency">
+      <header class="subappbar settings-header">
+        <button class="icon-btn back sub-back" aria-label="Back">←</button>
+        <h1 id="h-currency" class="settings-title" tabindex="-1">Currency</h1>
+      </header>
+      <div class="settings-panel">
+        <button class="option">USD</button>
+        <button class="option">MYR</button>
+        <button class="option">SGD</button>
+      </div>
+    </section>
+
+    <section id="settings-privacy" class="overlay-page tertiary" hidden aria-labelledby="h-privacy">
+      <header class="subappbar settings-header">
+        <button class="icon-btn back sub-back" aria-label="Back">←</button>
+        <h1 id="h-privacy" class="settings-title" tabindex="-1">Privacy</h1>
+      </header>
+      <div class="settings-panel">
+        <p class="copy">Your privacy matters. (Placeholder)</p>
+      </div>
+    </section>
+
+    <section id="settings-policy" class="overlay-page tertiary" hidden aria-labelledby="h-policy">
+      <header class="subappbar settings-header">
+        <button class="icon-btn back sub-back" aria-label="Back">←</button>
+        <h1 id="h-policy" class="settings-title" tabindex="-1">Policy</h1>
+      </header>
+      <div class="settings-panel">
+        <p class="copy">Terms & Policy (Placeholder)</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- 底部導覽：由 partial 注入 -->
+  <div data-include="partials/tabbar.html"></div>
+
+  <!-- scripts：先載入 include，再載入 app（確保綁到已注入的 tab） -->
+  <script src="js/include.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>
