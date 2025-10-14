@@ -288,3 +288,85 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   const first = wall.querySelector('.citycell');
   if(first) selectCity(first.dataset.id);
 })();
+
+
+// ===== Add Page — UI only (chips, autosize, photo preview) =====
+(() => {
+  const $  = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+  const form = $('#addForm');
+  if (!form) return;
+
+  // chips：type 單選、tags 多選
+  const typeWrap = $('#typeChips');
+  const tagWrap  = $('#tagChips');
+
+  typeWrap?.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.chip');
+    if (!btn) return;
+    // 單選
+    $$('.chip', typeWrap).forEach(c => c.classList.remove('is-on'));
+    btn.classList.add('is-on');
+  });
+  tagWrap?.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.chip');
+    if (!btn) return;
+    btn.classList.toggle('is-on'); // 多選
+  });
+
+  // textarea autosize
+  const desc = $('#fDesc');
+  const auto = (el)=>{
+    el.style.height = 'auto';
+    el.style.height = Math.min(240, el.scrollHeight) + 'px';
+  };
+  desc?.addEventListener('input', ()=> auto(desc));
+  desc && auto(desc);
+
+  // 照片預覽（本地）
+  const fileInput = $('#fPhotos');
+  const grid = $('#previewGrid');
+
+  function renderPreview(files){
+    if (!grid) return;
+    grid.innerHTML = '';
+    const list = Array.from(files).slice(0, 10);
+    list.forEach(file=>{
+      const url = URL.createObjectURL(file);
+      const cell = document.createElement('div');
+      cell.className = 'thumb';
+      cell.style.backgroundImage = `url("${url}")`;
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.textContent = '×';
+      del.addEventListener('click', ()=>{
+        // 純 UI：移除預覽
+        cell.remove();
+      });
+      cell.appendChild(del);
+      grid.appendChild(cell);
+    });
+  }
+
+  fileInput?.addEventListener('change', (e)=>{
+    const files = e.target.files || [];
+    renderPreview(files);
+  });
+
+  // 提交：目前只阻止送出，保留 UI 流程
+  form.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    // 簡單 required UI
+    if (!$('#fName').value.trim()){
+      $('#fName').focus();
+      return;
+    }
+    // 這裡先不做儲存；之後再接 localStorage / 後端
+    alert('UI ready. Save logic comes next ✨');
+  });
+
+  $('#btnPreview')?.addEventListener('click', ()=>{
+    alert('Preview mock — 之後接真預覽頁');
+  });
+})();
