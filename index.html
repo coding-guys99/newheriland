@@ -33,10 +33,36 @@
 
     <!-- Explore -->
     <section data-page="explore" aria-labelledby="h-explore" class="section" hidden>
-      <h1 id="h-explore" data-focusable-heading>Explore</h1>
-      <p>探索清單 / 篩選工具列…</p>
-      <div class="card">列表或網格區塊</div>
-    </section>
+  <h1 id="h-explore" data-focusable-heading>Explore</h1>
+
+  <!-- 城市牆：固定 4 x 3 -->
+  <div class="citywall" role="tablist" aria-label="Cities" id="cityWall">
+    <!-- 由 JS 插入 12 顆；保留一顆 noscript 以免空白 -->
+    <button class="citycell" role="tab" aria-selected="true">
+      <span class="ico">🏛️</span>
+      <span class="name">Kuching</span>
+      <span class="count">128</span>
+    </button>
+  </div>
+
+  <!-- 清單區：標題 + 骨架（未來換成實際清單） -->
+  <div class="cityresults" id="cityResults">
+    <div class="result-head" id="resultHead">Pick a city above</div>
+
+    <!-- 骨架列表（預設隱藏） -->
+    <div class="skeleton-list" id="skList" hidden>
+      <div class="sk-row"></div>
+      <div class="sk-row"></div>
+      <div class="sk-row"></div>
+      <div class="sk-row"></div>
+      <div class="sk-row"></div>
+      <div class="sk-row"></div>
+    </div>
+
+    <!-- 之後放實際清單 -->
+    <div class="merchant-list" id="merchantList" hidden></div>
+  </div>
+</section>
 
     <!-- Map -->
     <section data-page="map" aria-labelledby="h-map" class="section" hidden>
