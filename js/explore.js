@@ -14,7 +14,7 @@
     {id:'bintulu',   name:'Bintulu',   icon:'⚓',  count:40},
     {id:'sarikei',   name:'Sarikei',   icon:'🍍',  count:24},
     {id:'limbang',   name:'Limbang',   icon:'🌉',  count:16},
-    {id:'lawas',     name:'Lawas',     icon:'🌿',  count:14},
+    {id:'sriaman',   name:'Sri-Aman',  icon:'🌿',  count:14},
     {id:'mukah',     name:'Mukah',     icon:'🐟',  count:18},
     {id:'kapit',     name:'Kapit',     icon:'⛰️',  count:12},
     {id:'betong',    name:'Betong',    icon:'🏞️', count:11},
@@ -150,7 +150,7 @@ const CITY_DATA_URLS = {
   bintulu: 'https://coding-guys99.github.io/newheriland/data/merchants/bintulu.json',
   sarikei: 'https://coding-guys99.github.io/newheriland/data/merchants/sarikei.json',
   limbang: 'https://coding-guys99.github.io/newheriland/data/merchants/limbang.json',
-  lawas: 'https://coding-guys99.github.io/newheriland/data/merchants/lawas.json',
+  sriaman : 'https://coding-guys99.github.io/newheriland/data/merchants/sri-aman.json',
   mukah: 'https://coding-guys99.github.io/newheriland/data/merchants/mukah.json',
   kapit: 'https://coding-guys99.github.io/newheriland/data/merchants/kapit.json',
   betong: 'https://coding-guys99.github.io/newheriland/data/merchants/betong.json',
@@ -167,4 +167,5 @@ function getCityUrl(id){
 
   
 })();
+
 
