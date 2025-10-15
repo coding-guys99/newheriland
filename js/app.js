@@ -212,28 +212,31 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 }
 
 
-// ===== Explore UI: render 4x3 city wall & basic interactions =====
+// ===== Explore UI: 4x3 城市牆 + 三種狀態 =====
 (() => {
-  const wall = document.getElementById('cityWall');
-  const head = document.getElementById('resultHead');
-  const sk   = document.getElementById('skList');
-  const list = document.getElementById('merchantList');
-  if(!wall || !head) return;
+  const wall  = document.getElementById('cityWall');
+  const head  = document.getElementById('resultHead');
+  const sk    = document.getElementById('skList');
+  const list  = document.getElementById('merchantList');
+  const empty = document.getElementById('emptyState');
+  const error = document.getElementById('errorState');
+  const btnRetry = document.getElementById('btnRetry');
+  if (!wall || !head) return;
 
-  // Demo 12 城市（icon 先用 emoji；之後可換 SVG）
+  // Demo 城市（icon 先用 emoji）
   const CITIES = [
-    {id:'kuching', name:'Kuching', icon:'🏛️', count:128},
-    {id:'miri',    name:'Miri',    icon:'⛽',  count:64},
-    {id:'sibu',    name:'Sibu',    icon:'🛶',  count:52},
-    {id:'bintulu', name:'Bintulu', icon:'⚓',  count:40},
-    {id:'sarikei', name:'Sarikei', icon:'🍍',  count:24},
-    {id:'limbang', name:'Limbang', icon:'🌉',  count:16},
-    {id:'lawas',   name:'Lawas',   icon:'🌿',  count:14},
-    {id:'mukah',   name:'Mukah',   icon:'🐟',  count:18},
-    {id:'kapit',   name:'Kapit',   icon:'⛰️',  count:12},
-    {id:'betong',  name:'Betong',  icon:'🏞️', count:11},
-    {id:'samarahan',name:'Samarahan',icon:'🎓',count:20},
-    {id:'serian',  name:'Serian',  icon:'🌲',  count:9}
+    {id:'kuching',   name:'Kuching',   icon:'🏛️', count:128},
+    {id:'miri',      name:'Miri',      icon:'⛽',  count:64},
+    {id:'sibu',      name:'Sibu',      icon:'🛶',  count:52},
+    {id:'bintulu',   name:'Bintulu',   icon:'⚓',  count:40},
+    {id:'sarikei',   name:'Sarikei',   icon:'🍍',  count:24},
+    {id:'limbang',   name:'Limbang',   icon:'🌉',  count:16},
+    {id:'lawas',     name:'Lawas',     icon:'🌿',  count:14},
+    {id:'mukah',     name:'Mukah',     icon:'🐟',  count:18},
+    {id:'kapit',     name:'Kapit',     icon:'⛰️',  count:12},
+    {id:'betong',    name:'Betong',    icon:'🏞️', count:11},
+    {id:'samarahan', name:'Samarahan', icon:'🎓',  count:20},
+    {id:'serian',    name:'Serian',    icon:'🌲',  count:9}
   ];
 
   // Render 4x3
@@ -243,8 +246,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     btn.className = 'citycell';
     btn.setAttribute('role','tab');
     btn.dataset.id = c.id;
-    if(i===0) btn.setAttribute('aria-selected','true');
-    else      btn.setAttribute('aria-selected','false');
+    btn.setAttribute('aria-selected', i===0 ? 'true' : 'false');
     btn.innerHTML = `
       <span class="ico">${c.icon}</span>
       <span class="name">${c.name}</span>
@@ -253,30 +255,74 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     wall.appendChild(btn);
   });
 
-  function selectCity(id){
-    // 樣式
+  // 簡單狀態切換
+  function showState(state){
+    // state: 'loading' | 'list' | 'empty' | 'error'
+    sk.hidden    = state !== 'loading';
+    list.hidden  = state !== 'list';
+    empty.hidden = state !== 'empty';
+    error.hidden = state !== 'error';
+  }
+
+  // 渲染清單
+  function renderMerchants(items){
+    list.innerHTML = items.map(m=>`
+      <div class="item">
+        <div class="thumb" style="background-image:url('${m.cover}')"></div>
+        <div>
+          <div class="t">${m.name}</div>
+          <div class="sub">${m.category || ''}</div>
+          <div class="sub" style="font-size:12px;opacity:.7">${m.address || ''}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // 選擇城市 → 載入 JSON
+  async function selectCity(id){
+    // 標註選取
     wall.querySelectorAll('.citycell').forEach(b=>{
       const on = b.dataset.id === id;
       b.setAttribute('aria-selected', on ? 'true' : 'false');
     });
-    // 標題與骨架
-    const city = CITIES.find(x=>x.id===id);
-    head.textContent = `${city?.name || 'City'} — ${city?.count || 0} places`;
-    sk.hidden = false;
-    list.hidden = true;
 
-    // 先不做資料；用 timeout 模擬載入後仍顯示骨架（你之後替換）
-    // setTimeout(() => { sk.hidden = true; list.hidden = false; /* render merchants(...) */ }, 800);
+    const city = CITIES.find(x=>x.id===id);
+    head.textContent = `${city?.name || 'City'} — Loading…`;
+    showState('loading');
+
+    try{
+      // 換成你的 mock 檔名規則
+      const res = await fetch(`./mock/merchants_${id}.json`);
+      if(!res.ok) throw new Error('network');
+      const data = await res.json();
+      const items = data.items || [];
+
+      if (!items.length){
+        head.textContent = `${city?.name || 'City'} — No places yet`;
+        showState('empty');
+        return;
+      }
+
+      head.textContent = `${city?.name || 'City'} — ${items.length} places`;
+      renderMerchants(items);
+      showState('list');
+
+    }catch(err){
+      head.textContent = `${city?.name || 'City'} — Failed to load`;
+      showState('error');
+      // 把要 retry 的 city id 暫存在按鈕
+      if (btnRetry) btnRetry.dataset.city = id;
+    }
   }
 
-  // 點擊
+  // 點擊城市
   wall.addEventListener('click', (e)=>{
     const btn = e.target.closest('.citycell');
     if(!btn) return;
     selectCity(btn.dataset.id);
   });
 
-  // 鍵盤左右切換
+  // 鍵盤左右切換（可選）
   wall.addEventListener('keydown', (e)=>{
     const cells = Array.from(wall.querySelectorAll('.citycell'));
     const cur = cells.findIndex(b => b.getAttribute('aria-selected') === 'true');
@@ -284,7 +330,13 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     if(e.key === 'ArrowLeft'){  e.preventDefault(); const p = cells[Math.max(cur-1, 0)];             p?.focus(); p?.click(); }
   });
 
-  // 預設選取第一個
+  // Retry
+  btnRetry?.addEventListener('click', ()=>{
+    const cid = btnRetry.dataset.city;
+    if (cid) selectCity(cid);
+  });
+
+  // 預設選第一個
   const first = wall.querySelector('.citycell');
   if(first) selectCity(first.dataset.id);
 })();
