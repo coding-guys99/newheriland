@@ -322,4 +322,11 @@ navigator.geolocation?.getCurrentPosition(
   emit();
 })();
 
+window.addEventListener('explore:filters-change', (e) => {
+  const f = e.detail; // {categories, sort, openNow, minRating}
+  // TODO: 依 f 重新打 supabase query 或前端過濾
+});
+
+
+
 
