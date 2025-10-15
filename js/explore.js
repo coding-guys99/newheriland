@@ -1,11 +1,11 @@
 // js/explore.js
-// Explore — Supabase fetch per city, lightweight filters + Advanced Drawer, with summary chips
+// Explore — Supabase per-city fetch + client-side filters + Detail Drawer (data-filled)
 import { supabase } from './app.js';
 
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-/* ---------- DOM ---------- */
+// ---- DOM refs (match your HTML) ----
 const wall  = $('#cityWall');
 const head  = $('#resultHead');
 const sk    = $('#skList');
@@ -14,42 +14,22 @@ const empty = $('#emptyState');
 const errBx = $('#errorState');
 const btnRetry = $('#btnRetry');
 
+// Filters
 const filtersBox = $('#expFilters');
-const quickChips = $$('.chips--quick .chip', filtersBox);
-const btnOpenDrawer = $('#btnOpenFilter');
+const chipsCats  = $$('.chips--cats .chip',  filtersBox);
+const chipsQuick = $$('.chips--quick .chip', filtersBox);
 
-const summaryBox = $('#activeFilters');
-
-/* Advanced Drawer */
-const drawer   = $('#advFilter');
-const btnClose = $('#btnAdvClose');
-const btnReset = $('#btnAdvReset');
-const btnApply = $('#btnAdvApply');
-const afCats   = $('#afCats');
-const afThemes = $('#afThemes');
-const afAttrs  = $('#afAttrs');
-const afMore   = $('#afMore');
-const afSort   = $('#afSort');
-
-/* ---------- State ---------- */
-const state = {
-  cats: new Set(),        // Taste / Nature / ...
-  themes: new Set(),      // Market / Heritage / ...
-  attrs: new Set(),       // Halal / Vegan / ...
-  open: false,
-  minRating: null,        // e.g. 4.5
-  prices: new Set(),      // 1..4
-  sort: 'latest',         // latest | hot | rating
-};
+// ===== Filter state =====
+const state = { cats:new Set(), open:false, minRating:null, sort:'latest' };
 let currentCity = null;
 let allMerchants = [];
 
-/* ---------- Utils ---------- */
-const toNum = (n)=> (Number.isFinite(Number(n)) ? Number(n) : null);
+/* ----------------- Helpers ----------------- */
+const toNum = (n)=>{ const x = Number(n); return Number.isFinite(x) ? x : null; };
 function priceLevelNum(m){
+  if (typeof m.priceLevel === 'number') return m.priceLevel;
   if (typeof m.price_level === 'number') return m.price_level;
-  if (typeof m.priceLevel  === 'number') return m.priceLevel;
-  const s = (m.price_level || m.priceLevel || '').toString();
+  const s = (m.priceLevel || m.price_level || '').toString();
   const cnt = (s.match(/\$/g)||[]).length;
   return cnt || null;
 }
@@ -62,7 +42,7 @@ function isOpenNow(m, ref=new Date()){
     const toMin = (hhmm)=>{ const [h,mi] = hhmm.split(':').map(x=>parseInt(x,10)); return h*60+(mi||0); };
     return day.ranges.some(r=>{
       const o = toMin(r.open), c = toMin(r.close);
-      return (c>o) ? (cur>=o && cur<c) : (cur>=o || cur<c); // 跨夜
+      return (c>o) ? (cur>=o && cur<c) : (cur>=o || cur<c);
     });
   }
   const t = (m.openHours||'').toLowerCase().trim();
@@ -76,7 +56,7 @@ function isOpenNow(m, ref=new Date()){
   return (end>start) ? (cur>=start && cur<end) : (cur>=start || cur<end);
 }
 
-/* ---------- Supabase ---------- */
+/* ----------------- Supabase ----------------- */
 async function loadCities(){
   try{
     const { data, error } = await supabase
@@ -112,8 +92,32 @@ async function fetchMerchants(cityId, {limit=500} = {}){
     return { ok:false, error: err };
   }
 }
+async function fetchMerchantById(id){
+  const { data, error } = await supabase
+    .from('merchants')
+    .select('*')
+    .eq('id', id)
+    .single();
+  if (error) throw error;
+  return data;
+}
+async function fetchRelated({city_id, category, exceptId, limit=6}={}){
+  const { data, error } = await supabase
+    .from('merchants')
+    .select('id,name,category,cover,updated_at')
+    .eq('city_id', city_id)
+    .eq('status','active')
+    .neq('id', exceptId)
+    .order('updated_at',{ascending:false})
+    .limit(limit);
+  if (error) throw error;
+  // 若沒同類別，退而求其次：直接最新
+  if (!data?.length || !category) return data || [];
+  const sameCat = data.filter(x => (x.category||'').toLowerCase() === (category||'').toLowerCase());
+  return sameCat.length ? sameCat : data;
+}
 
-/* ---------- Render ---------- */
+/* ----------------- Render: wall & list ----------------- */
 function renderWall(cities){
   wall.innerHTML = '';
   cities.slice(0,12).forEach((c,i)=>{
@@ -130,12 +134,17 @@ function renderWall(cities){
     wall.appendChild(btn);
   });
 }
+
 function renderMerchants(items){
   if (!items.length){
-    list.hidden = true; empty.hidden = false; errBx.hidden = true;
+    list.hidden = true;
+    empty.hidden = false;
+    errBx.hidden = true;
     return;
   }
-  empty.hidden = true; errBx.hidden = true; list.hidden = false;
+  empty.hidden = true;
+  errBx.hidden = true;
+  list.hidden = false;
 
   list.innerHTML = items.map(m=>{
     const rating = (m.rating!=null) ? Number(m.rating).toFixed(1) : null;
@@ -148,7 +157,7 @@ function renderMerchants(items){
     const cover = m.cover || (m.images?.[0]) || '';
 
     return `
-      <div class="item" data-id="${m.id}">
+      <div class="item" data-id="${m.id}" role="button" tabindex="0" aria-label="Open details for ${m.name}">
         <div class="thumb" style="background-image:url('${cover}')"></div>
         <div class="meta">
           <div class="t">${m.name}</div>
@@ -165,248 +174,253 @@ function renderMerchants(items){
   }).join('');
 }
 
-/* ---------- Filters ---------- */
+/* ----------------- Filters (client-side) ----------------- */
 function applyFilters(){
   let arr = [...allMerchants];
 
-  // Categories（OR）
   if (state.cats.size){
-    const want = new Set([...state.cats].map(s=>s.toLowerCase()));
+    const want = new Set([...state.cats].map(s => s.toLowerCase()));
     arr = arr.filter(m => want.has((m.category||'').toLowerCase()));
   }
-  // Themes（OR / 與資料的交集）
-  if (state.themes.size){
-    arr = arr.filter(m=>{
-      const t = Array.isArray(m.themes) ? m.themes : [];
-      return t.some(x => state.themes.has(String(x)));
-    });
+  if (state.open){
+    arr = arr.filter(m => isOpenNow(m));
   }
-  // Attributes（OR / 與資料的交集）
-  if (state.attrs.size){
-    // 支援 m.attributes 陣列 或 m.attributes_json 物件的 true 值
-    arr = arr.filter(m=>{
-      if (Array.isArray(m.attributes)){
-        return m.attributes.some(x => state.attrs.has(String(x)));
-      }
-      if (m.attributes_json && typeof m.attributes_json === 'object'){
-        return [...state.attrs].some(k => m.attributes_json[k] === true);
-      }
-      return false;
-    });
+  if (state.minRating != null){
+    arr = arr.filter(m => (Number(m.rating)||0) >= state.minRating);
   }
-  // Open now
-  if (state.open) arr = arr.filter(m => isOpenNow(m));
-  // Rating
-  if (state.minRating != null) arr = arr.filter(m => (Number(m.rating)||0) >= state.minRating);
-  // Price（OR）
-  if (state.prices.size){
-    arr = arr.filter(m => state.prices.has(String(priceLevelNum(m)||'')));
-  }
-  // Sort
+
   if (state.sort === 'hot'){
     arr.sort((a,b)=>{
       const ra = Number(a.rating)||0, rb = Number(b.rating)||0;
       if (rb !== ra) return rb - ra;
-      return new Date(b.updated_at||0) - new Date(a.updated_at||0);
+      const ta = new Date(a.updated_at||0).getTime();
+      const tb = new Date(b.updated_at||0).getTime();
+      return tb - ta;
     });
-  } else if (state.sort === 'rating'){
-    arr.sort((a,b)=> (Number(b.rating)||0) - (Number(a.rating)||0));
-  } else {
-    arr.sort((a,b)=> new Date(b.updated_at||0) - new Date(a.updated_at||0));
+  }else{
+    arr.sort((a,b)=>{
+      const ta = new Date(a.updated_at||0).getTime();
+      const tb = new Date(b.updated_at||0).getTime();
+      return tb - ta;
+    });
   }
 
   renderMerchants(arr);
   if (head) head.textContent = `${currentCity?.name || currentCity?.id || 'City'} — ${arr.length} places`;
-
-  renderSummaryChips(); // 更新摘要列
 }
 
-/* 摘要列 chips */
-function renderSummaryChips(){
-  const chips = [];
+function bindFilters(){
+  if (!filtersBox) return;
 
-  if (state.cats.size)   chips.push(...[...state.cats].map(v => ({k:'cat', v})));
-  if (state.themes.size) chips.push(...[...state.themes].map(v => ({k:'theme', v})));
-  if (state.attrs.size)  chips.push(...[...state.attrs].map(v => ({k:'attr', v})));
-  if (state.minRating)   chips.push({k:'rating', v: String(state.minRating)});
-  if (state.prices.size) chips.push(...[...state.prices].map(v => ({k:'price', v})));
-  if (state.open)        chips.push({k:'open', v:'Open now'});
-  if (state.sort && state.sort!=='latest') chips.push({k:'sort', v: state.sort}); // latest 略過
-
-  if (!chips.length){ summaryBox.hidden = true; summaryBox.innerHTML = ''; return; }
-  summaryBox.hidden = false;
-  summaryBox.innerHTML = chips.map(c => `
-    <button class="chip chip--pill" data-k="${c.k}" data-v="${c.v}">
-      ${c.v} <span aria-hidden="true">×</span>
-    </button>
-  `).join('');
-
-  // 移除單一條件
-  summaryBox.querySelectorAll('.chip').forEach(btn=>{
+  chipsCats.forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      const k = btn.dataset.k, v = btn.dataset.v;
-      if (k==='cat')   state.cats.delete(v);
-      if (k==='theme') state.themes.delete(v);
-      if (k==='attr')  state.attrs.delete(v);
-      if (k==='price') state.prices.delete(v);
-      if (k==='rating') state.minRating = null;
-      if (k==='open')   state.open = false;
-      if (k==='sort')   state.sort = 'latest';
-      syncQuickFromState();
-      syncDrawerFromState();
+      const cat = btn.dataset.cat;
+      const on = btn.classList.toggle('is-on');
+      btn.setAttribute('aria-pressed', on ? 'true':'false');
+      if (on) state.cats.add(cat); else state.cats.delete(cat);
+      applyFilters();
+    });
+  });
+
+  chipsQuick.forEach(btn=>{
+    if (!btn.hasAttribute('aria-pressed')){
+      btn.setAttribute('aria-pressed','false');
+    }
+    btn.addEventListener('click', ()=>{
+      const hasSort   = btn.hasAttribute('data-sort');
+      const hasOpen   = btn.hasAttribute('data-open');
+      const hasRating = btn.hasAttribute('data-rating');
+
+      if (hasSort){
+        $$('.chips--quick .chip[data-sort]', filtersBox).forEach(b=>{
+          b.classList.remove('is-on');
+          b.setAttribute('aria-pressed','false');
+        });
+        btn.classList.add('is-on');
+        btn.setAttribute('aria-pressed','true');
+        state.sort = btn.dataset.sort || 'latest';
+      } else if (hasOpen){
+        const on = btn.classList.toggle('is-on');
+        btn.setAttribute('aria-pressed', on ? 'true':'false');
+        state.open = on;
+      } else if (hasRating){
+        const on = btn.classList.toggle('is-on');
+        btn.setAttribute('aria-pressed', on ? 'true':'false');
+        state.minRating = on ? Number(btn.dataset.rating) : null;
+      }
       applyFilters();
     });
   });
 }
 
-/* 輕量列行為：latest/hot 單選；open 切換；Filter 開抽屜 */
-function bindQuick(){
-  if (!filtersBox) return;
-  quickChips.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      if (btn.dataset.sort){
-        // 單選
-        $$('.chips--quick [data-sort]', filtersBox).forEach(b=>{
-          b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
-        });
-        btn.classList.add('is-on'); btn.setAttribute('aria-pressed','true');
-        state.sort = btn.dataset.sort;
-        applyFilters();
-      } else if (btn.hasAttribute('data-open')){
-        const on = btn.getAttribute('aria-pressed') !== 'true';
-        btn.setAttribute('aria-pressed', on ? 'true':'false');
-        btn.classList.toggle('is-on', on);
-        state.open = on;
-        applyFilters();
-      } else if (btn.id === 'btnOpenFilter'){
-        openDrawer();
-      }
-    });
-  });
-}
-function syncQuickFromState(){
-  // sort
-  $$('.chips--quick [data-sort]', filtersBox).forEach(b=>{
-    const on = (b.dataset.sort === state.sort);
-    b.classList.toggle('is-on', on);
-    b.setAttribute('aria-pressed', on ? 'true':'false');
-  });
-  // open
-  const openBtn = $('.chips--quick [data-open]', filtersBox);
-  if (openBtn){
-    openBtn.classList.toggle('is-on', state.open);
-    openBtn.setAttribute('aria-pressed', state.open ? 'true':'false');
-  }
-}
-
-/* 進階抽屜：開關 / Reset / Apply / 雙向同步 */
-function openDrawer(){
-  drawer.hidden = false;
-  requestAnimationFrame(()=> drawer.classList.add('active'));
-  $('#h-advfilter')?.focus({preventScroll:true});
-  syncDrawerFromState();
-}
-function closeDrawer(){
-  drawer.classList.remove('active');
-  drawer.setAttribute('hidden','');
-}
-btnOpenDrawer?.addEventListener('click', openDrawer);
-btnClose?.addEventListener('click', closeDrawer);
-
-// toggle helper
-function toggleChip(btn, on){
-  btn.classList.toggle('is-on', on);
-  btn.setAttribute('aria-pressed', on ? 'true':'false');
-}
-
-function syncDrawerFromState(){
-  // cats
-  $$('[data-cat]', afCats).forEach(b=> toggleChip(b, state.cats.has(b.dataset.cat)));
-  // themes
-  $$('[data-theme]', afThemes).forEach(b=> toggleChip(b, state.themes.has(b.dataset.theme)));
-  // attrs
-  $$('[data-attr]', afAttrs).forEach(b=> toggleChip(b, state.attrs.has(b.dataset.attr)));
-  // open + rating + price
-  $$('[data-open]', afMore).forEach(b=> toggleChip(b, state.open));
-  $$('[data-rating]', afMore).forEach(b=> toggleChip(b, Number(b.dataset.rating) === state.minRating));
-  $$('[data-price]', afMore).forEach(b=> toggleChip(b, state.prices.has(b.dataset.price)));
-  // sort
-  $$('[data-sort]', afSort).forEach(b=> toggleChip(b, b.dataset.sort === state.sort));
-}
-
-function bindDrawer(){
-  // 多選 groups
-  [afCats, afThemes, afAttrs].forEach(box=>{
-    box?.addEventListener('click', e=>{
-      const b = e.target.closest('.chip'); if(!b) return;
-      const key = b.dataset.cat ? 'cats' : (b.dataset.theme ? 'themes' : 'attrs');
-      const val = b.dataset.cat || b.dataset.theme || b.dataset.attr;
-      const set = state[key];
-      if (set.has(val)) set.delete(val); else set.add(val);
-      toggleChip(b, set.has(val));
-    });
-  });
-  // open / rating / price
-  afMore?.addEventListener('click', e=>{
-    const b = e.target.closest('.chip'); if(!b) return;
-    if (b.dataset.open != null){
-      state.open = !state.open; toggleChip(b, state.open);
-    } else if (b.dataset.rating){
-      // 單選：rating
-      $$('[data-rating]', afMore).forEach(x=> toggleChip(x,false));
-      state.minRating = Number(b.dataset.rating);
-      toggleChip(b, true);
-    } else if (b.dataset.price){
-      const v = b.dataset.price;
-      if (state.prices.has(v)) state.prices.delete(v); else state.prices.add(v);
-      toggleChip(b, state.prices.has(v));
-    }
-  });
-  // sort（單選）
-  afSort?.addEventListener('click', e=>{
-    const b = e.target.closest('.chip'); if(!b) return;
-    if (b.dataset.sort){
-      $$('[data-sort]', afSort).forEach(x=> toggleChip(x,false));
-      state.sort = b.dataset.sort;
-      toggleChip(b, true);
-    }
-  });
-
-  // Reset / Apply
-  btnReset?.addEventListener('click', ()=>{
-    state.cats.clear(); state.themes.clear(); state.attrs.clear();
-    state.open = false; state.minRating = null; state.prices.clear();
-    state.sort = 'latest';
-    syncDrawerFromState(); syncQuickFromState();
-  });
-  btnApply?.addEventListener('click', ()=>{
-    syncQuickFromState();
-    applyFilters();
-    closeDrawer();
-  });
-}
-
-/* ---------- City switching ---------- */
+/* ----------------- City switching ----------------- */
 function selectCity(id, cityObj){
   currentCity = cityObj || { id };
-  $$('.citycell', wall).forEach(b=> b.setAttribute('aria-selected', b.dataset.id === id ? 'true':'false'));
+
+  $$('.citycell', wall).forEach(b=>{
+    const on = b.dataset.id === id;
+    b.setAttribute('aria-selected', on ? 'true':'false');
+  });
+
   head && (head.textContent = `${currentCity.name || id} — loading…`);
-  sk.hidden = false; list.hidden = true; empty.hidden = true; errBx.hidden = true;
+  sk.hidden = false; list.hidden = true;
+  empty.hidden = true; errBx.hidden = true;
 
   fetchMerchants(id).then(res=>{
     sk.hidden = true;
-    if (!res.ok){ errBx.hidden = false; list.hidden = true; head && (head.textContent = `${currentCity.name || id}`); return; }
+
+    if (!res.ok){
+      errBx.hidden = false;
+      list.hidden = true;
+      head && (head.textContent = `${currentCity.name || id}`);
+      return;
+    }
 
     allMerchants = res.data || [];
     list.hidden = false;
 
-    // 切城市時，保留使用者的條件，但把 sort 至少同步到輕量列
-    syncQuickFromState();
+    // 重置排序為 latest
+    state.sort = 'latest';
+    $$('.chips--quick .chip[data-sort]', filtersBox).forEach(b=>{
+      const on = (b.dataset.sort === 'latest');
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+
     applyFilters();
   });
 }
 
-/* ---------- Bootstrap ---------- */
+/* ----------------- Detail Drawer (data-filled) ----------------- */
+// IDs/結構對上我先前給你的骨架
+const md  = $('#mdBackdrop');
+const mdClose = $('#mdClose');
+
+function openDrawer(){ if (md){ md.hidden = false; md.classList.add('active'); } }
+function closeDrawer(){ if (md){ md.classList.remove('active'); md.hidden = true; } }
+
+function setAction(el, href){
+  if (!el) return;
+  if (href){
+    el.href = href; el.removeAttribute('aria-disabled'); el.classList.remove('is-disabled');
+  }else{
+    el.removeAttribute('href'); el.setAttribute('aria-disabled','true'); el.classList.add('is-disabled');
+  }
+}
+
+function fillDetail(m){
+  // 主視覺 / 標題區
+  $('#mdTitle').textContent = m.name || 'Untitled';
+  $('#mdCategory').textContent = m.category || '';
+  $('#mdRating').textContent = (m.rating!=null) ? `★ ${Number(m.rating).toFixed(1)}` : '';
+  const open = isOpenNow(m);
+  $('#mdOpen').textContent = open ? 'Open now' : 'Closed';
+
+  // 價格
+  const p = priceLevelNum(m);
+  $('#mdPrice').textContent = p ? '💲'.repeat(Math.max(1, Math.min(4, p))) : '';
+
+  // 地址（若沒有就提示）
+  const addrEl = $('#mdAddress');
+  if (m.address) { addrEl.textContent = m.address; addrEl.classList.remove('muted'); }
+  else { addrEl.textContent = 'No address yet'; addrEl.classList.add('muted'); }
+
+  // 描述 / 營業時間
+  $('#mdDesc').textContent  = m.description || '';
+  $('#mdHours').textContent = (() => {
+    if (m.open_hours && typeof m.open_hours === 'object') return 'See daily schedule';
+    return m.openHours || '';
+  })();
+
+  // Tags（支援字串陣列或以逗號分隔）
+  const tagsWrap = $('#mdBadges');
+  if (tagsWrap){
+    tagsWrap.innerHTML = '';
+    const tags = Array.isArray(m.tagIds) ? m.tagIds
+               : Array.isArray(m.tags) ? m.tags
+               : (typeof m.tags === 'string' ? m.tags.split(',').map(s=>s.trim()).filter(Boolean) : []);
+    tags.slice(0,8).forEach(t=>{
+      const s = document.createElement('span');
+      s.className = 'badge';
+      s.textContent = `#${t}`;
+      tagsWrap.appendChild(s);
+    });
+  }
+
+  // 動作按鈕
+  setAction($('#mdPhone'),   m.phone    ? `tel:${m.phone.replace(/\s+/g,'')}` : null);
+  setAction($('#mdWA'),      m.whatsapp ? `https://wa.me/${m.whatsapp.replace(/\D+/g,'')}` : null);
+  setAction($('#mdWeb'),     m.website  ? m.website : null);
+
+  // Map：lat/lng 優先，其次用地址
+  let mapHref = null;
+  if (m.lat!=null && m.lng!=null){
+    mapHref = `https://www.google.com/maps?q=${m.lat},${m.lng}`;
+  } else if (m.location && m.location.lat!=null && m.location.lng!=null){
+    mapHref = `https://www.google.com/maps?q=${m.location.lat},${m.location.lng}`;
+  } else if (m.address){
+    mapHref = `https://www.google.com/maps?q=${encodeURIComponent(m.address)}`;
+  }
+  setAction($('#mdMap'), mapHref);
+
+  // 分享（簡單版）
+  $('#mdShare')?.addEventListener('click', async ()=>{
+    const shareData = {
+      title: m.name,
+      text: `${m.name} — ${m.category||''}`,
+      url: location.href
+    };
+    try{ if (navigator.share) await navigator.share(shareData); else await navigator.clipboard.writeText(`${m.name}\n${location.href}`); }catch{}
+  }, { once:true });
+
+  // 主圖（可用 cover 或 images[0]）
+  const gallery = $('#modalGallery');
+  if (gallery){
+    const cover = m.cover || (m.images?.[0]) || '';
+    gallery.innerHTML = cover ? `<div class="gimg" style="background-image:url('${cover}')"></div>` : `<div class="gimg placeholder"></div>`;
+  }
+}
+
+async function openDetailById(id){
+  try{
+    openDrawer();
+    // 顯示骨架（用你的 CSS/結構）
+    md.classList.add('loading');
+
+    const m = await fetchMerchantById(id);
+
+    fillDetail(m);
+
+    // 推薦（同城同類別）
+    try{
+      const related = await fetchRelated({ city_id:m.city_id, category:m.category, exceptId:m.id, limit:6 });
+      const rec = $('#recList');
+      if (rec){
+        rec.innerHTML = related.map(r => `
+          <a class="rec" data-id="${r.id}" role="button" tabindex="0" aria-label="Open ${r.name}">
+            <div class="rthumb" style="background-image:url('${r.cover||''}')"></div>
+            <div class="rname">${r.name}</div>
+          </a>
+        `).join('');
+        // 讓推薦可再次開啟詳情
+        rec.addEventListener('click', (e)=>{
+          const a = e.target.closest('.rec'); if (!a) return;
+          openDetailById(a.dataset.id);
+        });
+      }
+    }catch(e){ /* 靜默略過推薦錯誤 */ }
+
+  }catch(err){
+    console.error('openDetailById error:', err);
+    // 在抽屜內顯示簡單錯誤
+    $('#mdTitle').textContent = 'Failed to load';
+    $('#mdDesc').textContent = 'Please check your connection and try again.';
+  }finally{
+    md.classList.remove('loading');
+  }
+}
+
+/* ----------------- Bootstrap ----------------- */
 (async function init(){
   if (!wall) return;
 
@@ -414,14 +428,14 @@ function selectCity(id, cityObj){
     if (currentCity?.id) selectCity(currentCity.id, currentCity);
   });
 
-  bindQuick();
-  bindDrawer();
+  bindFilters();
 
   const cities = await loadCities();
   renderWall(cities);
 
   wall.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.citycell'); if(!btn) return;
+    const btn = e.target.closest('.citycell');
+    if (!btn) return;
     const city = cities.find(c => c.id === btn.dataset.id) || { id: btn.dataset.id };
     selectCity(btn.dataset.id, city);
   });
@@ -432,75 +446,29 @@ function selectCity(id, cityObj){
     if (e.key === 'ArrowLeft'){  e.preventDefault(); const p = cells[Math.max(cur-1, 0)];             p?.focus(); p?.click(); }
   });
 
-  // 預設選第一個
   const first = wall.querySelector('.citycell');
   if (first){
     const c = cities.find(x=>x.id === first.dataset.id) || { id:first.dataset.id };
     selectCity(first.dataset.id, c);
   }
-})();
 
-// === Merchant Detail: open/close (skeleton only + basic hydrate) ===
-(() => {
-  const detail = document.getElementById('merchantDetail');
-  if (!detail) return;
-
-  const btnClose = detail.querySelector('.md-close');
-  const btnBack  = detail.querySelector('.md-back');
-  const titleEl  = detail.querySelector('#md-title');
-
-  function lockScroll(on){ document.body.classList.toggle('no-scroll', !!on); }
-
-  // 暫時從目前的 allMerchants 找資料（之後可改成 re-fetch by id）
-  function getMerchantById(id){
-    return (typeof allMerchants !== 'undefined')
-      ? allMerchants.find(m => m.id === id)
-      : null;
-  }
-
-  // 開啟詳情（先顯示骨架，不填內容）
-  function openDetail(id){
-    if (!detail) return;
-    // 骨架狀態：把所有 sk-* 先顯示（目前骨架版本來就顯示）
-    titleEl.textContent = ''; // 骨架線條會頂替
-
-    detail.hidden = false;
-    lockScroll(true);
-
-    // 先用目前列表資料「簡單帶入幾項」，其餘維持骨架
-    const m = getMerchantById(id);
-    if (m){
-      // 只填「標題」讓使用者有目標感，其他區塊保持骨架
-      titleEl.textContent = m.name || '';
-      // 也可以順便把第一張圖塞進第一格骨架，讓骨架更像
-      const g = detail.querySelector('.md-gallery .md-photo');
-      if (g && m.cover) g.style.background = `center/cover no-repeat url("${m.cover}")`;
-    }
-
-    // TODO：未來這裡接詳細 API，完成後把 skeleton 卸下、填滿面板
-  }
-
-  function closeDetail(){
-    if (!detail) return;
-    detail.hidden = true;
-    lockScroll(false);
-
-    // 清回骨架外觀（避免上次殘留的封面）
-    detail.querySelectorAll('.md-photo').forEach(p => {
-      p.style.background = ''; // 還原骨架底色
-    });
-    titleEl.textContent = '';
-  }
-
-  btnClose?.addEventListener('click', closeDetail);
-  btnBack?.addEventListener('click', closeDetail);
-  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !detail.hidden) closeDetail(); });
-
-  // 列表事件代理：點到 .merchant-list .item 就打開
-  document.addEventListener('click', (e)=>{
-    const it = e.target.closest('.merchant-list .item');
-    if (!it) return;
-    const id = it.dataset.id;
-    if (id) openDetail(id);
+  // 綁定列表→開詳情
+  list.addEventListener('click', (e)=>{
+    const card = e.target.closest('.item');
+    if (!card) return;
+    const id = card.dataset.id;
+    if (id) openDetailById(id);
   });
+  list.addEventListener('keydown', (e)=>{
+    if (e.key !== 'Enter') return;
+    const card = e.target.closest('.item');
+    if (!card) return;
+    const id = card.dataset.id;
+    if (id) openDetailById(id);
+  });
+
+  // 抽屜關閉
+  mdClose?.addEventListener('click', closeDrawer);
+  md?.addEventListener('click', (e)=>{ if (e.target === md) closeDrawer(); });
+  window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeDrawer(); });
 })();
