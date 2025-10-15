@@ -35,36 +35,66 @@
 <section data-page="explore" aria-labelledby="h-explore" class="section" hidden>
   <h1 id="h-explore" data-focusable-heading>Explore</h1>
 
-  <!-- 城市牆 -->
+  <!-- 城市牆：固定 4 x 3 -->
   <div class="citywall" role="tablist" aria-label="Cities" id="cityWall">
-    <!-- JS 會覆蓋；保留一顆避免 noscript 空白 -->
+    <!-- 由 JS 注入 -->
     <button class="citycell" role="tab" aria-selected="true">
       <span class="ico">🏛️</span>
       <span class="name">Kuching</span>
-      <span class="count">128</span>
+      <span class="count">0</span>
     </button>
   </div>
 
-  <!-- 清單區：標題 + 狀態 -->
-  <div class="cityresults" id="cityResults">
-    <div class="result-head" id="resultHead">Pick a city above</div>
-
-    <!-- 骨架 -->
-    <div class="skeleton-list" id="skList" hidden>
-      <div class="sk-row"></div><div class="sk-row"></div><div class="sk-row"></div>
-      <div class="sk-row"></div><div class="sk-row"></div><div class="sk-row"></div>
+  <!-- 輕量篩選列 -->
+  <div class="filters" id="expFilters" aria-label="Filters">
+    <!-- 主分類（多選） -->
+    <div class="chips chips--cats" role="group" aria-label="Categories">
+      <button class="chip" data-cat="Taste">🍽️ <span>Taste</span></button>
+      <button class="chip" data-cat="Nature">🏖️ <span>Nature</span></button>
+      <button class="chip" data-cat="Culture">🏛️ <span>Culture</span></button>
+      <button class="chip" data-cat="Stay">🏠 <span>Stay</span></button>
+      <button class="chip" data-cat="Local">🛍️ <span>Local</span></button>
+      <button class="chip" data-cat="Experience">💡 <span>Experience</span></button>
     </div>
 
-    <!-- 空狀態（與 JS 對齊） -->
-    <div class="inline-empty" id="emptyMsg" hidden>No places yet.</div>
-
-    <!-- 錯誤狀態（與 JS 對齊） -->
-    <div class="inline-error" id="errorMsg" hidden>Failed to load. Please try again.</div>
-
-    <!-- 實際清單 -->
-    <div class="merchant-list" id="merchantList" hidden></div>
+    <!-- 快速條件（單顆切換） -->
+    <div class="chips chips--quick" role="group" aria-label="Quick filters">
+      <button class="chip" data-sort="latest" aria-pressed="true">⏱️ <span>Latest</span></button>
+      <button class="chip" data-sort="hot">🔥 <span>Hot</span></button>
+      <button class="chip" data-open="true">🟢 <span>Open now</span></button>
+      <button class="chip" data-rating="4.5">⭐ <span>4.5+</span></button>
+      <button class="chip chip--primary" id="btnOpenFilter">🎯 <span>Filter</span></button>
+    </div>
   </div>
+
+  <!-- 這個是給 explore.js 用的狀態字串（隱藏即可） -->
+  <div id="resultHead" class="sr-only">Pick a city above</div>
+
+  <!-- 骨架 -->
+  <div class="skeleton-list" id="skList" hidden>
+    <div class="sk-row"></div><div class="sk-row"></div><div class="sk-row"></div>
+    <div class="sk-row"></div><div class="sk-row"></div><div class="sk-row"></div>
+  </div>
+
+  <!-- 空狀態 -->
+  <div class="empty-state" id="emptyState" hidden>
+    <div class="empty-emoji">🫙</div>
+    <div class="empty-title">No places yet</div>
+    <div class="empty-sub">Try another city or check back later.</div>
+  </div>
+
+  <!-- 錯誤狀態 -->
+  <div class="error-state" id="errorState" hidden role="alert">
+    <div class="err-emoji">😵</div>
+    <div class="err-title">Failed to load</div>
+    <div class="err-sub">Please check your connection and try again.</div>
+    <button class="err-retry" id="btnRetry">Retry</button>
+  </div>
+
+  <!-- 實際清單 -->
+  <div class="merchant-list" id="merchantList" hidden></div>
 </section>
+
 
 
     <!-- Map -->
@@ -317,6 +347,7 @@
   <script type="module" src="js/explore.js"></script>
 </body>
 </html>
+
 
 
 
