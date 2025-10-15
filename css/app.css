@@ -790,3 +790,97 @@ select{ appearance: none; padding-right: 28px }
   font-size:14px;font-weight:500;cursor:pointer;
 }
 .qchip.is-on { background:#111;color:#fff; }
+
+/* ===== Filter Overlay (Drawer) ===== */
+.filter-overlay[hidden]{ display:none !important; }
+.filter-overlay{
+  position: fixed; inset: 0; z-index: 1300;
+  background: color-mix(in srgb, rgba(0,0,0,.35) 100%, transparent);
+  display: grid; place-items: end center;
+  padding: 12px;
+}
+
+.filter-panel{
+  width: min(720px, 100%);
+  background: color-mix(in srgb, #ffffff 92%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  backdrop-filter: blur(18px) saturate(130%);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.25);
+  transform: translateY(14px);
+  opacity: 0;
+  transition: transform .22s ease, opacity .22s ease;
+  display: grid; grid-template-rows: auto 1fr auto;
+  max-height: 82dvh;
+  overflow: hidden;
+}
+.filter-overlay.show .filter-panel{
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.filter-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 12px 14px; border-bottom: 1px solid rgba(0,0,0,.06);
+}
+.filter-head h2{ margin:0; font-size:16px; font-weight:800; letter-spacing:.2px; }
+.filter-head .close{
+  appearance:none; border:0; background:transparent; cursor:pointer;
+  font-size:20px; line-height:1; padding:6px;
+}
+
+.filter-body{
+  overflow:auto; padding: 10px 12px;
+  display: grid; gap: 14px;
+}
+.filter-group .fg-title{
+  font-size:12px; font-weight:800; letter-spacing:.12em; color:#7b8794;
+  margin: 0 0 6px 4px; text-transform:uppercase;
+}
+
+/* 共用 chips */
+.filter-body .chips{ display:flex; flex-wrap:wrap; gap:8px; }
+.filter-body .chip{
+  appearance:none; border:1px solid rgba(0,0,0,.08);
+  background: #fff; border-radius:999px; padding:8px 12px; cursor:pointer;
+  font-weight:700;
+}
+.filter-body .chip[aria-pressed="true"],
+.filter-body .chip.is-on{
+  background: color-mix(in srgb, #2E5E4E 15%, #fff 85%);
+  border-color: rgba(46,94,78,.35);
+  box-shadow: 0 4px 12px rgba(46,94,78,.18) inset;
+}
+
+/* footer */
+.filter-foot{
+  display:flex; gap:10px; justify-content:space-between; align-items:center;
+  padding: 12px; border-top:1px solid rgba(0,0,0,.06);
+}
+.filter-foot .btn{
+  appearance:none; border-radius:12px; padding:10px 14px;
+  font-weight:800; cursor:pointer; border:1px solid transparent;
+}
+.filter-foot .btn-ghost{
+  background: transparent; border-color: rgba(0,0,0,.12);
+}
+.filter-foot .btn-primary{
+  background: #2E5E4E; color:#fff; border-color: #2E5E4E;
+}
+
+/* 暗色 */
+@media (prefers-color-scheme: dark){
+  .filter-overlay{ background: color-mix(in srgb, rgba(0,0,0,.55) 100%, transparent); }
+  .filter-panel{
+    background: color-mix(in srgb, #0b0f12 78%, transparent);
+    border-color: rgba(255,255,255,.08);
+  }
+  .filter-head{ border-bottom-color: rgba(255,255,255,.08); }
+  .filter-foot{ border-top-color: rgba(255,255,255,.08); }
+  .filter-body .chip{ background: color-mix(in srgb, #fff 8%, transparent); border-color: rgba(255,255,255,.12); color:#eef2f6; }
+  .filter-body .chip[aria-pressed="true"], .filter-body .chip.is-on{
+    background: color-mix(in srgb, #2E5E4E 28%, #0b0f12 72%);
+    border-color: rgba(255,255,255,.18);
+  }
+}
