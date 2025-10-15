@@ -394,90 +394,60 @@
     </section>
   </main>
   
-  <!-- Merchant Detail — Overlay (Skeleton Only) -->
-<section id="merchantDetail" class="overlay-page md" hidden aria-labelledby="md-title" aria-modal="true" role="dialog">
-  <!-- 頂部：返回 / 分享 / 收藏 -->
-  <header class="md-appbar">
-    <button class="icon-btn md-back" aria-label="Back">←</button>
-    <h1 id="md-title" class="md-title sk-line" aria-hidden="true" style="width:48%"></h1>
-    <div class="md-actions">
-      <button class="icon-btn" aria-label="Share">🔗</button>
-      <button class="icon-btn" aria-label="Favorite">♡</button>
-      <button class="icon-btn md-close" aria-label="Close">✕</button>
-    </div>
-  </header>
+<!-- ===== Detail Drawer (Merchant) ===== -->
+<div id="mdBackdrop" class="modal-backdrop" hidden aria-hidden="true">
+  <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="mdTitle">
+    <button id="mdClose" class="modal-close" aria-label="Close">✕</button>
 
-  <!-- 內容卷軸 -->
-  <div class="md-scroll">
-    <!-- 圖片群（骨架） -->
-    <div class="md-gallery">
-      <div class="md-photo sk-block"></div>
-      <div class="md-photo sk-block"></div>
-      <div class="md-photo sk-block"></div>
+    <!-- 主圖 / 圖庫 -->
+    <div id="modalGallery" class="modal-gallery">
+      <div class="gimg placeholder"></div>
     </div>
 
-    <!-- 標題 + 次行 + 徽章 -->
-    <section class="md-hero">
-      <div class="md-name sk-line" aria-hidden="true" style="width:72%"></div>
-      <div class="md-sub sk-line" aria-hidden="true" style="width:46%"></div>
-      <div class="md-badges">
-        <span class="sk-pill" aria-hidden="true" style="width:84px"></span>
-        <span class="sk-pill" aria-hidden="true" style="width:62px"></span>
-        <span class="sk-pill" aria-hidden="true" style="width:54px"></span>
+    <div class="modal-body">
+      <!-- 標題區 -->
+      <h2 id="mdTitle">Loading…</h2>
+      <div class="place-meta">
+        <span id="mdCategory" class="meta"></span>
+        <span id="mdRating" class="meta"></span>
+        <span id="mdOpen"    class="meta"></span>
+        <span id="mdPrice"   class="meta"></span>
       </div>
-    </section>
 
-    <!-- 快捷動作列 -->
-    <div class="md-quick">
-      <button class="btn ghost" disabled>📞 Call</button>
-      <button class="btn ghost" disabled>💬 WhatsApp</button>
-      <button class="btn ghost" disabled>🖥️ Website</button>
-      <button class="btn ghost" disabled>🗺️ Map</button>
-    </div>
+      <!-- 標籤 -->
+      <div id="mdBadges" class="badges"></div>
 
-    <!-- 描述 -->
-    <section class="md-card">
-      <div class="md-card-title">About</div>
-      <div class="sk-line" style="width:100%"></div>
-      <div class="sk-line" style="width:92%"></div>
-      <div class="sk-line" style="width:86%"></div>
-    </section>
-
-    <!-- 開放時間 -->
-    <section class="md-card">
-      <div class="md-card-title">Hours</div>
-      <div class="sk-line" style="width:60%"></div>
-      <div class="sk-line" style="width:56%"></div>
-      <div class="sk-line" style="width:64%"></div>
-    </section>
-
-    <!-- 位址 / 聯絡 -->
-    <section class="md-card">
-      <div class="md-card-title">Info</div>
-      <div class="sk-line" style="width:70%"></div>
-      <div class="sk-line" style="width:40%"></div>
-    </section>
-
-    <!-- 地圖 placeholder -->
-    <section class="md-card">
-      <div class="md-card-title">Location</div>
-      <div class="md-map sk-block"></div>
-    </section>
-
-    <!-- 相關推薦 -->
-    <section class="md-card">
-      <div class="md-card-title">You may also like</div>
-      <div class="md-reco">
-        <div class="md-reco-card sk-block"></div>
-        <div class="md-reco-card sk-block"></div>
-        <div class="md-reco-card sk-block"></div>
+      <!-- 文字資訊 -->
+      <div class="place-info">
+        <div class="info-row">
+          <strong>Address</strong>
+          <div id="mdAddress" class="muted">No address yet</div>
+        </div>
+        <div class="info-row">
+          <strong>Hours</strong>
+          <div id="mdHours" class="muted">—</div>
+        </div>
       </div>
-    </section>
 
-    <!-- 底部安全區 -->
-    <div class="md-safe"></div>
+      <p id="mdDesc" class="place-desc"></p>
+
+      <!-- 動作列 -->
+      <div class="action-row">
+        <a id="mdPhone" class="btn action" aria-disabled="true">📞 <span>Call</span></a>
+        <a id="mdWA"    class="btn action" aria-disabled="true">💬 <span>WhatsApp</span></a>
+        <a id="mdWeb"   class="btn action" aria-disabled="true">🖥️ <span>Website</span></a>
+        <a id="mdMap"   class="btn action" aria-disabled="true">🗺️ <span>Map</span></a>
+        <button id="mdShare" class="btn action">🔗 <span>Share</span></button>
+      </div>
+
+      <!-- 推薦 -->
+      <div class="recommend">
+        <h3 class="rec-title">Recommended nearby</h3>
+        <div id="recList" class="rec-list"></div>
+      </div>
+    </div>
   </div>
-</section>
+</div>
 
   <!-- 底部導覽：由 partial 注入 -->
   <div data-include="partials/tabbar.html"></div>
