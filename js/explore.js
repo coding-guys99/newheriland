@@ -111,7 +111,6 @@ async function fetchRelated({city_id, category, exceptId, limit=6}={}){
     .order('updated_at',{ascending:false})
     .limit(limit);
   if (error) throw error;
-  // 若沒同類別，退而求其次：直接最新
   if (!data?.length || !category) return data || [];
   const sameCat = data.filter(x => (x.category||'').toLowerCase() === (category||'').toLowerCase());
   return sameCat.length ? sameCat : data;
@@ -291,9 +290,9 @@ function selectCity(id, cityObj){
   });
 }
 
-// ---- Detail Drawer refs ----
-const md  = document.getElementById('mdBackdrop');
-const mdClose = document.getElementById('mdClose');
+/* ----------------- Detail Drawer ----------------- */
+const md       = document.getElementById('mdBackdrop');
+const mdClose  = document.getElementById('mdClose');
 
 function openDrawer(){
   if (!md) return;
@@ -318,10 +317,107 @@ function setAction(el, href){
   }
 }
 
-async function openDetailById(id){
-  // 若還沒放抽屜 HTML，避免報錯
-  if (!md){ console.warn('Detail drawer HTML (#mdBackdrop) not found.'); return; }
+function fillDetail(m){
+  const t = document.getElementById('mdTitle');
+  if (t) t.textContent = m.name || 'Untitled';
 
+  const cat = document.getElementById('mdCategory');
+  if (cat) cat.textContent = m.category || '';
+
+  const rate = document.getElementById('mdRating');
+  if (rate) rate.textContent = (m.rating != null) ? `★ ${Number(m.rating).toFixed(1)}` : '';
+
+  const openNow = isOpenNow(m);
+  const openEl = document.getElementById('mdOpen');
+  if (openEl) openEl.textContent = openNow ? 'Open now' : 'Closed';
+
+  const priceEl = document.getElementById('mdPrice');
+  const p = priceLevelNum(m);
+  if (priceEl) priceEl.textContent = p ? '💲'.repeat(Math.max(1, Math.min(4, p))) : '';
+
+  const addrEl = document.getElementById('mdAddress');
+  if (addrEl){
+    if (m.address){
+      addrEl.textContent = m.address;
+      addrEl.classList.remove('muted');
+    } else {
+      addrEl.textContent = 'No address yet';
+      addrEl.classList.add('muted');
+    }
+  }
+
+  const descEl = document.getElementById('mdDesc');
+  if (descEl) descEl.textContent = m.description || '';
+
+  const hoursEl = document.getElementById('mdHours');
+  if (hoursEl){
+    if (m.open_hours && typeof m.open_hours === 'object'){
+      hoursEl.textContent = 'See daily schedule';
+    } else {
+      hoursEl.textContent = m.openHours || '';
+    }
+  }
+
+  const tagsWrap = document.getElementById('mdBadges');
+  if (tagsWrap){
+    tagsWrap.innerHTML = '';
+    const tags = Array.isArray(m.tagIds)
+      ? m.tagIds
+      : Array.isArray(m.tags)
+      ? m.tags
+      : (typeof m.tags === 'string'
+        ? m.tags.split(',').map(s => s.trim()).filter(Boolean)
+        : []);
+    tags.slice(0,8).forEach(tg => {
+      const s = document.createElement('span');
+      s.className = 'badge';
+      s.textContent = `#${tg}`;
+      tagsWrap.appendChild(s);
+    });
+  }
+
+  // actions
+  setAction(document.getElementById('mdPhone'),
+    m.phone ? `tel:${m.phone.replace(/\s+/g,'')}` : null);
+  setAction(document.getElementById('mdWA'),
+    m.whatsapp ? `https://wa.me/${m.whatsapp.replace(/\D+/g,'')}` : null);
+  setAction(document.getElementById('mdWeb'), m.website || null);
+
+  let mapHref = null;
+  if (m.lat != null && m.lng != null)
+    mapHref = `https://www.google.com/maps?q=${m.lat},${m.lng}`;
+  else if (m.location && m.location.lat != null)
+    mapHref = `https://www.google.com/maps?q=${m.location.lat},${m.location.lng}`;
+  else if (m.address)
+    mapHref = `https://www.google.com/maps?q=${encodeURIComponent(m.address)}`;
+  setAction(document.getElementById('mdMap'), mapHref);
+
+  const shareBtn = document.getElementById('mdShare');
+  if (shareBtn){
+    shareBtn.onclick = async ()=>{
+      const shareData = {
+        title: m.name,
+        text: `${m.name} — ${m.category||''}`,
+        url: location.href
+      };
+      try{
+        if (navigator.share) await navigator.share(shareData);
+        else await navigator.clipboard.writeText(`${m.name}\n${location.href}`);
+      }catch{}
+    };
+  }
+
+  const gallery = document.getElementById('modalGallery');
+  if (gallery){
+    const cover = m.cover || (m.images?.[0]) || '';
+    gallery.innerHTML = cover
+      ? `<div class="gimg" style="background-image:url('${cover}')"></div>`
+      : `<div class="gimg placeholder"></div>`;
+  }
+}
+
+async function openDetailById(id){
+  if (!md){ console.warn('Detail drawer HTML (#mdBackdrop) not found.'); return; }
   try{
     openDrawer();
     md.classList.add('loading');
@@ -341,19 +437,27 @@ async function openDetailById(id){
             <div class="rname">${r.name}</div>
           </a>
         `).join('');
-        rec.addEventListener('click', (e)=>{
+        // 覆蓋式綁定避免重複疊加
+        rec.onclick = (e)=>{
           const a = e.target.closest('.rec'); if (!a) return;
           openDetailById(a.dataset.id);
-        });
+        };
+        rec.onkeydown = (e)=>{
+          if (e.key !== 'Enter') return;
+          const a = e.target.closest('.rec'); if (!a) return;
+          openDetailById(a.dataset.id);
+        };
       }
     }catch(e){ /* ignore */ }
 
   }catch(err){
     console.error('openDetailById error:', err);
-    document.getElementById('mdTitle')?.textContent = 'Failed to load';
-    document.getElementById('mdDesc')?.textContent = 'Please check your connection and try again.';
+    const tt = document.getElementById('mdTitle');
+    const dd = document.getElementById('mdDesc');
+    if (tt) tt.textContent = 'Failed to load';
+    if (dd) dd.textContent = 'Please check your connection and try again.';
   }finally{
-    md?.classList.remove('loading');
+    if (md) md.classList.remove('loading');
   }
 }
 
@@ -408,6 +512,4 @@ window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeDrawer();
     const id = card.dataset.id;
     if (id) openDetailById(id);
   });
-
-  
 })();
