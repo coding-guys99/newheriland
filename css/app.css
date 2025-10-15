@@ -399,6 +399,7 @@ main { min-height: calc(100dvh - 88px); }
     background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
     border-color: rgba(255,255,255,.10); color:#eef2f6;
   }
+
 }
 
 /* ===== Explore: City Wall (4x3) ===== */
@@ -651,3 +652,12 @@ select{ appearance: none; padding-right: 28px }
   .uploader{ background: color-mix(in srgb, #0b0f12 70%, transparent); border-color: rgba(255,255,255,.16) }
   .btn.ghost{ background: color-mix(in srgb, #0b0f12 74%, transparent); color:#f5f5f5 }
 }
+
+/* 通用：任何 hidden 都強制隱藏 */
+[hidden] { display: none !important; }
+
+/*（可選）明確列出幾個容器，防止被其他樣式覆蓋 */
+.skeleton-list[hidden],
+.merchant-list[hidden],
+#emptyState[hidden],
+#errorState[hidden] { display: none !important; }
