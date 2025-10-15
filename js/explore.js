@@ -251,4 +251,75 @@ navigator.geolocation?.getCurrentPosition(
 })();
 
 
+// ===== Explore: Filters UI (UI-only) =====
+(() => {
+  const host = document.getElementById('expFilters');
+  if (!host) return;
+
+  // 主分類：多選（切換 .is-on）
+  const catsWrap = host.querySelector('.chips--cats');
+  catsWrap?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.chip[data-cat]');
+    if (!btn) return;
+    btn.classList.toggle('is-on');
+    emit();
+  });
+
+  // 快速條件：
+  // - data-sort：彼此互斥，aria-pressed true/false
+  // - data-open / data-rating：獨立切換
+  const quickWrap = host.querySelector('.chips--quick');
+
+  // sort 互斥
+  function toggleSort(target) {
+    quickWrap.querySelectorAll('.chip[data-sort]').forEach(b=>{
+      b.setAttribute('aria-pressed', b === target ? 'true' : 'false');
+    });
+  }
+
+  quickWrap?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.chip');
+    if (!btn) return;
+
+    if (btn.hasAttribute('data-sort')) {
+      toggleSort(btn);
+    } else if (btn.hasAttribute('data-open')) {
+      const on = btn.getAttribute('aria-pressed') === 'true';
+      btn.setAttribute('aria-pressed', on ? 'false' : 'true');
+    } else if (btn.hasAttribute('data-rating')) {
+      btn.classList.toggle('is-on');
+    } else if (btn.id === 'btnOpenFilter') {
+      // 之後你要做底部抽屜可在這裡打開
+      // openFilterDrawer();
+    }
+    emit();
+  });
+
+  // 將目前 UI 狀態轉成一個乾淨的物件，廣播出去（之後接查詢用）
+  function getState(){
+    const cats = Array.from(catsWrap?.querySelectorAll('.chip.is-on[data-cat]') || [])
+      .map(b => b.dataset.cat);
+
+    const sortBtn = quickWrap?.querySelector('.chip[data-sort][aria-pressed="true"]');
+    const sort = sortBtn?.dataset.sort || 'latest';
+
+    const openNow = (quickWrap?.querySelector('.chip[data-open][aria-pressed="true"]') != null);
+
+    const ratingOn = quickWrap?.querySelector('.chip.is-on[data-rating]');
+    const minRating = ratingOn ? Number(ratingOn.dataset.rating) : null;
+
+    return { categories: cats, sort, openNow, minRating };
+  }
+
+  function emit(){
+    const detail = getState();
+    window.dispatchEvent(new CustomEvent('explore:filters-change', { detail }));
+    // 先觀察用
+    console.log('[filters]', detail);
+  }
+
+  // 初始同步一次
+  emit();
+})();
+
 
