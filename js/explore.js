@@ -49,39 +49,37 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   let __CURRENT_CITY = null;
 
   async function fetchMerchantsServer(cityId, filters) {
-    // 若勾了 openNow，查 view（有 open_now 欄）；否則查原表
-    const table = filters.openNow ? 'merchants_view' : 'merchants';
+  // 勾了 Open now → 查 view（有 open_now 欄）；否則查基表
+  const useView = !!filters.openNow;
+  const table   = useView ? 'merchants_view' : 'merchants';
 
-    let q = supabase
-      .from(table)
-      .select('id,name,category,address,cover,updated_at,rating,open_now,city_id,open_hours')
-      .eq('city_id', cityId)
-      .eq('status', 'active');
+  // 兩種 select 欄位不同：基表沒有 open_now！
+  const baseFields = 'id,name,category,address,cover,updated_at,rating,city_id,open_hours';
+  const viewFields = baseFields + ',open_now';
 
-    if (filters.categories?.length) {
-      q = q.in('category', filters.categories);
-    }
-    if (typeof filters.minRating === 'number') {
-      q = q.gte('rating', filters.minRating);
-    }
-    if (filters.openNow) {
-      q = q.eq('open_now', true);            // 只在 view 有效
-    }
+  let q = supabase
+    .from(table)
+    .select(useView ? viewFields : baseFields)  // ← 這裡改成條件欄位
+    .eq('city_id', cityId)
+    .eq('status', 'active');
 
-    // 排序：latest / hot
-    if (filters.sort === 'hot') {
-      q = q.order('rating', { ascending: false }).order('updated_at', { ascending:false });
-    } else {
-      q = q.order('updated_at', { ascending: false });
-    }
+  if (filters.categories?.length) q = q.in('category', filters.categories);
+  if (typeof filters.minRating === 'number') q = q.gte('rating', filters.minRating);
+  if (filters.openNow) q = q.eq('open_now', true); // 只有 view 才有
 
-    // 你可以依需求 .limit(n)
-    q = q.limit(50);
-
-    const { data, error } = await q;
-    if (error) throw error;
-    return data || [];
+  // 排序
+  if (filters.sort === 'hot') {
+    q = q.order('rating', { ascending: false }).order('updated_at', { ascending: false });
+  } else {
+    q = q.order('updated_at', { ascending: false });
   }
+
+  q = q.limit(50);
+
+  const { data, error } = await q;
+  if (error) throw error;
+  return data || [];
+}
 
   function renderMerchants(items) {
     if (!items.length) {
