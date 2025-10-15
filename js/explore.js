@@ -81,13 +81,16 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   // 讀 merchants（Supabase）
 async function fetchMerchants(cityId, {limit = 20} = {}) {
   try {
-    const { data, error } = await supabase
-      .from('merchants')
-      .select('id,name,category,address,cover,updated_at,city_id')
-      .eq('city_id', cityId)
-      .eq('status', 'active')              // 若你表有 status 欄
-      .order('updated_at', { ascending: false })
-      .limit(limit);
+    // fetchMerchants：把 lat,lng, open_hours, rating 也撈回來
+const { data, error } = await supabase
+  .from('merchants')
+  .select('id,name,category,address,cover,updated_at,city_id,lat,lng,open_hours,rating')
+  .eq('city_id', cityId)
+  .eq('status', 'active')
+  .order('featured', { ascending: false, nullsFirst: false }) // 若有 featured
+  .order('updated_at', { ascending: false })
+  .limit(limit);
+
 
     if (error) throw error;
     return { ok: true, data: data || [] };
@@ -110,19 +113,26 @@ function renderMerchants(items, city) {
     return;
   }
 
-  list.innerHTML = items.map(m => `
-    <div class="item" data-id="${m.id}">
-      <div class="thumb" style="background-image:url('${m.cover || ''}');"></div>
-      <div>
-        <div class="t">${m.name}</div>
-        <div class="sub">${m.category ?? ''}${m.address ? ' · ' + m.address : ''}</div>
-      </div>
-      <div class="sub" style="white-space:nowrap;margin-left:8px">
-        ${m.updated_at ? new Date(m.updated_at).toLocaleDateString() : ''}
-      </div>
-    </div>
-  `).join('');
+  list.innerHTML = items.map(m => {
+    const dist = (m.lat!=null && m.lng!=null && userPos) ? fmtDist(haversineKm(userPos, {lat:m.lat, lng:m.lng})) : '';
+    const openFlag = isOpenNow(m.open_hours); // true / false / null
+    const openBadge = openFlag===null ? '' :
+      `<span class="badge ${openFlag?'ok':'off'}">${openFlag?'Open now':'Closed'}</span>`;
+    const rating = (m.rating!=null) ? `<span class="badge rate">★ ${Number(m.rating).toFixed(1)}</span>` : '';
+
+    return `
+      <a class="item" data-id="${m.id}" href="javascript:;">
+        <div class="thumb" style="background-image:url('${m.cover||''}')"></div>
+        <div class="meta">
+          <div class="t">${m.name}</div>
+          <div class="sub">${m.category ?? ''}${m.address ? ' · ' + m.address : ''}</div>
+          <div class="badges">${rating}${openBadge}</div>
+        </div>
+        <div class="tail">${dist || (m.updated_at ? new Date(m.updated_at).toLocaleDateString() : '')}</div>
+      </a>`;
+  }).join('');
 }
+
 
 // 取代原本的 selectCity（讓它真的抓 merchants）
 function selectCity(id, cities) {
@@ -178,6 +188,38 @@ function selectCity(id, cities) {
   });
 }
 
+  // 地理距離（公里）
+function haversineKm(a, b){
+  if(!a || !b) return null;
+  const R=6371, toRad = d=>d*Math.PI/180;
+  const dLat = toRad(b.lat-a.lat), dLng = toRad(b.lng-a.lng);
+  const s = Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLng/2)**2;
+  return R * 2 * Math.asin(Math.sqrt(s));
+}
+const fmtDist = km => km==null ? '' : (km<1 ? `${Math.round(km*1000)} m` : `${km.toFixed(1)} km`);
+
+// 簡易營業狀態（支援 "24H" 或 "09:00 - 18:00"）
+function isOpenNow(open){
+  if(!open) return null;
+  const now = new Date();
+  if(open.trim().toUpperCase()==='24H') return true;
+  const m = open.match(/(\d{1,2}):?(\d{2})?\s*-\s*(\d{1,2}):?(\d{2})?/);
+  if(!m) return null;
+  const [ , h1,m1,h2,m2 ] = m.map(Number);
+  const start = new Date(now), end = new Date(now);
+  start.setHours(h1, m1||0, 0, 0);
+  end.setHours(h2, m2||0, 0, 0);
+  return now>=start && now<=end;
+}
+
+// 抓一次使用者定位（允許就有距離，拒絕就 fallback）
+let userPos = null;
+navigator.geolocation?.getCurrentPosition(
+  pos => { userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude }; },
+  ()=>{}, { enableHighAccuracy:true, maximumAge:60000, timeout:6000 }
+);
+
+
 
 
   // ===== 初始化 =====
@@ -207,5 +249,6 @@ function selectCity(id, cities) {
 
   bootstrap();
 })();
+
 
 
