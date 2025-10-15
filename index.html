@@ -35,9 +35,8 @@
 <section data-page="explore" aria-labelledby="h-explore" class="section" hidden>
   <h1 id="h-explore" data-focusable-heading>Explore</h1>
 
-  <!-- 城市牆：固定 4 x 3 -->
+  <!-- 城市牆：固定 4 x 3（由 JS 注入） -->
   <div class="citywall" role="tablist" aria-label="Cities" id="cityWall">
-    <!-- 由 JS 注入 -->
     <button class="citycell" role="tab" aria-selected="true">
       <span class="ico">🏛️</span>
       <span class="name">Kuching</span>
@@ -45,29 +44,18 @@
     </button>
   </div>
 
-  <!-- 輕量篩選列 -->
+  <!-- 輕量篩選列：只留 Sort / Open / Filter -->
   <div class="filters" id="expFilters" aria-label="Filters">
-    <!-- 主分類（多選） -->
-    <div class="chips chips--cats" role="group" aria-label="Categories">
-      <button class="chip" data-cat="Taste">🍽️ <span>Taste</span></button>
-      <button class="chip" data-cat="Nature">🏖️ <span>Nature</span></button>
-      <button class="chip" data-cat="Culture">🏛️ <span>Culture</span></button>
-      <button class="chip" data-cat="Stay">🏠 <span>Stay</span></button>
-      <button class="chip" data-cat="Local">🛍️ <span>Local</span></button>
-      <button class="chip" data-cat="Experience">💡 <span>Experience</span></button>
-    </div>
-
-    <!-- 快速條件（單顆切換） -->
     <div class="chips chips--quick" role="group" aria-label="Quick filters">
       <button class="chip" data-sort="latest" aria-pressed="true">⏱️ <span>Latest</span></button>
-      <button class="chip" data-sort="hot">🔥 <span>Hot</span></button>
-      <button class="chip" data-open="true">🟢 <span>Open now</span></button>
-      <button class="chip" data-rating="4.5">⭐ <span>4.5+</span></button>
-      <button class="chip chip--primary" id="btnOpenFilter" aria-haspopup="dialog" aria-controls="filterOverlay">
-        🎯 <span>Filter</span>
-      </button>
+      <button class="chip" data-sort="hot" aria-pressed="false">🔥 <span>Hot</span></button>
+      <button class="chip" data-open="true" aria-pressed="false">🟢 <span>Open now</span></button>
+      <button class="chip chip--primary" id="btnOpenFilter">🎯 <span>Filter</span></button>
     </div>
   </div>
+
+  <!-- 已套用條件摘要（JS 生成 chips，可逐一清除） -->
+  <div id="activeFilters" class="active-filters" hidden></div>
 
   <!-- 這個是給 explore.js 用的狀態字串（隱藏即可） -->
   <div id="resultHead" class="sr-only">Pick a city above</div>
@@ -97,74 +85,71 @@
   <div class="merchant-list" id="merchantList" hidden></div>
 </section>
 
-<!-- ===== Filter Overlay (Drawer) ===== -->
-<div class="filter-overlay" id="filterOverlay" hidden>
-  <div class="filter-panel" role="dialog" aria-labelledby="h-filter" aria-modal="true">
-    <header class="filter-head">
-      <h2 id="h-filter">Filter</h2>
-      <button class="close" id="btnCloseFilter" aria-label="Close">×</button>
-    </header>
+<!-- Advanced Filters Drawer -->
+<section id="advFilter" class="overlay-page tertiary" hidden aria-labelledby="h-advfilter">
+  <header class="subappbar settings-header">
+    <button class="icon-btn back" id="btnAdvClose" aria-label="Close">←</button>
+    <h1 id="h-advfilter" class="settings-title" tabindex="-1">Filters</h1>
+  </header>
 
-    <div class="filter-body">
-      <!-- 狀態 -->
-      <div class="filter-group">
-        <div class="fg-title">Status</div>
-        <div class="chips">
-          <button class="chip" data-open="true">🟢 Open now</button>
-        </div>
-      </div>
-
-      <!-- 評分 -->
-      <div class="filter-group">
-        <div class="fg-title">Rating</div>
-        <div class="chips">
-          <button class="chip" data-rating="4.0">★ 4.0+</button>
-          <button class="chip" data-rating="4.5">★ 4.5+</button>
-          <button class="chip" data-rating="5.0">★ 5.0</button>
-        </div>
-      </div>
-
-      <!-- 價格 -->
-      <div class="filter-group">
-        <div class="fg-title">Price</div>
-        <div class="chips">
-          <button class="chip" data-price="1">💲</button>
-          <button class="chip" data-price="2">💲💲</button>
-          <button class="chip" data-price="3">💲💲💲</button>
-        </div>
-      </div>
-
-      <!-- 類別（多選） -->
-      <div class="filter-group">
-        <div class="fg-title">Categories</div>
-        <div class="chips">
-          <button class="chip" data-cat="Taste">🍽️ Taste</button>
-          <button class="chip" data-cat="Nature">🏖️ Nature</button>
-          <button class="chip" data-cat="Culture">🏛️ Culture</button>
-          <button class="chip" data-cat="Stay">🏠 Stay</button>
-          <button class="chip" data-cat="Local">🛍️ Local</button>
-          <button class="chip" data-cat="Experience">💡 Experience</button>
-        </div>
-      </div>
-
-      <!-- 排序（單選） -->
-      <div class="filter-group">
-        <div class="fg-title">Sort by</div>
-        <div class="chips">
-          <button class="chip" data-sort="latest" aria-pressed="true">⏱️ Latest</button>
-          <button class="chip" data-sort="hot">🔥 Hot</button>
-          <!-- 若未來要加距離，再把 data-sort="nearby" 打開 -->
-          <!-- <button class="chip" data-sort="nearby">📍 Nearby</button> -->
-        </div>
-      </div>
+  <div class="settings-panel">
+    <!-- Categories（多選） -->
+    <h3 class="set-overline">Categories</h3>
+    <div class="chips" id="afCats">
+      <button class="chip" data-cat="Taste">🍽️ <span>Taste</span></button>
+      <button class="chip" data-cat="Nature">🏖️ <span>Nature</span></button>
+      <button class="chip" data-cat="Culture">🏛️ <span>Culture</span></button>
+      <button class="chip" data-cat="Stay">🏠 <span>Stay</span></button>
+      <button class="chip" data-cat="Local">🛍️ <span>Local</span></button>
+      <button class="chip" data-cat="Experience">💡 <span>Experience</span></button>
     </div>
 
-    <footer class="filter-foot">
-      <button class="btn btn-ghost" id="btnResetFilter" type="button">Reset</button>
-      <button class="btn btn-primary" id="btnApplyFilter" type="button">Apply</button>
-    </footer>
+    <!-- Themes（多選） -->
+    <h3 class="set-overline">Themes</h3>
+    <div class="chips" id="afThemes">
+      <button class="chip" data-theme="Market">Market</button>
+      <button class="chip" data-theme="Heritage">Heritage</button>
+      <button class="chip" data-theme="Sunset">Sunset</button>
+      <button class="chip" data-theme="Family">Family</button>
+      <button class="chip" data-theme="Instagram">Instagram</button>
+    </div>
+
+    <!-- Attributes（多選） -->
+    <h3 class="set-overline">Attributes</h3>
+    <div class="chips" id="afAttrs">
+      <button class="chip" data-attr="Halal">Halal</button>
+      <button class="chip" data-attr="Vegan">Vegan</button>
+      <button class="chip" data-attr="Pet-friendly">Pet-friendly</button>
+      <button class="chip" data-attr="Wheelchair">Wheelchair</button>
+      <button class="chip" data-attr="Parking">Parking</button>
+      <button class="chip" data-attr="Wi-Fi">Wi-Fi</button>
+    </div>
+
+    <!-- 開放中 / 評分 / 價位 / 排序 -->
+    <h3 class="set-overline">More</h3>
+    <div class="chips" id="afMore">
+      <button class="chip" data-open="true">🟢 Open now</button>
+      <button class="chip" data-rating="4.5">⭐ 4.5+</button>
+      <button class="chip" data-rating="4.0">⭐ 4.0+</button>
+      <button class="chip" data-price="1">$</button>
+      <button class="chip" data-price="2">$$</button>
+      <button class="chip" data-price="3">$$$</button>
+      <button class="chip" data-price="4">$$$$</button>
+    </div>
+
+    <h3 class="set-overline">Sort</h3>
+    <div class="chips" id="afSort">
+      <button class="chip" data-sort="latest">Latest</button>
+      <button class="chip" data-sort="hot">Hot</button>
+      <button class="chip" data-sort="rating">Rating</button>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:12px">
+      <button class="chip" id="btnAdvReset">Reset</button>
+      <button class="chip chip--primary" id="btnAdvApply">Apply</button>
+    </div>
   </div>
-</div>
+</section>
 
 
 
