@@ -1,233 +1,353 @@
-// ===== Explore Page (front-end filters + open-hours parsing) =====
+// js/explore.js
+// ===== Explore Page — Supabase fetch all per city, filter on client =====
 import { supabase } from './app.js';
 
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-(() => {
-  const wall = $('#cityWall');
-  const head = $('#resultHead');
-  const sk   = $('#skList');
-  const list = $('#merchantList');
-  const qbar = $('#quickFilters');
-  if (!wall || !head) return;
+// ---- UI refs ----
+const wall  = $('#cityWall');
+const head  = $('#resultHead');
+const sk    = $('#skList');
+const list  = $('#merchantList');
+const empty = $('#emptyState');
+const errBx = $('#errorState');
+const btnRetry = $('#btnRetry');
 
-  // --- 狀態 ---
-  let currentCity = null;
-  let cachedRaw = [];      // 後端抓回該城市的原始列表（不加任何條件）
-  const filters = {
-    categories: [],        // 多選：['Taste','Culture'...]
-    sort: 'latest',        // latest | hot
-    minRating: null,       // 4.5+
-    openNow: false,        // 是否只看營業中
-  };
+// 可選：輕量篩選列（若不存在也不報錯）
+const filterBar = $('#filterBar');      // 容器
+const filterChips = $$('.fchip', filterBar);
 
-  // ===== 載入城市 =====
-  async function loadCities() {
+// ---- 篩選狀態 ----
+// open: 是否只看現在營業
+// minRating: 最低評分（例如 4.5）
+// priceMax: 最高價位（例如 1 表示 $）
+// category: 單一分類（字串，如 "Culture"）
+const filterState = {
+  open: false,
+  minRating: null,
+  priceMax: null,
+  category: null,
+};
+
+// 目前城市與全量商家
+let currentCity = null;
+let allMerchants = [];
+
+// ===== 解析營業中（支援兩種資料形狀） =====
+function isOpenNow(m, refDate=new Date()){
+  // 1) 新格式：m.open_hours = { mon:{ranges:[{open:"08:00",close:"20:00"}]}, ... }
+  if (m.open_hours && typeof m.open_hours === 'object'){
+    // 以本地時間判斷
+    const wd = ['sun','mon','tue','wed','thu','fri','sat'][refDate.getDay()];
+    const day = m.open_hours[wd];
+    if (!day || !Array.isArray(day.ranges) || !day.ranges.length) return false;
+
+    const curMin = refDate.getHours()*60 + refDate.getMinutes();
+    // 處理跨夜：若 close < open，代表隔日（如 18:00-02:00）
+    const inRange = (hhmm) => {
+      const [h, mi] = hhmm.split(':').map(v=>parseInt(v,10));
+      return (h*60 + mi);
+    };
+
+    for (const r of day.ranges){
+      const o = inRange(r.open);
+      const c = inRange(r.close);
+      if (c > o){
+        if (curMin >= o && curMin < c) return true;
+      }else{
+        // 跨夜：現在時間 >= open 或 < close
+        if (curMin >= o || curMin < c) return true;
+      }
+    }
+    return false;
+  }
+
+  // 2) 舊格式：m.openHours = "08:00 - 20:00" / "24H"
+  const t = (m.openHours||'').trim().toLowerCase();
+  if (!t) return false;
+  if (t.includes('24h') || t.includes('24-hour')) return true;
+  const m2 = t.match(/(\d{1,2}):?(\d{2})?\s*-\s*(\d{1,2}):?(\d{2})?/);
+  if (!m2) return false;
+
+  const hh = (h,mm) => (parseInt(h,10)*60 + parseInt(mm||'0',10));
+  const start = hh(m2[1], m2[2]||'00');
+  const end   = hh(m2[3], m2[4]||'00');
+  const cur   = refDate.getHours()*60 + refDate.getMinutes();
+  if (end > start) return cur >= start && cur < end;
+  // 跨夜
+  return cur >= start || cur < end;
+}
+
+// ===== 輔助：價位字串轉數值（$=1, $$=2... 或直接數字）=====
+function priceLevelNum(m){
+  if (typeof m.priceLevel === 'number') return m.priceLevel;
+  if (typeof m.price_level === 'number') return m.price_level;
+  // 若是 "$$" 這種
+  const s = (m.priceLevel || m.price_level || '').toString();
+  if (!s) return null;
+  const count = (s.match(/\$/g) || []).length;
+  return count || null;
+}
+
+// ===== Supabase：載入城市清單 =====
+async function loadCities(){
+  try{
     const { data, error } = await supabase
       .from('cities')
       .select('id,name,icon,count,sort_order')
-      .order('sort_order', { ascending: true });
-    if (error || !data?.length) return [];
-    return data.map((r, i) => ({
-      id: r.id, name: r.name ?? r.id,
-      icon: r.icon || '🏙️', count: r.count ?? 0,
-      sort_order: r.sort_order ?? (i + 1),
-    }));
+      .order('sort_order',{ascending:true})
+      .limit(12);
+    if (error) throw error;
+    return data || [];
+  }catch(err){
+    console.warn('Load cities failed:', err);
+    // fallback demo
+    return [
+      {id:'kuching', name:'Kuching', icon:'🏛️', count:128, sort_order:1},
+      {id:'miri', name:'Miri', icon:'⛽', count:64, sort_order:2},
+      {id:'sibu', name:'Sibu', icon:'🛶', count:52, sort_order:3},
+      {id:'mukah', name:'Mukah', icon:'🐟', count:18, sort_order:4},
+    ];
+  }
+}
+
+// ===== Supabase：抓某城市全部商家 =====
+async function fetchMerchants(cityId, {limit=200} = {}){
+  try{
+    const { data, error } = await supabase
+      .from('merchants')
+      .select('*')
+      .eq('city_id', cityId)
+      .eq('status', 'active')
+      .order('updated_at', { ascending:false })
+      .limit(limit);
+    if (error) throw error;
+    return { ok:true, data: data || [] };
+  }catch(err){
+    console.error('fetchMerchants error:', err);
+    return { ok:false, error: err };
+  }
+}
+
+// ===== 渲染城市牆 =====
+function renderWall(cities){
+  if (!wall) return;
+  wall.innerHTML = '';
+  cities.slice(0,12).forEach((c, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'citycell';
+    btn.setAttribute('role','tab');
+    btn.dataset.id = c.id;
+    btn.setAttribute('aria-selected', i===0 ? 'true':'false');
+    btn.innerHTML = `
+      <span class="ico">${c.icon || '🏙️'}</span>
+      <span class="name">${c.name || c.id}</span>
+      <span class="count">${Number(c.count)||0}</span>
+    `;
+    wall.appendChild(btn);
+  });
+}
+
+// ===== 卡片 UI =====
+function renderMerchants(items){
+  if (!list) return;
+
+  if (!items.length){
+    list.hidden = true;
+    empty && (empty.hidden = false);
+    errBx && (errBx.hidden = true);
+    return;
   }
 
-  function renderWall(cities) {
-    wall.innerHTML = '';
-    cities.forEach((c, i) => {
-      const btn = document.createElement('button');
-      btn.className = 'citycell';
-      btn.setAttribute('role','tab');
-      btn.dataset.id = c.id;
-      btn.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
-      btn.innerHTML = `
-        <span class="ico">${c.icon}</span>
-        <span class="name">${c.name}</span>
-        <span class="count">${c.count}</span>`;
-      wall.appendChild(btn);
+  empty && (empty.hidden = true);
+  errBx && (errBx.hidden = true);
+  list.hidden = false;
+
+  const h = [];
+  for (const m of items){
+    const rating = (m.rating != null) ? Number(m.rating).toFixed(1) : null;
+    const open   = isOpenNow(m);
+    const badgeOpen = open ? `<span class="badge ok">Open now</span>` : `<span class="badge off">Closed</span>`;
+
+    const category = m.category || '';
+    const addrShort = (m.address || '').split(',')[0]; // 簡短地址
+
+    const price = priceLevelNum(m);
+    const priceStr = price ? '💲'.repeat(Math.max(1, Math.min(4, price))) : '';
+
+    const cover = m.cover || (m.images?.[0]) || '';
+
+    h.push(`
+      <div class="item" data-id="${m.id}">
+        <div class="thumb" style="background-image:url('${cover}');"></div>
+        <div class="meta">
+          <div class="t">${m.name}</div>
+          <div class="sub">
+            ${category ? `${category}` : ''}${addrShort ? ` · ${addrShort}` : ''}
+          </div>
+          <div class="badges">
+            ${rating ? `<span class="badge">★ ${rating}</span>` : ''}
+            ${badgeOpen}
+            ${priceStr ? `<span class="badge">${priceStr}</span>` : ''}
+          </div>
+        </div>
+        <div class="aux"></div>
+      </div>
+    `);
+  }
+  list.innerHTML = h.join('');
+}
+
+// ===== 應用篩選到 allMerchants =====
+function applyFilters(){
+  if (!allMerchants || !allMerchants.length){
+    renderMerchants([]);
+    return;
+  }
+
+  let arr = [...allMerchants];
+
+  // Open now
+  if (filterState.open){
+    arr = arr.filter(m => isOpenNow(m));
+  }
+
+  // Rating
+  if (filterState.minRating != null){
+    arr = arr.filter(m => (Number(m.rating)||0) >= filterState.minRating);
+  }
+
+  // Price
+  if (filterState.priceMax != null){
+    arr = arr.filter(m => {
+      const p = priceLevelNum(m);
+      return (p == null) ? true : (p <= filterState.priceMax);
     });
   }
 
-  // ===== 後端只抓一次：該城市的商家清單（不套條件） =====
-  async function fetchMerchantsBase(cityId) {
-    const { data, error } = await supabase
-      .from('merchants')
-      .select('id,name,category,address,cover,updated_at,rating,open_hours,city_id,status')
-      .eq('city_id', cityId)
-      .eq('status', 'active')
-      .order('updated_at', { ascending: false });
-    if (error) throw error;
-    return data || [];
+  // Category（單選）
+  if (filterState.category){
+    arr = arr.filter(m => (m.category||'').toLowerCase() === filterState.category.toLowerCase());
   }
 
-  // ===== 開關時間解析（支援：全天 / 24H / HH:MM - HH:MM）=====
-  function computeIsOpen(openHours) {
-    if (!openHours) return null;
-    const s = String(openHours).trim().toLowerCase();
-    if (s.includes('全天') || s.includes('24h')) return true;
+  renderMerchants(arr);
+  // 可選：更新數量顯示
+  head && (head.textContent = `${currentCity?.name || currentCity?.id || 'City'} — ${arr.length} places`);
+}
 
-    const m = s.match(/(\d{1,2}):?(\d{2})?\s*-\s*(\d{1,2}):?(\d{2})?/);
-    if (!m) return null;
+// ===== 綁定篩選列（容器 id="filterBar"、每個按鈕 .fchip data-ft）=====
+function bindFilterBar(){
+  if (!filterBar || !filterChips.length) return;
 
-    const pad = v => String(v).padStart(2,'0');
-    const cur = new Date();
-    const curStr = `${pad(cur.getHours())}:${pad(cur.getMinutes())}`;
+  filterBar.addEventListener('click', (e)=>{
+    const chip = e.target.closest('.fchip');
+    if (!chip) return;
+    const ft = chip.dataset.ft || '';
 
-    const open  = `${pad(+m[1])}:${pad(m[2] ? +m[2] : 0)}`;
-    const close = `${pad(+m[3])}:${pad(m[4] ? +m[4] : 0)}`;
-
-    return (open <= curStr && curStr <= close);
-  }
-
-  // ===== 在前端套用所有篩選 + 排序 =====
-  function applyFilters(items) {
-    let out = [...items];
-
-    if (filters.categories.length) {
-      out = out.filter(x => x.category && filters.categories.includes(x.category));
+    // 單/複選邏輯：
+    // open / r45 / cheap 為獨立切換
+    // cat:xxx 為單選；若再次點同一顆 = 取消
+    if (ft === 'open'){
+      chip.classList.toggle('is-on');
+      filterState.open = chip.classList.contains('is-on');
+    } else if (ft === 'r45'){
+      chip.classList.toggle('is-on');
+      filterState.minRating = chip.classList.contains('is-on') ? 4.5 : null;
+    } else if (ft === 'cheap'){
+      chip.classList.toggle('is-on');
+      filterState.priceMax = chip.classList.contains('is-on') ? 1 : null;
+    } else if (ft.startsWith('cat:')){
+      const cat = ft.split(':')[1] || '';
+      const already = chip.classList.contains('is-on');
+      // 先清掉同組（所有 cat:*）
+      $$('.fchip[data-ft^="cat:"]', filterBar).forEach(c => c.classList.remove('is-on'));
+      if (!already){
+        chip.classList.add('is-on');
+        filterState.category = cat;
+      }else{
+        filterState.category = null;
+      }
     }
-    if (filters.minRating) {
-      out = out.filter(x => (typeof x.rating === 'number') && x.rating >= filters.minRating);
-    }
-    if (filters.openNow) {
-      out = out.filter(x => computeIsOpen(x.open_hours) === true);
-    }
 
-    if (filters.sort === 'hot') {
-      out.sort((a,b) => (b.rating || 0) - (a.rating || 0) || new Date(b.updated_at) - new Date(a.updated_at));
-    } else {
-      out.sort((a,b) => new Date(b.updated_at) - new Date(a.updated_at));
-    }
+    applyFilters();
+  });
+}
 
-    return out;
-  }
-
-  // ===== 繪製清單 =====
-  function renderMerchants(items, city) {
-    if (!items.length) {
-      list.innerHTML = `
-        <div class="empty" style="padding:18px;color:#6b7280;text-align:center">
-          No places in <strong>${city?.name || city?.id}</strong> yet.
-        </div>`;
-      return;
-    }
-    list.innerHTML = items.map(m => {
-      const isOpen = computeIsOpen(m.open_hours);
-      const badge = (isOpen == null) ? '' :
-        `<span class="pill ${isOpen ? 'ok' : 'bad'}">${isOpen ? 'Open now' : 'Closed'}</span>`;
-      return `
-        <div class="item" data-id="${m.id}">
-          <div class="thumb" style="background-image:url('${m.cover || ''}');"></div>
-          <div>
-            <div class="t">${m.name}</div>
-            <div class="sub">${m.category ?? ''}${m.address ? ' · ' + m.address : ''}</div>
-            <div class="meta-line">
-              ${m.rating ? `<span class="rate">★ ${m.rating.toFixed(1)}</span>` : ''}
-              ${badge}
-            </div>
-          </div>
-          <div class="sub" style="white-space:nowrap;margin-left:8px">
-            ${m.updated_at ? new Date(m.updated_at).toLocaleDateString() : ''}
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  // ===== 切換城市：抓一次 → 快取 → 前端篩選 → 繪製 =====
-  async function selectCity(id, cities) {
-    currentCity = id;
-    wall.querySelectorAll('.citycell').forEach(b => {
+// ===== 切換城市 =====
+function selectCity(id, cityObj){
+  currentCity = cityObj || { id };
+  // 樣式
+  if (wall){
+    $$('.citycell', wall).forEach(b=>{
       const on = b.dataset.id === id;
       b.setAttribute('aria-selected', on ? 'true' : 'false');
     });
+  }
 
-    const city = cities.find(c => c.id === id) || { id, name: id };
-    head.textContent = `${city.name} — loading…`;
-    sk.hidden = false; list.hidden = true;
+  // 狀態顯示
+  if (head) head.textContent = `${currentCity.name || id} — loading…`;
+  if (sk)   sk.hidden = false;
+  if (list) list.hidden = true;
+  empty && (empty.hidden = true);
+  errBx && (errBx.hidden = true);
 
-    try {
-      cachedRaw = await fetchMerchantsBase(id);
-      const filtered = applyFilters(cachedRaw);
-      head.textContent = `${city.name} — ${filtered.length} places`;
-      renderMerchants(filtered, city);
-    } catch (err) {
-      console.error('fetch merchants failed:', err);
-      head.textContent = city.name;
-      list.innerHTML = `
-        <div class="error" style="padding:18px;color:#b91c1c;background:#fee2e2;border:1px solid #fecaca;border-radius:12px">
-          Failed to load merchants. Please try again.
-        </div>`;
-    } finally {
-      sk.hidden = true; list.hidden = false;
+  // 抓資料
+  fetchMerchants(id).then(res=>{
+    sk && (sk.hidden = true);
+
+    if (!res.ok){
+      errBx && (errBx.hidden = false);
+      list && (list.hidden = true);
+      if (head) head.textContent = `${currentCity.name || id}`;
+      return;
     }
+
+    allMerchants = res.data;
+    list && (list.hidden = false);
+    if (head) head.textContent = `${currentCity.name || id} — ${allMerchants.length} places`;
+
+    // 取得資料後立即套用目前的篩選條件
+    applyFilters();
+  });
+}
+
+// ===== 初始化 =====
+(async function bootstrap(){
+  if (!wall || !head) return;
+
+  // 綁定重試
+  btnRetry?.addEventListener('click', ()=>{
+    if (currentCity?.id) selectCity(currentCity.id, currentCity);
+  });
+
+  // 城市牆
+  const cities = await loadCities();
+  renderWall(cities);
+
+  // 綁定城市點擊
+  wall.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.citycell');
+    if (!btn) return;
+    const city = cities.find(c => c.id === btn.dataset.id) || { id: btn.dataset.id };
+    selectCity(btn.dataset.id, city);
+  });
+
+  // 鍵盤左右切換（可選）
+  wall.addEventListener('keydown', (e)=>{
+    const cells = Array.from(wall.querySelectorAll('.citycell'));
+    const cur = cells.findIndex(b => b.getAttribute('aria-selected') === 'true');
+    if(e.key === 'ArrowRight'){ e.preventDefault(); const n = cells[Math.min(cur+1, cells.length-1)]; n?.focus(); n?.click(); }
+    if(e.key === 'ArrowLeft'){  e.preventDefault(); const p = cells[Math.max(cur-1, 0)];             p?.focus(); p?.click(); }
+  });
+
+  // 綁定篩選列
+  bindFilterBar();
+
+  // 預設選第一個
+  const first = wall.querySelector('.citycell');
+  if (first){
+    const city = cities.find(c => c.id === first.dataset.id) || { id: first.dataset.id };
+    selectCity(first.dataset.id, city);
   }
-
-  // ===== 篩選列事件：更新 filters → 用 cachedRaw 即時重繪 =====
-  function setupQuickFilters(cities) {
-    if (!qbar) return;
-    qbar.addEventListener('click', e => {
-      const chip = e.target.closest('.qchip');
-      if (!chip) return;
-
-      // 分類（多選）
-      if (chip.dataset.cat) {
-        chip.classList.toggle('is-on');
-        const cat = chip.dataset.cat;
-        if (chip.classList.contains('is-on')) {
-          if (!filters.categories.includes(cat)) filters.categories.push(cat);
-        } else {
-          filters.categories = filters.categories.filter(x => x !== cat);
-        }
-      }
-
-      // 排序（單選）
-      if (chip.dataset.type === 'sort') {
-        $$('.qchip[data-type="sort"]').forEach(c => c.classList.remove('is-on'));
-        chip.classList.add('is-on');
-        filters.sort = chip.dataset.val || 'latest';
-      }
-
-      // 4.5+
-      if (chip.dataset.type === 'rating') {
-        chip.classList.toggle('is-on');
-        filters.minRating = chip.classList.contains('is-on') ? 4.5 : null;
-      }
-
-      // 營業中
-      if (chip.dataset.type === 'open') {
-        chip.classList.toggle('is-on');
-        filters.openNow = chip.classList.contains('is-on');
-      }
-
-      // 只用 cachedRaw 即時重繪（不重抓）
-      if (currentCity) {
-        const city = (cities || []).find(c => c.id === currentCity) || { id: currentCity, name: currentCity };
-        const filtered = applyFilters(cachedRaw);
-        head.textContent = `${city.name} — ${filtered.length} places`;
-        renderMerchants(filtered, city);
-      }
-    });
-  }
-
-  // ===== 初始化 =====
-  async function bootstrap() {
-    const cities = await loadCities();
-    renderWall(cities);
-    setupQuickFilters(cities);
-
-    wall.addEventListener('click', e => {
-      const btn = e.target.closest('.citycell');
-      if (!btn) return;
-      selectCity(btn.dataset.id, cities);
-    });
-
-    const first = wall.querySelector('.citycell');
-    if (first) selectCity(first.dataset.id, cities);
-  }
-
-  bootstrap();
 })();
