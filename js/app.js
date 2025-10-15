@@ -264,14 +264,33 @@ function initApp(){
 }
 
 // ===== 等 partials/tabbar.html 載入完再 init（若沒用 partials 也能自動 fallback） =====
+// ===== 稳定触发 init：不再错过 include:loaded =====
+
+// 1) include.js 完成注入时
 document.addEventListener('include:loaded', (e) => {
   if (e.detail?.src?.includes('tabbar.html')) initApp();
 });
 
-// 沒有 include.js 或沒有 partials 時，直接 DOMContentLoaded 後 init
-if (!window.__HAS_INCLUDE_JS__) {
-  document.addEventListener('DOMContentLoaded', () => {
-    // 延遲一拍，讓同頁的 tabbar 也能被解析到
-    setTimeout(initApp, 0);
+// 2) DOMContentLoaded 时，若 tabbar 已经在页面里，直接 init
+document.addEventListener('DOMContentLoaded', () => {
+  tryInitWhenTabbarReady();
+  // 再加观察者，防止 include 比 app.js 更早执行导致事件丢失
+  const obs = new MutationObserver(() => {
+    if (document.querySelector('.tabbar .tab')) {
+      obs.disconnect();
+      initApp();
+    }
   });
+  obs.observe(document.body, { childList: true, subtree: true });
+
+  // 安全兜底：1.5 秒后再检查一次（极端慢网路场景）
+  setTimeout(tryInitWhenTabbarReady, 1500);
+});
+
+function tryInitWhenTabbarReady() {
+  if (document.documentElement.dataset.appInited === '1') return;
+  if (document.querySelector('.tabbar .tab')) {
+    initApp();
+  }
 }
+
