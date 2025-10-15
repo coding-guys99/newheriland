@@ -1122,3 +1122,5 @@ select{ appearance: none; padding-right: 28px }
     border-color: rgba(255,255,255,.08);
   }
 }
+
+body.no-scroll { overflow: hidden; }
