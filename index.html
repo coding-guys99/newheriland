@@ -37,6 +37,7 @@
 
   <!-- 城市牆 -->
   <div class="citywall" role="tablist" aria-label="Cities" id="cityWall">
+    <!-- JS 會覆蓋；保留一顆避免 noscript 空白 -->
     <button class="citycell" role="tab" aria-selected="true">
       <span class="ico">🏛️</span>
       <span class="name">Kuching</span>
@@ -54,25 +55,17 @@
       <div class="sk-row"></div><div class="sk-row"></div><div class="sk-row"></div>
     </div>
 
-    <!-- 空狀態 -->
-    <div class="empty-state" id="emptyState" hidden>
-      <div class="empty-emoji">🫙</div>
-      <div class="empty-title">No places yet</div>
-      <div class="empty-sub">Try another city or check back later.</div>
-    </div>
+    <!-- 空狀態（與 JS 對齊） -->
+    <div class="inline-empty" id="emptyMsg" hidden>No places yet.</div>
 
-    <!-- 錯誤狀態 -->
-    <div class="error-state" id="errorState" hidden role="alert">
-      <div class="err-emoji">😵</div>
-      <div class="err-title">Failed to load</div>
-      <div class="err-sub">Please check your connection and try again.</div>
-      <button class="err-retry" id="btnRetry">Retry</button>
-    </div>
+    <!-- 錯誤狀態（與 JS 對齊） -->
+    <div class="inline-error" id="errorMsg" hidden>Failed to load. Please try again.</div>
 
     <!-- 實際清單 -->
     <div class="merchant-list" id="merchantList" hidden></div>
   </div>
 </section>
+
 
     <!-- Map -->
     <section data-page="map" aria-labelledby="h-map" class="section" hidden>
@@ -324,6 +317,7 @@
   <script type="module" src="js/explore.js"></script>
 </body>
 </html>
+
 
 
 
