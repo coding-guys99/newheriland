@@ -661,3 +661,36 @@ select{ appearance: none; padding-right: 28px }
 .merchant-list[hidden],
 #emptyState[hidden],
 #errorState[hidden] { display: none !important; }
+
+/* 列表卡片：右側距離 + 徽章列 */
+.merchant-list .item{
+  display:grid;
+  grid-template-columns: 72px 1fr auto;
+  gap:10px;
+  padding:12px 14px;
+  align-items:center;
+  text-decoration:none; color:inherit;
+}
+.merchant-list .thumb{
+  width:72px; height:56px; border-radius:10px; background:#ddd center/cover no-repeat;
+}
+.merchant-list .meta .t{ font-weight:800; }
+.merchant-list .meta .sub{ color:#6b7280; font-size:12px; margin-top:2px; }
+.merchant-list .tail{ color:#6b7280; font-size:12px; white-space:nowrap; margin-left:8px; }
+
+.merchant-list .badges{ display:flex; gap:6px; margin-top:6px; }
+.badge{
+  display:inline-block; font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px;
+  border:1px solid rgba(0,0,0,.06); background:#fff;
+}
+.badge.rate{ background:#fff7e6; border-color:#ffedd5; }
+.badge.ok{ background:#e8fff3; border-color:#bbf7d0; color:#065f46; }
+.badge.off{ background:#ffeef0; border-color:#fecaca; color:#9b1c1c; }
+
+@media (prefers-color-scheme: dark){
+  .merchant-list .tail, .merchant-list .meta .sub{ color:#cbd5e1; }
+  .badge{ background: color-mix(in srgb, #0b0f12 78%, transparent); border-color: rgba(255,255,255,.08); }
+  .badge.rate{ background: rgba(255,199,0,.12); border-color: rgba(255,199,0,.25); }
+  .badge.ok{ background: rgba(16,185,129,.14); border-color: rgba(16,185,129,.28); color:#86efac; }
+  .badge.off{ background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.28); color:#fecaca; }
+}
