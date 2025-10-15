@@ -112,7 +112,7 @@
 
     // 讀假資料（放在 data/merchants/{city}.json）
     try{
-      const data = await fetchJSON(`data/merchants/${id}.json`);
+      const data = await fetchJSON(getCityUrl(id));
       const items = Array.isArray(data?.items) ? data.items : [];
       head.textContent = `${city?.name || 'City'} — ${items.length} places`;
       showSkeleton(false);
@@ -141,4 +141,30 @@
   // 預設選第一個
   const first = wall.querySelector('.citycell');
   if(first) selectCity(first.dataset.id);
+
+// 放在檔案頂部的小設定：外部 /data 映射
+const CITY_DATA_URLS = {
+  kuching: 'https://coding-guys99.github.io/newheriland/data/merchants/kuching.json',
+  miri: 'https://coding-guys99.github.io/newheriland/data/merchants/miri.json',
+  sibu: 'https://coding-guys99.github.io/newheriland/data/merchants/sibu.json',
+  bintulu: 'https://coding-guys99.github.io/newheriland/data/merchants/bintulu.json',
+  sarikei: 'https://coding-guys99.github.io/newheriland/data/merchants/sarikei.json',
+  limbang: 'https://coding-guys99.github.io/newheriland/data/merchants/limbang.json',
+  lawas: 'https://coding-guys99.github.io/newheriland/data/merchants/lawas.json',
+  mukah: 'https://coding-guys99.github.io/newheriland/data/merchants/mukah.json',
+  kapit: 'https://coding-guys99.github.io/newheriland/data/merchants/kapit.json',
+  betong: 'https://coding-guys99.github.io/newheriland/data/merchants/betong.json',
+  samarahan: 'https://coding-guys99.github.io/newheriland/data/merchants/samarahan.json',
+  serian: 'https://coding-guys99.github.io/newheriland/data/merchants/serian.json',
+  // 其他城市之後補：kuching: 'https://.../kuching.json', ...
+};
+
+// 取得城市 JSON URL（有外部就用外部；否則退回本機相對路徑）
+function getCityUrl(id){
+  if (CITY_DATA_URLS[id]) return CITY_DATA_URLS[id];
+  return `data/merchants/${id}.json`; // 保留本機開發
+}
+
+  
 })();
+
