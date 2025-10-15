@@ -884,3 +884,144 @@ select{ appearance: none; padding-right: 28px }
     border-color: rgba(255,255,255,.18);
   }
 }
+
+/* ================================
+   Advanced Filter Drawer — polish
+   ================================ */
+
+/* 整體玻璃 & 動畫（沿用 overlay-page 結構） */
+#advFilter.overlay-page {
+  background: color-mix(in srgb, rgba(20,23,28,.55) 100%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  backdrop-filter: blur(18px) saturate(135%);
+  display: grid;
+  grid-template-rows: auto 1fr auto;  /* header / content / footer */
+}
+
+/* 頂部：標題列 + 小把手 */
+#advFilter .subappbar {
+  position: sticky; top: 0; z-index: 2;
+  background: color-mix(in srgb, #ffffff 78%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  backdrop-filter: blur(10px) saturate(120%);
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+#advFilter .subappbar::after {
+  content: "";
+  display: block;
+  width: 44px; height: 4px; border-radius: 999px;
+  margin: 6px auto 0;
+  background: rgba(0,0,0,.18);
+  opacity: .35;
+}
+
+/* 內容區：舒適間距 + 分組標題 */
+#advFilter .settings-panel {
+  padding: 12px 14px 96px;            /* 底部給 footer 餘量 */
+  overflow: auto;
+}
+#advFilter .set-overline {
+  margin: 10px 2px 8px;
+  font-size: 11px; letter-spacing: .14em;
+  color: #74808f; text-transform: uppercase;
+}
+
+/* 晶片列（通用） */
+#advFilter .chips {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin: 0 0 8px;
+}
+
+/* 晶片：啞光膠囊 + 按壓感 */
+#advFilter .chip {
+  appearance: none;
+  border: 1px solid rgba(0,0,0,.08);
+  background: linear-gradient(180deg,#fff,#f7f7f7);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 700; font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,.08);
+  transition: transform .08s ease, box-shadow .12s ease, background .16s ease, border-color .16s ease;
+}
+#advFilter .chip:active { transform: translateY(1px); }
+
+/* 晶片（啟用態） */
+#advFilter .chip.is-on,
+#advFilter .chip[aria-pressed="true"] {
+  border-color: rgba(46,94,78,.35);
+  background: linear-gradient(180deg, #f7fff9, #eaf7f1);
+  box-shadow:
+    inset 0 0 0 1px rgba(46,94,78,.28),
+    0 8px 20px rgba(35,60,50,.12);
+}
+
+/* 主按鈕（Apply） */
+#advFilter .chip--primary {
+  background: linear-gradient(180deg, #2E5E4E, #244a3e);
+  color: #fff; border-color: transparent;
+  box-shadow: 0 10px 20px rgba(46,94,78,.35);
+}
+#advFilter .chip--primary:is(:hover,:focus-visible) {
+  filter: brightness(1.05);
+}
+
+/* 底部固定操作列 */
+#advFilter .filter-footer {
+  position: sticky; bottom: 0; z-index: 2;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, #ffffff 82%, transparent);
+  backdrop-filter: blur(10px) saturate(120%);
+  border-top: 1px solid rgba(0,0,0,.06);
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+#advFilter .filter-footer .chip { width: 100%; text-align: center; }
+
+/* 摘要列（Explore 主頁面上的 #activeFilters） */
+.active-filters {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 4px 6px 8px;
+}
+.active-filters .chip {
+  border-radius: 999px; padding: 6px 10px;
+  background: #fff; border: 1px solid rgba(0,0,0,.08);
+  box-shadow: 0 6px 16px rgba(0,0,0,.06);
+}
+.active-filters .chip span { opacity: .7; margin-left: 6px; }
+
+/* 深色模式 */
+@media (prefers-color-scheme: dark){
+  #advFilter.overlay-page {
+    background: color-mix(in srgb, rgba(10,12,16,.62) 100%, transparent);
+  }
+  #advFilter .subappbar {
+    background: color-mix(in srgb, #0b0f12 72%, transparent);
+    border-bottom-color: rgba(255,255,255,.08);
+  }
+  #advFilter .subappbar::after { background: rgba(255,255,255,.5); opacity: .35; }
+  #advFilter .chip {
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    border-color: rgba(255,255,255,.10);
+    color: #eef2f6;
+    box-shadow: 0 10px 26px rgba(0,0,0,.45);
+  }
+  #advFilter .chip.is-on,
+  #advFilter .chip[aria-pressed="true"] {
+    background: linear-gradient(180deg, rgba(87,140,122,.22), rgba(57,98,84,.18));
+    border-color: rgba(124,193,167,.35);
+    box-shadow:
+      inset 0 0 0 1px rgba(124,193,167,.25),
+      0 10px 26px rgba(0,0,0,.55);
+  }
+  #advFilter .chip--primary {
+    background: linear-gradient(180deg, #2E5E4E, #1c3a30);
+  }
+  #advFilter .filter-footer {
+    background: color-mix(in srgb, #0b0f12 70%, transparent);
+    border-top-color: rgba(255,255,255,.08);
+  }
+  .active-filters .chip {
+    background: color-mix(in srgb, #0b0f12 76%, transparent);
+    border-color: rgba(255,255,255,.08);
+  }
+}
