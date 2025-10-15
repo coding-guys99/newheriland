@@ -1,4 +1,24 @@
 // ===== Explore — City wall → load merchants (完整替換版) =====
+
+import { supabase } from './app.js';  // ← 引用上面的 client
+
+async function loadMerchants(cityId){
+  const { data, error } = await supabase
+    .from('merchants')
+    .select('*')
+    .eq('city_id', cityId)
+    .eq('status', 'active')
+    .order('rating', { ascending: false });
+
+  if(error) {
+    console.error('Supabase error:', error);
+    showErrorState();
+    return [];
+  }
+  return data || [];
+}
+
+
 (() => {
   const wall = document.getElementById('cityWall');
   const head = document.getElementById('resultHead');
@@ -96,33 +116,32 @@
   });
 
   // ---- 點城市 → 更新標題 + 骨架 + 載入假資料 ----
-  async function selectCity(id){
-    // 樣式
-    wall.querySelectorAll('.citycell').forEach(b=>{
-      const on = b.dataset.id === id;
-      b.setAttribute('aria-selected', on ? 'true' : 'false');
-    });
+  async function selectCity(id) {
+  wall.querySelectorAll('.citycell').forEach(b=>{
+    const on = b.dataset.id === id;
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
 
-    // 標題
-    const city = CITIES.find(x=>x.id===id);
-    head.textContent = `${city?.name || 'City'} — loading...`;
+  const city = CITIES.find(x=>x.id===id);
+  head.textContent = `${city?.name || 'City'} — loading...`;
 
-    // 骨架
-    showSkeleton(true);
+  sk.hidden = false;
+  list.hidden = true;
 
-    // 讀假資料（放在 data/merchants/{city}.json）
-    try{
-      const data = await fetchJSON(getCityUrl(id));
-      const items = Array.isArray(data?.items) ? data.items : [];
-      head.textContent = `${city?.name || 'City'} — ${items.length} places`;
-      showSkeleton(false);
-      renderMerchants(items);
-    }catch{
-      head.textContent = `${city?.name || 'City'} — error`;
-      showSkeleton(false);
-      renderError();
-    }
+  // 调 Supabase 取得数据
+  const merchants = await loadMerchants(id);
+
+  sk.hidden = true;
+
+  if (merchants.length === 0) {
+    list.hidden = true;
+    showEmptyState();
+  } else {
+    renderMerchants(merchants);
+    list.hidden = false;
   }
+}
+
 
   // 事件：點擊城市
   wall.addEventListener('click', (e)=>{
@@ -167,5 +186,6 @@ function getCityUrl(id){
 
   
 })();
+
 
 
