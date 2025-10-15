@@ -694,3 +694,5 @@ select{ appearance: none; padding-right: 28px }
   .badge.ok{ background: rgba(16,185,129,.14); border-color: rgba(16,185,129,.28); color:#86efac; }
   .badge.off{ background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.28); color:#fecaca; }
 }
+
+.tabbar:not(:has(.capsule)) { pointer-events:auto; }
