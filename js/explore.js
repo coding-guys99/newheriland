@@ -130,38 +130,54 @@ function selectCity(id, cities) {
   const head = document.getElementById('resultHead');
   const sk   = document.getElementById('skList');
   const list = document.getElementById('merchantList');
+  const empty = document.getElementById('emptyState');
+  const err   = document.getElementById('errorState');
 
-  // 樣式
+  // tab 樣式
   wall.querySelectorAll('.citycell').forEach(b=>{
     const on = b.dataset.id === id;
     b.setAttribute('aria-selected', on ? 'true' : 'false');
   });
 
-  const city = cities.find(x => x.id === id) || { id };
-  head.textContent = `${city.name || id} — loading…`;
+  const city = cities.find(x => x.id === id) || { id, name: id };
+  head.textContent = `${city.name} — loading…`;
 
-  // 顯示骨架
-  sk.hidden = false;
-  list.hidden = true;
+  // 先重置狀態
+  sk.hidden = false;     sk.style.removeProperty('display');
+  list.hidden = true;    list.innerHTML = '';
+  empty && (empty.hidden = true);
+  err && (err.hidden = true);
 
-  // 真的去抓 Supabase
+  // 抓資料
   fetchMerchants(id).then(res => {
-    sk.hidden = true;
-    list.hidden = false;
+    // 關掉骨架（雙保險）
+    sk.hidden = true;     sk.style.display = 'none';
 
     if (!res.ok) {
-      head.textContent = `${city.name || id}`;
-      list.innerHTML = `
-        <div class="error" style="padding:18px;color:#b91c1c;background:#fee2e2;border:1px solid #fecaca;border-radius:12px">
-          Failed to load merchants. Please try again.
-        </div>`;
+      head.textContent = `${city.name}`;
+      if (err) err.hidden = false;      // 顯示錯誤區塊
       return;
     }
 
-    head.textContent = `${city.name || id} — ${res.data.length} places`;
-    renderMerchants(res.data, city);
+    const items = res.data || [];
+    head.textContent = `${city.name} — ${items.length} places`;
+
+    if (!items.length) {
+      empty && (empty.hidden = false);  // 顯示空狀態
+      list.hidden = true;
+      return;
+    }
+
+    // 正常渲染清單
+    renderMerchants(items, city);
+    list.hidden = false;
+  }).catch(e=>{
+    // 兜底：關骨架、顯錯
+    sk.hidden = true; sk.style.display = 'none';
+    err && (err.hidden = false);
   });
 }
+
 
 
   // ===== 初始化 =====
@@ -191,4 +207,5 @@ function selectCity(id, cities) {
 
   bootstrap();
 })();
+
 
