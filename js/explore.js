@@ -1,4 +1,4 @@
-// ===== Explore Page (Supabase + Fallback) =====
+// ===== Explore Page (Supabase server-side filters) =====
 import { supabase } from './app.js';
 
 const $  = (s, r=document) => r.querySelector(s);
@@ -11,55 +11,21 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   const list = $('#merchantList');
   if (!wall || !head) return;
 
-  // --- fallback demo（若 Supabase 無法載入就使用） ---
-  const DEMO = [
-    {id:'kuching', name:'Kuching', icon:'🏛️', count:128, sort_order:1},
-    {id:'miri', name:'Miri', icon:'⛽', count:64, sort_order:2},
-    {id:'sibu', name:'Sibu', icon:'🛶', count:52, sort_order:3},
-    {id:'bintulu', name:'Bintulu', icon:'⚓', count:40, sort_order:4},
-    {id:'sarikei', name:'Sarikei', icon:'🍍', count:24, sort_order:5},
-    {id:'limbang', name:'Limbang', icon:'🌉', count:16, sort_order:6},
-    {id:'lawas', name:'Lawas', icon:'🌿', count:14, sort_order:7},
-    {id:'mukah', name:'Mukah', icon:'🐟', count:18, sort_order:8},
-    {id:'kapit', name:'Kapit', icon:'⛰️', count:12, sort_order:9},
-    {id:'betong', name:'Betong', icon:'🏞️', count:11, sort_order:10},
-    {id:'samarahan', name:'Samarahan', icon:'🎓', count:20, sort_order:11},
-    {id:'serian', name:'Serian', icon:'🌲', count:9, sort_order:12},
-  ];
-
-  // ===== 抓 Supabase 城市資料 =====
+  // --- 城市載入 (和你現有相同) ---
   async function loadCities() {
-    try {
-      const { data, error } = await supabase
-        .from('cities')
-        .select('id,name,icon,count,sort_order')
-        .order('sort_order', { ascending: true })
-        .limit(12);
-
-      console.log("Supabase result:", data, error);
-
-      if (error || !data?.length) {
-        console.warn('⚠️ Load cities failed, fallback to demo:', error);
-        head.textContent = '⚠️ Using demo data (Supabase unavailable)';
-        return DEMO;
-      }
-
-      head.textContent = `✅ Loaded ${data.length} cities from Supabase`;
-      return data.map((r, i) => ({
-        id: r.id,
-        name: r.name ?? r.id,
-        icon: r.icon || '🏙️',
-        count: Number.isFinite(r.count) ? r.count : 0,
-        sort_order: r.sort_order ?? (i + 1),
-      }));
-    } catch (err) {
-      console.error('❌ Supabase fetch exception:', err);
-      head.textContent = '❌ Connection error — using demo data';
-      return DEMO;
-    }
+    const { data, error } = await supabase
+      .from('cities')
+      .select('id,name,icon,count,sort_order')
+      .order('sort_order', { ascending: true })
+      .limit(12);
+    if (error || !data?.length) return [];
+    return data.map((r, i) => ({
+      id: r.id, name: r.name ?? r.id, icon: r.icon || '🏙️',
+      count: Number.isFinite(r.count) ? r.count : 0,
+      sort_order: r.sort_order ?? (i+1),
+    }));
   }
 
-  // ===== 渲染城市牆 =====
   function renderWall(cities) {
     wall.innerHTML = '';
     cities.forEach((c, i) => {
@@ -77,256 +43,129 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     });
   }
 
-  // ===== 切換城市 =====
-  // 讀 merchants（Supabase）
-async function fetchMerchants(cityId, {limit = 20} = {}) {
-  try {
-    // fetchMerchants：把 lat,lng, open_hours, rating 也撈回來
-const { data, error } = await supabase
-  .from('merchants')
-  .select('id,name,category,address,cover,updated_at,city_id,lat,lng,open_hours,rating')
-  .eq('city_id', cityId)
-  .eq('status', 'active')
-  .order('featured', { ascending: false, nullsFirst: false }) // 若有 featured
-  .order('updated_at', { ascending: false })
-  .limit(limit);
+  // ====== 後端抓商家（帶條件） ======
+  // filters 來源：輕量篩選列會 dispatch 'explore:filters-change'
+  let __EXP_FILTERS = { categories: [], sort: 'latest', openNow: false, minRating: null };
+  let __CURRENT_CITY = null;
 
+  async function fetchMerchantsServer(cityId, filters) {
+    // 若勾了 openNow，查 view（有 open_now 欄）；否則查原表
+    const table = filters.openNow ? 'merchants_view' : 'merchants';
 
+    let q = supabase
+      .from(table)
+      .select('id,name,category,address,cover,updated_at,rating,open_now,city_id,open_hours')
+      .eq('city_id', cityId)
+      .eq('status', 'active');
+
+    if (filters.categories?.length) {
+      q = q.in('category', filters.categories);
+    }
+    if (typeof filters.minRating === 'number') {
+      q = q.gte('rating', filters.minRating);
+    }
+    if (filters.openNow) {
+      q = q.eq('open_now', true);            // 只在 view 有效
+    }
+
+    // 排序：latest / hot
+    if (filters.sort === 'hot') {
+      q = q.order('rating', { ascending: false }).order('updated_at', { ascending:false });
+    } else {
+      q = q.order('updated_at', { ascending: false });
+    }
+
+    // 你可以依需求 .limit(n)
+    q = q.limit(50);
+
+    const { data, error } = await q;
     if (error) throw error;
-    return { ok: true, data: data || [] };
-  } catch (err) {
-    console.error('❌ fetchMerchants:', err);
-    return { ok: false, error: err };
-  }
-}
-
-// 把資料畫到 #merchantList
-function renderMerchants(items, city) {
-  const list = document.getElementById('merchantList');
-  if (!list) return;
-
-  if (!items.length) {
-    list.innerHTML = `
-      <div class="empty" style="padding:18px;color:#6b7280;text-align:center">
-        No places in <strong>${city?.name || city?.id || 'this city'}</strong> yet.
-      </div>`;
-    return;
+    return data || [];
   }
 
-  list.innerHTML = items.map(m => {
-    const dist = (m.lat!=null && m.lng!=null && userPos) ? fmtDist(haversineKm(userPos, {lat:m.lat, lng:m.lng})) : '';
-    const openFlag = isOpenNow(m.open_hours); // true / false / null
-    const openBadge = openFlag===null ? '' :
-      `<span class="badge ${openFlag?'ok':'off'}">${openFlag?'Open now':'Closed'}</span>`;
-    const rating = (m.rating!=null) ? `<span class="badge rate">★ ${Number(m.rating).toFixed(1)}</span>` : '';
-
-    return `
-      <a class="item" data-id="${m.id}" href="javascript:;">
-        <div class="thumb" style="background-image:url('${m.cover||''}')"></div>
-        <div class="meta">
-          <div class="t">${m.name}</div>
-          <div class="sub">${m.category ?? ''}${m.address ? ' · ' + m.address : ''}</div>
-          <div class="badges">${rating}${openBadge}</div>
-        </div>
-        <div class="tail">${dist || (m.updated_at ? new Date(m.updated_at).toLocaleDateString() : '')}</div>
-      </a>`;
-  }).join('');
-}
-
-
-// 取代原本的 selectCity（讓它真的抓 merchants）
-function selectCity(id, cities) {
-  const wall = document.getElementById('cityWall');
-  const head = document.getElementById('resultHead');
-  const sk   = document.getElementById('skList');
-  const list = document.getElementById('merchantList');
-  const empty = document.getElementById('emptyState');
-  const err   = document.getElementById('errorState');
-
-  // tab 樣式
-  wall.querySelectorAll('.citycell').forEach(b=>{
-    const on = b.dataset.id === id;
-    b.setAttribute('aria-selected', on ? 'true' : 'false');
-  });
-
-  const city = cities.find(x => x.id === id) || { id, name: id };
-  head.textContent = `${city.name} — loading…`;
-
-  // 先重置狀態
-  sk.hidden = false;     sk.style.removeProperty('display');
-  list.hidden = true;    list.innerHTML = '';
-  empty && (empty.hidden = true);
-  err && (err.hidden = true);
-
-  // 抓資料
-  fetchMerchants(id).then(res => {
-    // 關掉骨架（雙保險）
-    sk.hidden = true;     sk.style.display = 'none';
-
-    if (!res.ok) {
-      head.textContent = `${city.name}`;
-      if (err) err.hidden = false;      // 顯示錯誤區塊
-      return;
-    }
-
-    const items = res.data || [];
-    head.textContent = `${city.name} — ${items.length} places`;
-
+  function renderMerchants(items) {
     if (!items.length) {
-      empty && (empty.hidden = false);  // 顯示空狀態
-      list.hidden = true;
+      list.innerHTML = `
+        <div class="empty" style="padding:18px;color:#6b7280;text-align:center">
+          No places in <strong>${__CURRENT_CITY || 'this city'}</strong> yet.
+        </div>`;
       return;
     }
 
-    // 正常渲染清單
-    renderMerchants(items, city);
-    list.hidden = false;
-  }).catch(e=>{
-    // 兜底：關骨架、顯錯
-    sk.hidden = true; sk.style.display = 'none';
-    err && (err.hidden = false);
-  });
-}
+    list.innerHTML = items.map(m => `
+      <div class="item" data-id="${m.id}">
+        <div class="thumb" style="background-image:url('${m.cover || ''}');"></div>
+        <div>
+          <div class="t">${m.name}</div>
+          <div class="sub">
+            ${m.category ?? ''}${m.address ? ' · ' + m.address : ''}
+          </div>
+          <div class="badges" style="margin-top:6px; display:flex; gap:8px; align-items:center;">
+            ${m.rating ? `<span class="chip sm">★ ${m.rating.toFixed(1)}</span>` : ''}
+            ${m.open_now ? `<span class="chip sm on">Open now</span>` : ''}
+          </div>
+        </div>
+        <div class="sub" style="white-space:nowrap;margin-left:8px">
+          ${m.updated_at ? new Date(m.updated_at).toLocaleDateString() : ''}
+        </div>
+      </div>
+    `).join('');
+  }
 
-  // 地理距離（公里）
-function haversineKm(a, b){
-  if(!a || !b) return null;
-  const R=6371, toRad = d=>d*Math.PI/180;
-  const dLat = toRad(b.lat-a.lat), dLng = toRad(b.lng-a.lng);
-  const s = Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLng/2)**2;
-  return R * 2 * Math.asin(Math.sqrt(s));
-}
-const fmtDist = km => km==null ? '' : (km<1 ? `${Math.round(km*1000)} m` : `${km.toFixed(1)} km`);
+  async function applyServer() {
+    if (!__CURRENT_CITY) return;
+    head.textContent = `${__CURRENT_CITY} — loading…`;
+    sk.hidden = false; list.hidden = true;
 
-// 簡易營業狀態（支援 "24H" 或 "09:00 - 18:00"）
-function isOpenNow(open){
-  if(!open) return null;
-  const now = new Date();
-  if(open.trim().toUpperCase()==='24H') return true;
-  const m = open.match(/(\d{1,2}):?(\d{2})?\s*-\s*(\d{1,2}):?(\d{2})?/);
-  if(!m) return null;
-  const [ , h1,m1,h2,m2 ] = m.map(Number);
-  const start = new Date(now), end = new Date(now);
-  start.setHours(h1, m1||0, 0, 0);
-  end.setHours(h2, m2||0, 0, 0);
-  return now>=start && now<=end;
-}
+    try {
+      const rows = await fetchMerchantsServer(__CURRENT_CITY, __EXP_FILTERS);
+      head.textContent = `${__CURRENT_CITY} — ${rows.length} places`;
+      renderMerchants(rows);
+    } catch (err) {
+      console.error('fetchMerchantsServer failed:', err);
+      head.textContent = `${__CURRENT_CITY}`;
+      list.innerHTML = `
+        <div class="error" style="padding:18px;color:#b91c1c;background:#fee2e2;border:1px solid #fecaca;border-radius:12px">
+          Failed to load merchants. Please try again.
+        </div>`;
+    } finally {
+      sk.hidden = true; list.hidden = false;
+    }
+  }
 
-// 抓一次使用者定位（允許就有距離，拒絕就 fallback）
-let userPos = null;
-navigator.geolocation?.getCurrentPosition(
-  pos => { userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude }; },
-  ()=>{}, { enableHighAccuracy:true, maximumAge:60000, timeout:6000 }
-);
-
-
-
+  function selectCity(id, cities) {
+    // 樣式
+    wall.querySelectorAll('.citycell').forEach(b=>{
+      const on = b.dataset.id === id;
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    const cityName = cities.find(x => x.id === id)?.name || id;
+    __CURRENT_CITY = id;
+    head.textContent = `${cityName} — loading…`;
+    applyServer();
+  }
 
   // ===== 初始化 =====
   async function bootstrap() {
     const cities = await loadCities();
     renderWall(cities);
 
-    // 點擊事件
     wall.addEventListener('click', (e) => {
       const btn = e.target.closest('.citycell');
       if (!btn) return;
       selectCity(btn.dataset.id, cities);
     });
 
-    // 鍵盤左右切換
-    wall.addEventListener('keydown', (e)=>{
-      const cells = Array.from(wall.querySelectorAll('.citycell'));
-      const cur = cells.findIndex(b => b.getAttribute('aria-selected') === 'true');
-      if(e.key === 'ArrowRight'){ e.preventDefault(); const n = cells[Math.min(cur+1, cells.length-1)]; n?.focus(); n?.click(); }
-      if(e.key === 'ArrowLeft'){  e.preventDefault(); const p = cells[Math.max(cur-1, 0)];             p?.focus(); p?.click(); }
+    // 篩選列的事件（你現有的輕量篩選列會 dispatch 這個）
+    window.addEventListener('explore:filters-change', (e) => {
+      __EXP_FILTERS = { ...__EXP_FILTERS, ...(e.detail || {}) };
+      applyServer();
     });
 
-    // 預設選第一個
+    // 預設選第一個城市
     const first = wall.querySelector('.citycell');
     if (first) selectCity(first.dataset.id, cities);
   }
 
   bootstrap();
 })();
-
-
-// ===== Explore: Filters UI (UI-only) =====
-(() => {
-  const host = document.getElementById('expFilters');
-  if (!host) return;
-
-  // 主分類：多選（切換 .is-on）
-  const catsWrap = host.querySelector('.chips--cats');
-  catsWrap?.addEventListener('click', (e) => {
-    const btn = e.target.closest('.chip[data-cat]');
-    if (!btn) return;
-    btn.classList.toggle('is-on');
-    emit();
-  });
-
-  // 快速條件：
-  // - data-sort：彼此互斥，aria-pressed true/false
-  // - data-open / data-rating：獨立切換
-  const quickWrap = host.querySelector('.chips--quick');
-
-  // sort 互斥
-  function toggleSort(target) {
-    quickWrap.querySelectorAll('.chip[data-sort]').forEach(b=>{
-      b.setAttribute('aria-pressed', b === target ? 'true' : 'false');
-    });
-  }
-
-  quickWrap?.addEventListener('click', (e) => {
-    const btn = e.target.closest('.chip');
-    if (!btn) return;
-
-    if (btn.hasAttribute('data-sort')) {
-      toggleSort(btn);
-    } else if (btn.hasAttribute('data-open')) {
-      const on = btn.getAttribute('aria-pressed') === 'true';
-      btn.setAttribute('aria-pressed', on ? 'false' : 'true');
-    } else if (btn.hasAttribute('data-rating')) {
-      btn.classList.toggle('is-on');
-    } else if (btn.id === 'btnOpenFilter') {
-      // 之後你要做底部抽屜可在這裡打開
-      // openFilterDrawer();
-    }
-    emit();
-  });
-
-  // 將目前 UI 狀態轉成一個乾淨的物件，廣播出去（之後接查詢用）
-  function getState(){
-    const cats = Array.from(catsWrap?.querySelectorAll('.chip.is-on[data-cat]') || [])
-      .map(b => b.dataset.cat);
-
-    const sortBtn = quickWrap?.querySelector('.chip[data-sort][aria-pressed="true"]');
-    const sort = sortBtn?.dataset.sort || 'latest';
-
-    const openNow = (quickWrap?.querySelector('.chip[data-open][aria-pressed="true"]') != null);
-
-    const ratingOn = quickWrap?.querySelector('.chip.is-on[data-rating]');
-    const minRating = ratingOn ? Number(ratingOn.dataset.rating) : null;
-
-    return { categories: cats, sort, openNow, minRating };
-  }
-
-  function emit(){
-    const detail = getState();
-    window.dispatchEvent(new CustomEvent('explore:filters-change', { detail }));
-    // 先觀察用
-    console.log('[filters]', detail);
-  }
-
-  // 初始同步一次
-  emit();
-})();
-
-window.addEventListener('explore:filters-change', (e) => {
-  const f = e.detail; // {categories, sort, openNow, minRating}
-  // TODO: 依 f 重新打 supabase query 或前端過濾
-});
-
-
-
-
