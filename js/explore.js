@@ -439,3 +439,68 @@ function selectCity(id, cityObj){
     selectCity(first.dataset.id, c);
   }
 })();
+
+// === Merchant Detail: open/close (skeleton only + basic hydrate) ===
+(() => {
+  const detail = document.getElementById('merchantDetail');
+  if (!detail) return;
+
+  const btnClose = detail.querySelector('.md-close');
+  const btnBack  = detail.querySelector('.md-back');
+  const titleEl  = detail.querySelector('#md-title');
+
+  function lockScroll(on){ document.body.classList.toggle('no-scroll', !!on); }
+
+  // 暫時從目前的 allMerchants 找資料（之後可改成 re-fetch by id）
+  function getMerchantById(id){
+    return (typeof allMerchants !== 'undefined')
+      ? allMerchants.find(m => m.id === id)
+      : null;
+  }
+
+  // 開啟詳情（先顯示骨架，不填內容）
+  function openDetail(id){
+    if (!detail) return;
+    // 骨架狀態：把所有 sk-* 先顯示（目前骨架版本來就顯示）
+    titleEl.textContent = ''; // 骨架線條會頂替
+
+    detail.hidden = false;
+    lockScroll(true);
+
+    // 先用目前列表資料「簡單帶入幾項」，其餘維持骨架
+    const m = getMerchantById(id);
+    if (m){
+      // 只填「標題」讓使用者有目標感，其他區塊保持骨架
+      titleEl.textContent = m.name || '';
+      // 也可以順便把第一張圖塞進第一格骨架，讓骨架更像
+      const g = detail.querySelector('.md-gallery .md-photo');
+      if (g && m.cover) g.style.background = `center/cover no-repeat url("${m.cover}")`;
+    }
+
+    // TODO：未來這裡接詳細 API，完成後把 skeleton 卸下、填滿面板
+  }
+
+  function closeDetail(){
+    if (!detail) return;
+    detail.hidden = true;
+    lockScroll(false);
+
+    // 清回骨架外觀（避免上次殘留的封面）
+    detail.querySelectorAll('.md-photo').forEach(p => {
+      p.style.background = ''; // 還原骨架底色
+    });
+    titleEl.textContent = '';
+  }
+
+  btnClose?.addEventListener('click', closeDetail);
+  btnBack?.addEventListener('click', closeDetail);
+  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !detail.hidden) closeDetail(); });
+
+  // 列表事件代理：點到 .merchant-list .item 就打開
+  document.addEventListener('click', (e)=>{
+    const it = e.target.closest('.merchant-list .item');
+    if (!it) return;
+    const id = it.dataset.id;
+    if (id) openDetail(id);
+  });
+})();
