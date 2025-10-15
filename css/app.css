@@ -510,6 +510,39 @@ main { min-height: calc(100dvh - 88px); }
 /* 給箭頭留點空隙，避免被切到 */
 .citywall{ padding-bottom: 18px; }
 
+/* ===== Explore: Empty / Error ===== */
+.empty-state, .error-state{
+  display:grid; place-items:center; text-align:center;
+  gap:6px; padding: 22px 12px; border-radius: 14px;
+  background:#fff; border:1px solid rgba(0,0,0,.08);
+  box-shadow: 0 10px 24px rgba(0,0,0,.06);
+}
+.empty-emoji, .err-emoji{ font-size: 28px; line-height: 1; }
+.empty-title, .err-title{ font-weight:800; color:#111; }
+.empty-sub, .err-sub{ color:#6b7280; font-size: 13px; }
+
+.err-retry{
+  appearance:none; border:1px solid rgba(0,0,0,.08);
+  background: linear-gradient(180deg, #fff, #fafafa);
+  border-radius: 10px; padding: 8px 12px; font-weight:700; cursor:pointer;
+  margin-top: 6px;
+}
+
+/* 暗色 */
+@media (prefers-color-scheme: dark){
+  .empty-state, .error-state{
+    background: color-mix(in srgb, #0b0f12 78%, transparent);
+    border-color: rgba(255,255,255,.08);
+    box-shadow: 0 10px 28px rgba(0,0,0,.5);
+  }
+  .empty-title, .err-title{ color:#f5f7fa; }
+  .empty-sub, .err-sub{ color:#cbd5e1; }
+  .err-retry{
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    border-color: rgba(255,255,255,.10); color:#eef2f6;
+  }
+}
+
 
 
 
