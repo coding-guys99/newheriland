@@ -1025,3 +1025,100 @@ select{ appearance: none; padding-right: 28px }
     border-color: rgba(255,255,255,.08);
   }
 }
+
+/* ===== Merchant Detail — Overlay (Skeleton) ===== */
+.overlay-page.md[hidden]{ display:none !important; }
+.overlay-page.md{
+  position: fixed; inset:0; z-index: 1400;
+  display:grid; grid-template-rows: auto 1fr;
+  background: color-mix(in srgb, rgba(255,255,255,.86) 100%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  backdrop-filter: blur(14px) saturate(130%);
+  opacity: 1; transform: translateX(0);
+}
+
+/* 頂部列 */
+.md-appbar{
+  display:flex; align-items:center; gap:10px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, #ffffff 82%, transparent);
+  border-bottom:1px solid rgba(0,0,0,.06);
+  position: sticky; top:0; z-index:2;
+}
+.md-title{ margin:0; font-size:18px; font-weight:800; letter-spacing:.2px; flex:1; }
+.md-actions{ display:flex; align-items:center; gap:6px; }
+.icon-btn{ appearance:none; border:0; background:transparent; cursor:pointer; font-size:18px; }
+
+/* 內容 */
+.md-scroll{ overflow:auto; padding: 10px 12px calc(20px + env(safe-area-inset-bottom)); }
+
+/* 圖片群 */
+.md-gallery{
+  display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;
+}
+.md-photo{
+  height: 94px; border-radius: 12px; background:#e5e7eb; border:1px solid rgba(0,0,0,.06);
+}
+
+/* 標題區 */
+.md-hero{ padding: 12px 2px 6px; }
+.md-name{ height: 20px; border-radius: 6px; }
+.md-sub { height: 14px; margin-top:8px; border-radius:6px; }
+.md-badges{ display:flex; gap:8px; margin-top:10px; }
+.sk-pill{ height: 24px; border-radius:999px; background:#eef2f7; border:1px solid rgba(0,0,0,.06); }
+
+/* 快捷動作 */
+.md-quick{
+  display:grid; grid-auto-flow: column; gap:8px; margin: 8px 0 2px;
+  overflow:auto;
+}
+.btn.ghost{
+  pointer-events:none;
+  opacity:.7;
+  border:1px solid rgba(0,0,0,.08);
+  background:#fff;
+  border-radius:12px;
+  padding:10px 12px;
+}
+
+/* 卡片 */
+.md-card{
+  background:#fff; border:1px solid rgba(0,0,0,.08);
+  border-radius:14px; box-shadow: 0 10px 30px rgba(0,0,0,.08);
+  padding:12px; margin: 12px 0;
+}
+.md-card-title{
+  font-weight:800; margin: 4px 2px 10px; letter-spacing:.2px; color:#111827;
+}
+
+/* 地圖 / 推薦 */
+.md-map{ height: 160px; border-radius:12px; }
+.md-reco{ display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
+.md-reco-card{ height: 86px; border-radius:12px; }
+
+/* Skeleton 通用 */
+.sk-line{
+  display:block; background: linear-gradient(90deg, rgba(0,0,0,.05), rgba(0,0,0,.08), rgba(0,0,0,.05));
+  background-size: 200% 100%; animation: md-shimmer 1.1s linear infinite;
+  border:1px solid rgba(0,0,0,.04);
+}
+.sk-block{
+  background: linear-gradient(90deg, rgba(0,0,0,.04), rgba(0,0,0,.08), rgba(0,0,0,.04));
+  background-size:200% 100%; animation: md-shimmer 1.1s linear infinite;
+  border:1px solid rgba(0,0,0,.06);
+}
+@keyframes md-shimmer{ to{ background-position: -200% 0; } }
+
+.md-safe{ height: 10px; }
+
+/* 暗色保護 */
+@media (prefers-color-scheme: dark){
+  .overlay-page.md{ background: color-mix(in srgb, rgba(16,18,22,.80) 100%, transparent); }
+  .md-appbar{ background: color-mix(in srgb, #0b0f12 70%, transparent); border-bottom-color: rgba(255,255,255,.08); }
+  .md-card{ background: color-mix(in srgb, #0b0f12 78%, transparent); border-color: rgba(255,255,255,.08); box-shadow: 0 10px 28px rgba(0,0,0,.5); }
+  .md-card-title{ color:#e5e7eb; }
+  .sk-line,.sk-block{
+    background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.12), rgba(255,255,255,.06));
+    border-color: rgba(255,255,255,.08);
+  }
+}
