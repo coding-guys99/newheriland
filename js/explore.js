@@ -291,110 +291,49 @@ function selectCity(id, cityObj){
   });
 }
 
-/* ----------------- Detail Drawer (data-filled) ----------------- */
-// IDs/結構對上我先前給你的骨架
-const md  = $('#mdBackdrop');
-const mdClose = $('#mdClose');
+// ---- Detail Drawer refs ----
+const md  = document.getElementById('mdBackdrop');
+const mdClose = document.getElementById('mdClose');
 
-function openDrawer(){ if (md){ md.hidden = false; md.classList.add('active'); } }
-function closeDrawer(){ if (md){ md.classList.remove('active'); md.hidden = true; } }
-
+function openDrawer(){
+  if (!md) return;
+  md.hidden = false;
+  md.classList.add('active');
+}
+function closeDrawer(){
+  if (!md) return;
+  md.classList.remove('active');
+  md.hidden = true;
+}
 function setAction(el, href){
   if (!el) return;
   if (href){
-    el.href = href; el.removeAttribute('aria-disabled'); el.classList.remove('is-disabled');
+    el.href = href;
+    el.removeAttribute('aria-disabled');
+    el.classList?.remove('is-disabled');
   }else{
-    el.removeAttribute('href'); el.setAttribute('aria-disabled','true'); el.classList.add('is-disabled');
-  }
-}
-
-function fillDetail(m){
-  // 主視覺 / 標題區
-  $('#mdTitle').textContent = m.name || 'Untitled';
-  $('#mdCategory').textContent = m.category || '';
-  $('#mdRating').textContent = (m.rating!=null) ? `★ ${Number(m.rating).toFixed(1)}` : '';
-  const open = isOpenNow(m);
-  $('#mdOpen').textContent = open ? 'Open now' : 'Closed';
-
-  // 價格
-  const p = priceLevelNum(m);
-  $('#mdPrice').textContent = p ? '💲'.repeat(Math.max(1, Math.min(4, p))) : '';
-
-  // 地址（若沒有就提示）
-  const addrEl = $('#mdAddress');
-  if (m.address) { addrEl.textContent = m.address; addrEl.classList.remove('muted'); }
-  else { addrEl.textContent = 'No address yet'; addrEl.classList.add('muted'); }
-
-  // 描述 / 營業時間
-  $('#mdDesc').textContent  = m.description || '';
-  $('#mdHours').textContent = (() => {
-    if (m.open_hours && typeof m.open_hours === 'object') return 'See daily schedule';
-    return m.openHours || '';
-  })();
-
-  // Tags（支援字串陣列或以逗號分隔）
-  const tagsWrap = $('#mdBadges');
-  if (tagsWrap){
-    tagsWrap.innerHTML = '';
-    const tags = Array.isArray(m.tagIds) ? m.tagIds
-               : Array.isArray(m.tags) ? m.tags
-               : (typeof m.tags === 'string' ? m.tags.split(',').map(s=>s.trim()).filter(Boolean) : []);
-    tags.slice(0,8).forEach(t=>{
-      const s = document.createElement('span');
-      s.className = 'badge';
-      s.textContent = `#${t}`;
-      tagsWrap.appendChild(s);
-    });
-  }
-
-  // 動作按鈕
-  setAction($('#mdPhone'),   m.phone    ? `tel:${m.phone.replace(/\s+/g,'')}` : null);
-  setAction($('#mdWA'),      m.whatsapp ? `https://wa.me/${m.whatsapp.replace(/\D+/g,'')}` : null);
-  setAction($('#mdWeb'),     m.website  ? m.website : null);
-
-  // Map：lat/lng 優先，其次用地址
-  let mapHref = null;
-  if (m.lat!=null && m.lng!=null){
-    mapHref = `https://www.google.com/maps?q=${m.lat},${m.lng}`;
-  } else if (m.location && m.location.lat!=null && m.location.lng!=null){
-    mapHref = `https://www.google.com/maps?q=${m.location.lat},${m.location.lng}`;
-  } else if (m.address){
-    mapHref = `https://www.google.com/maps?q=${encodeURIComponent(m.address)}`;
-  }
-  setAction($('#mdMap'), mapHref);
-
-  // 分享（簡單版）
-  $('#mdShare')?.addEventListener('click', async ()=>{
-    const shareData = {
-      title: m.name,
-      text: `${m.name} — ${m.category||''}`,
-      url: location.href
-    };
-    try{ if (navigator.share) await navigator.share(shareData); else await navigator.clipboard.writeText(`${m.name}\n${location.href}`); }catch{}
-  }, { once:true });
-
-  // 主圖（可用 cover 或 images[0]）
-  const gallery = $('#modalGallery');
-  if (gallery){
-    const cover = m.cover || (m.images?.[0]) || '';
-    gallery.innerHTML = cover ? `<div class="gimg" style="background-image:url('${cover}')"></div>` : `<div class="gimg placeholder"></div>`;
+    el.removeAttribute('href');
+    el.setAttribute('aria-disabled','true');
+    el.classList?.add('is-disabled');
   }
 }
 
 async function openDetailById(id){
+  // 若還沒放抽屜 HTML，避免報錯
+  if (!md){ console.warn('Detail drawer HTML (#mdBackdrop) not found.'); return; }
+
   try{
     openDrawer();
-    // 顯示骨架（用你的 CSS/結構）
     md.classList.add('loading');
 
     const m = await fetchMerchantById(id);
-
     fillDetail(m);
 
-    // 推薦（同城同類別）
     try{
-      const related = await fetchRelated({ city_id:m.city_id, category:m.category, exceptId:m.id, limit:6 });
-      const rec = $('#recList');
+      const related = await fetchRelated({
+        city_id: m.city_id, category: m.category, exceptId: m.id, limit: 6
+      });
+      const rec = document.getElementById('recList');
       if (rec){
         rec.innerHTML = related.map(r => `
           <a class="rec" data-id="${r.id}" role="button" tabindex="0" aria-label="Open ${r.name}">
@@ -402,23 +341,26 @@ async function openDetailById(id){
             <div class="rname">${r.name}</div>
           </a>
         `).join('');
-        // 讓推薦可再次開啟詳情
         rec.addEventListener('click', (e)=>{
           const a = e.target.closest('.rec'); if (!a) return;
           openDetailById(a.dataset.id);
         });
       }
-    }catch(e){ /* 靜默略過推薦錯誤 */ }
+    }catch(e){ /* ignore */ }
 
   }catch(err){
     console.error('openDetailById error:', err);
-    // 在抽屜內顯示簡單錯誤
-    $('#mdTitle').textContent = 'Failed to load';
-    $('#mdDesc').textContent = 'Please check your connection and try again.';
+    document.getElementById('mdTitle')?.textContent = 'Failed to load';
+    document.getElementById('mdDesc')?.textContent = 'Please check your connection and try again.';
   }finally{
-    md.classList.remove('loading');
+    md?.classList.remove('loading');
   }
 }
+
+// 綁定關閉
+mdClose?.addEventListener('click', closeDrawer);
+md?.addEventListener('click', (e)=>{ if (e.target === md) closeDrawer(); });
+window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeDrawer(); });
 
 /* ----------------- Bootstrap ----------------- */
 (async function init(){
@@ -467,8 +409,5 @@ async function openDetailById(id){
     if (id) openDetailById(id);
   });
 
-  // 抽屜關閉
-  mdClose?.addEventListener('click', closeDrawer);
-  md?.addEventListener('click', (e)=>{ if (e.target === md) closeDrawer(); });
-  window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeDrawer(); });
+  
 })();
