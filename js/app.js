@@ -1,8 +1,8 @@
 // ===== Supabase 初始化 =====
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-const SUPABASE_URL = 'https://你的專案id.supabase.co';
-const SUPABASE_ANON_KEY = '你的anon公開金鑰';
+const SUPABASE_URL = 'https://grnslirusehkdmxzxwnp.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdybnNsaXJ1c2Voa2RteHp4d25wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NTY0MTYsImV4cCI6MjA3NjAzMjQxNn0.-pVf96mDwnJU4a9QndmFjr0f7DWNBAlxkJrzuKKj7WI';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -301,4 +301,5 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     alert('Preview mock — 之後接真預覽頁');
   });
 })();
+
 
