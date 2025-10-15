@@ -1,5 +1,5 @@
 // js/explore.js
-// Explore — Supabase fetch per city, client-side filters wired to your HTML
+// Explore — Supabase fetch per city, client-side filters + Filter Drawer
 import { supabase } from './app.js';
 
 const $  = (s, r=document) => r.querySelector(s);
@@ -14,16 +14,27 @@ const empty = $('#emptyState');
 const errBx = $('#errorState');
 const btnRetry = $('#btnRetry');
 
-// Filters container
+// Filters container（輕量列）
 const filtersBox   = $('#expFilters');
 const chipsCats    = $$('.chips--cats .chip', filtersBox);   // 多選
 const chipsQuick   = $$('.chips--quick .chip', filtersBox);  // 單顆切換/排序
+const quickWrap    = $('.chips--quick', filtersBox);
+const catsWrap     = $('.chips--cats',  filtersBox);
+
+// ---- Filter Drawer（進階面板）DOM ----
+const overlay   = document.getElementById('filterOverlay');
+const panel     = overlay?.querySelector('.filter-panel');
+const btnOpen   = document.getElementById('btnOpenFilter');   // 輕量列的 🎯 Filter
+const btnClose  = document.getElementById('btnCloseFilter');
+const btnApply  = document.getElementById('btnApplyFilter');
+const btnReset  = document.getElementById('btnResetFilter');
 
 // ---- Filter state (match your UI) ----
 const state = {
   cats: new Set(),       // e.g. {"Taste","Culture"}  多選 OR
   open: false,           // true => 只顯示營業中
   minRating: null,       // e.g. 4.5
+  priceLevels: new Set(),// e.g. {1,2,3,4}
   sort: 'latest',        // 'latest' | 'hot'
 };
 
@@ -181,6 +192,12 @@ function applyFilters(){
     arr = arr.filter(m => (Number(m.rating)||0) >= state.minRating);
   }
 
+  // Price（如果面板有選）
+  if (state.priceLevels.size){
+    const want = new Set([...state.priceLevels].map(n => Number(n)));
+    arr = arr.filter(m => want.has(priceLevelNum(m) || 0));
+  }
+
   // 排序
   if (state.sort === 'hot'){
     arr.sort((a,b)=>{
@@ -199,11 +216,10 @@ function applyFilters(){
   }
 
   renderMerchants(arr);
-  // 你把 head 做成 sr-only，我仍更新它（便利 debug）
   if (head) head.textContent = `${currentCity?.name || currentCity?.id || 'City'} — ${arr.length} places`;
 }
 
-// ===== Bind filter chips (match your attributes) =====
+// ===== Bind filter chips（輕量列） =====
 function bindFilters(){
   if (!filtersBox) return;
 
@@ -220,7 +236,6 @@ function bindFilters(){
 
   // 快速條件：latest/hot 單選；open / rating 為切換
   chipsQuick.forEach(btn=>{
-    // 初始化 aria-pressed (若 HTML 已給 latest 為 true 就沿用)
     if (!btn.hasAttribute('aria-pressed')){
       btn.setAttribute('aria-pressed','false');
     }
@@ -283,9 +298,8 @@ function selectCity(id, cityObj){
     allMerchants = res.data || [];
     list.hidden = false;
 
-    // 取得新城市資料後：重置排序為 latest（依你 chips 預設）
+    // 新城市：重置排序為 latest（視覺也同步）
     state.sort = 'latest';
-    // 也把 quick sort 視覺重置（latest on / hot off）
     $$('.chips--quick .chip[data-sort]', filtersBox).forEach(b=>{
       const on = (b.dataset.sort === 'latest');
       b.classList.toggle('is-on', on);
@@ -293,6 +307,155 @@ function selectCity(id, cityObj){
     });
 
     applyFilters();
+  });
+}
+
+// ===== Filter Drawer（進階面板）：open/close + sync =====
+function syncQuickBarFromState(){
+  // 類別（多選）
+  catsWrap?.querySelectorAll('[data-cat]').forEach(b=>{
+    const on = state.cats?.has(b.dataset.cat);
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-pressed', on ? 'true':'false');
+  });
+  // open
+  const qOpen = quickWrap?.querySelector('[data-open]');
+  if (qOpen) qOpen.setAttribute('aria-pressed', state.open ? 'true':'false');
+  if (qOpen) qOpen.classList.toggle('is-on', !!state.open);
+  // rating
+  quickWrap?.querySelectorAll('[data-rating]')?.forEach(b => {
+    const on = state.minRating && Number(b.dataset.rating) === Number(state.minRating);
+    b.setAttribute('aria-pressed', on ? 'true':'false');
+    b.classList.toggle('is-on', on);
+  });
+  // sort
+  quickWrap?.querySelectorAll('[data-sort]')?.forEach(b => {
+    const on = (b.dataset.sort === (state.sort || 'latest'));
+    b.setAttribute('aria-pressed', on ? 'true':'false');
+    b.classList.toggle('is-on', on);
+  });
+}
+
+function hydrateFromState(){ // state → 面板 UI
+  if (!panel) return;
+  // 類別
+  panel.querySelectorAll('[data-cat]')?.forEach(b=>{
+    b.classList.toggle('is-on', state.cats?.has(b.dataset.cat));
+  });
+  // open
+  const pOpen = panel.querySelector('[data-open]');
+  if (pOpen) pOpen.setAttribute('aria-pressed', state.open ? 'true':'false');
+  // rating
+  panel.querySelectorAll('[data-rating]')?.forEach(b=>{
+    const on = state.minRating && Number(b.dataset.rating) === Number(state.minRating);
+    b.setAttribute('aria-pressed', on ? 'true':'false');
+  });
+  // price
+  panel.querySelectorAll('[data-price]')?.forEach(b=>{
+    b.classList.toggle('is-on', state.priceLevels?.has(Number(b.dataset.price)));
+  });
+  // sort
+  panel.querySelectorAll('[data-sort]')?.forEach(b=>{
+    const on = (b.dataset.sort === (state.sort||'latest'));
+    b.setAttribute('aria-pressed', on ? 'true':'false');
+  });
+}
+
+function collectFromPanel(){ // 面板 UI → 新的暫存 state
+  const next = {
+    cats: new Set(),
+    open: false,
+    minRating: null,
+    priceLevels: new Set(),
+    sort: 'latest'
+  };
+  panel.querySelectorAll('[data-cat].is-on')?.forEach(b => next.cats.add(b.dataset.cat));
+  next.open = panel.querySelector('[data-open][aria-pressed="true"]') ? true : false;
+
+  const r = panel.querySelector('[data-rating][aria-pressed="true"]');
+  next.minRating = r ? Number(r.dataset.rating) : null;
+
+  panel.querySelectorAll('[data-price].is-on')?.forEach(b => next.priceLevels.add(Number(b.dataset.price)));
+
+  const s = panel.querySelector('[data-sort][aria-pressed="true"]');
+  next.sort = s ? s.dataset.sort : 'latest';
+
+  return next;
+}
+
+function openDrawer(){
+  if (!overlay || !panel) return;
+  overlay.hidden = false;
+  requestAnimationFrame(()=> overlay.classList.add('show'));
+  hydrateFromState();
+  panel.querySelector('.filter-head .close')?.focus({preventScroll:true});
+}
+function closeDrawer(){
+  if (!overlay) return;
+  overlay.classList.remove('show');
+  setTimeout(()=> overlay.hidden = true, 200);
+}
+
+// Drawer 綁定
+if (btnOpen && overlay && panel){
+  btnOpen.addEventListener('click', openDrawer);
+  btnClose?.addEventListener('click', closeDrawer);
+  overlay.addEventListener('click', (e)=>{ if (e.target === overlay) closeDrawer(); });
+  window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && !overlay.hidden) closeDrawer(); });
+
+  // 面板 chips 的按鈕互動（切換樣式即可）
+  panel.addEventListener('click', (e)=>{
+    const b = e.target.closest('.chip');
+    if (!b) return;
+
+    if (b.dataset.cat || b.dataset.price){
+      b.classList.toggle('is-on');
+      return;
+    }
+    if (b.dataset.rating){
+      panel.querySelectorAll('[data-rating]').forEach(x=> x.setAttribute('aria-pressed','false'));
+      b.setAttribute('aria-pressed','true');
+      return;
+    }
+    if (b.dataset.sort){
+      panel.querySelectorAll('[data-sort]').forEach(x=> x.setAttribute('aria-pressed','false'));
+      b.setAttribute('aria-pressed','true');
+      return;
+    }
+    if (b.dataset.open !== undefined){
+      const on = b.getAttribute('aria-pressed') === 'true';
+      b.setAttribute('aria-pressed', on ? 'false' : 'true');
+    }
+  });
+
+  // Reset
+  btnReset?.addEventListener('click', ()=>{
+    // UI reset
+    panel.querySelectorAll('.chip.is-on')?.forEach(x=> x.classList.remove('is-on'));
+    panel.querySelectorAll('[aria-pressed="true"]')?.forEach(x=> x.setAttribute('aria-pressed','false'));
+    // state reset
+    state.cats.clear();
+    state.open = false;
+    state.minRating = null;
+    state.priceLevels = new Set();
+    state.sort = 'latest';
+    // 同步輕量列外觀 + 套用
+    syncQuickBarFromState();
+    applyFilters();
+  });
+
+  // Apply
+  btnApply?.addEventListener('click', ()=>{
+    const next = collectFromPanel();
+    state.cats = next.cats;
+    state.open = next.open;
+    state.minRating = next.minRating;
+    state.priceLevels = next.priceLevels;
+    state.sort = next.sort;
+
+    syncQuickBarFromState();
+    applyFilters();
+    closeDrawer();
   });
 }
 
