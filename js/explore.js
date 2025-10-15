@@ -78,30 +78,91 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   }
 
   // ===== 切換城市 =====
-  function selectCity(id, cities) {
-    wall.querySelectorAll('.citycell').forEach(b => {
-      const on = b.dataset.id === id;
-      b.setAttribute('aria-selected', on ? 'true' : 'false');
-    });
+  // 讀 merchants（Supabase）
+async function fetchMerchants(cityId, {limit = 20} = {}) {
+  try {
+    const { data, error } = await supabase
+      .from('merchants')
+      .select('id,name,category,address,cover,updated_at,city_id')
+      .eq('city_id', cityId)
+      .eq('status', 'active')              // 若你表有 status 欄
+      .order('updated_at', { ascending: false })
+      .limit(limit);
 
-    const city = cities.find(x => x.id === id);
-    head.textContent = `${city?.name || 'City'} — ${city?.count || 0} places`;
-
-    // 模擬載入骨架
-    sk.hidden = false;
-    list.hidden = true;
-
-    setTimeout(() => {
-      sk.hidden = true;
-      list.hidden = false;
-      list.innerHTML = `
-        <div class="item">
-          <div class="thumb"></div>
-          <div class="t">${city?.name} Placeholder</div>
-          <div class="sub">${city?.count || 0} locations</div>
-        </div>`;
-    }, 1000);
+    if (error) throw error;
+    return { ok: true, data: data || [] };
+  } catch (err) {
+    console.error('❌ fetchMerchants:', err);
+    return { ok: false, error: err };
   }
+}
+
+// 把資料畫到 #merchantList
+function renderMerchants(items, city) {
+  const list = document.getElementById('merchantList');
+  if (!list) return;
+
+  if (!items.length) {
+    list.innerHTML = `
+      <div class="empty" style="padding:18px;color:#6b7280;text-align:center">
+        No places in <strong>${city?.name || city?.id || 'this city'}</strong> yet.
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = items.map(m => `
+    <div class="item" data-id="${m.id}">
+      <div class="thumb" style="background-image:url('${m.cover || ''}');"></div>
+      <div>
+        <div class="t">${m.name}</div>
+        <div class="sub">${m.category ?? ''}${m.address ? ' · ' + m.address : ''}</div>
+      </div>
+      <div class="sub" style="white-space:nowrap;margin-left:8px">
+        ${m.updated_at ? new Date(m.updated_at).toLocaleDateString() : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// 取代原本的 selectCity（讓它真的抓 merchants）
+function selectCity(id, cities) {
+  const wall = document.getElementById('cityWall');
+  const head = document.getElementById('resultHead');
+  const sk   = document.getElementById('skList');
+  const list = document.getElementById('merchantList');
+
+  // 樣式
+  wall.querySelectorAll('.citycell').forEach(b=>{
+    const on = b.dataset.id === id;
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+
+  const city = cities.find(x => x.id === id) || { id };
+  head.textContent = `${city.name || id} — loading…`;
+
+  // 顯示骨架
+  sk.hidden = false;
+  list.hidden = true;
+
+  // 真的去抓 Supabase
+  fetchMerchants(id).then(res => {
+    sk.hidden = true;
+    list.hidden = false;
+
+    if (!res.ok) {
+      head.textContent = `${city.name || id}`;
+      list.innerHTML = `
+        <div class="error" style="padding:18px;color:#b91c1c;background:#fee2e2;border:1px solid #fecaca;border-radius:12px">
+          Failed to load merchants. Please try again.
+        </div>`;
+      return;
+    }
+
+    head.textContent = `${city.name || id} — ${res.data.length} places`;
+    renderMerchants(res.data, city);
+  });
+}
+
 
   // ===== 初始化 =====
   async function bootstrap() {
@@ -130,3 +191,4 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
   bootstrap();
 })();
+
