@@ -1,3 +1,12 @@
+// ===== Supabase 初始化 =====
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+const SUPABASE_URL = 'https://你的專案id.supabase.co';
+const SUPABASE_ANON_KEY = '你的anon公開金鑰';
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+
 document.addEventListener('include:loaded', (e) => {
   // 確認是 tabbar 被載入完畢再執行
   if (e.detail.src.includes('tabbar.html')) {
@@ -292,3 +301,4 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     alert('Preview mock — 之後接真預覽頁');
   });
 })();
+
