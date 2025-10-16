@@ -1,5 +1,5 @@
 // js/explore.js
-// Explore — Supabase per-city fetch + client-side filters + Detail Page Router
+// Explore — Supabase per-city fetch + client-side filters + Detail Page router
 import { supabase } from './app.js';
 
 const $  = (s, r=document) => r.querySelector(s);
@@ -18,6 +18,25 @@ const filtersBox = $('#expFilters');
 const chipsCats  = $$('.chips--cats .chip',  filtersBox);
 const chipsQuick = $$('.chips--quick .chip', filtersBox);
 
+/* Detail page refs (你的 HTML) */
+const pageDetail    = document.querySelector('[data-page="detail"]');
+const btnDetailBack = $('#btnDetailBack');
+const elHero   = $('#detailHero');
+const elName   = $('#detailName');
+const elCat    = $('#detailCategory');
+const elAddr   = $('#detailAddress');
+const elDot    = $('#detailDot');
+const elBadges = $('#detailBadges');
+const elDesc   = $('#detailDesc');
+const elRating = $('#detailRating');
+const elOpen   = $('#detailOpen');
+const elPrice  = $('#detailPrice');
+const actMap   = $('#actMap');
+const actPhone = $('#actPhone');
+const actWeb   = $('#actWeb');
+const actShare = $('#actShare');
+const recList  = $('#detailRecList');
+
 /* ---------- State ---------- */
 const state = { cats:new Set(), open:false, minRating:null, sort:'latest' };
 let currentCity = null;
@@ -33,32 +52,30 @@ function priceLevelNum(m){
   return cnt || null;
 }
 function isOpenNow(m, ref=new Date()){
+  // 新版結構：open_hours.{sun..sat}.ranges[{open:"08:00",close:"20:00"}]
   if (m.open_hours && typeof m.open_hours === 'object'){
     const wd = ['sun','mon','tue','wed','thu','fri','sat'][ref.getDay()];
     const day = m.open_hours[wd];
     if (!day || !Array.isArray(day.ranges) || !day.ranges.length) return false;
     const cur = ref.getHours()*60 + ref.getMinutes();
-    const toMin = (hhmm)=>{ const [h,mi]=(hhmm||'').split(':').map(x=>parseInt(x,10)); return (h||0)*60+(mi||0); };
+    const toMin = (hhmm)=>{ const [h,mi] = (hhmm||'').split(':').map(x=>parseInt(x,10)); return (h||0)*60+(mi||0); };
     return day.ranges.some(r=>{
       const o = toMin(r.open), c = toMin(r.close);
-      return (c>o) ? (cur>=o && cur<c) : (cur>=o || cur<c);
+      return (c>o) ? (cur>=o && cur<c) : (cur>=o || cur<c); // 跨夜
     });
   }
-
-  let t = (m.openHours||'').trim().toLowerCase();
+  // 舊字串："08:00 - 20:00" / "24H"
+  const t = (m.openHours||'').toLowerCase().trim();
   if (!t) return false;
-  if (t.includes('24h') || t.includes('全天') || t.includes('24小時') || t.includes('24小时')) return true;
-  t = t.replace(/[–—\-~至到]/g, '-').replace(/\s+/g,'');
-  const mm = t.match(/(\d{1,2}):?(\d{2})?-(\d{1,2}):?(\d{2})?/);
+  if (t.includes('24h')) return true;
+  const mm = t.match(/(\d{1,2}):?(\d{2})?\s*-\s*(\d{1,2}):?(\d{2})?/);
   if (!mm) return false;
-
-  const toMin = (h,mi)=> parseInt(h||'0',10)*60 + parseInt(mi||'0',10);
-  const start = toMin(mm[1], mm[2]);
-  const end   = toMin(mm[3], mm[4]);
-  const cur   = ref.getHours()*60 + ref.getMinutes();
+  const mins = (h,mi)=> parseInt(h,10)*60 + parseInt(mi||'0',10);
+  const start = mins(mm[1],mm[2]||'00'), end = mins(mm[3],mm[4]||'00');
+  const cur = ref.getHours()*60 + ref.getMinutes();
   return (end>start) ? (cur>=start && cur<end) : (cur>=start || cur<end);
 }
-function shortAddr(s){ return (s||'').split(',')[0]; }
+const shortAddr = s => (s||'').split(',')[0];
 
 /* ---------- Supabase ---------- */
 async function loadCities(){
@@ -171,12 +188,13 @@ function renderMerchants(items){
             ${priceStr ? `<span class="badge">${priceStr}</span>` : ''}
           </div>
         </div>
+        <div class="aux"></div>
       </div>
     `;
   }).join('');
 }
 
-/* ---------- Filters ---------- */
+/* ---------- Filters (client-side) ---------- */
 function applyFilters(){
   let arr = [...allMerchants];
 
@@ -190,6 +208,7 @@ function applyFilters(){
   if (state.minRating != null){
     arr = arr.filter(m => (Number(m.rating)||0) >= state.minRating);
   }
+
   if (state.sort === 'hot'){
     arr.sort((a,b)=>{
       const ra = Number(a.rating)||0, rb = Number(b.rating)||0;
@@ -211,6 +230,7 @@ function applyFilters(){
 }
 function bindFilters(){
   if (!filtersBox) return;
+
   chipsCats.forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const cat = btn.dataset.cat;
@@ -220,12 +240,14 @@ function bindFilters(){
       applyFilters();
     });
   });
+
   chipsQuick.forEach(btn=>{
     if (!btn.hasAttribute('aria-pressed')) btn.setAttribute('aria-pressed','false');
     btn.addEventListener('click', ()=>{
       const hasSort   = btn.hasAttribute('data-sort');
       const hasOpen   = btn.hasAttribute('data-open');
       const hasRating = btn.hasAttribute('data-rating');
+
       if (hasSort){
         $$('.chips--quick .chip[data-sort]', filtersBox).forEach(b=>{
           b.classList.remove('is-on');
@@ -251,136 +273,202 @@ function bindFilters(){
 /* ---------- City switching ---------- */
 function selectCity(id, cityObj){
   currentCity = cityObj || { id };
+
   $$('.citycell', wall).forEach(b=>{
     const on = b.dataset.id === id;
     b.setAttribute('aria-selected', on ? 'true':'false');
   });
+
   head && (head.textContent = `${currentCity.name || id} — loading…`);
   sk.hidden = false; list.hidden = true;
   empty.hidden = true; errBx.hidden = true;
 
   fetchMerchants(id).then(res=>{
     sk.hidden = true;
+
     if (!res.ok){
-      errBx.hidden = false; list.hidden = true;
+      errBx.hidden = false;
+      list.hidden = true;
       head && (head.textContent = `${currentCity.name || id}`);
       return;
     }
+
     allMerchants = res.data || [];
     list.hidden = false;
+
+    // 重置排序為 latest（視覺也重置）
     state.sort = 'latest';
     $$('.chips--quick .chip[data-sort]', filtersBox).forEach(b=>{
       const on = (b.dataset.sort === 'latest');
       b.classList.toggle('is-on', on);
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
+
     applyFilters();
   });
 }
 
-/* =========================================================
-   Detail Page Router + Render
-   ========================================================= */
-const pageDetail     = document.querySelector('[data-page="detail"]');
-const btnDetailBack  = $('#btnDetailBack');
-const elHero         = $('#detailHero');
-const elName         = $('#detailName');
-const elCat          = $('#detailCategory');
-const elAddr         = $('#detailAddress');
-const elDot          = $('#detailDot');
-const elBadges       = $('#detailBadges');
-const elDesc         = $('#detailDesc');
-const elRating       = $('#detailRating');
-const elOpen         = $('#detailOpen');
-const elPrice        = $('#detailPrice');
-const actPhone       = $('#actPhone');
-const actWeb         = $('#actWeb');
-const actMaps        = Array.from(document.querySelectorAll('.act-map'));
-const actShare       = $('#actShare');
-const recList        = $('#detailRecList');
-
-function showPageDetail(){ document.querySelectorAll('[data-page]').forEach(sec=>sec.hidden=(sec.dataset.page!=='detail')); }
-function showPageExplore(){ document.querySelectorAll('[data-page]').forEach(sec=>sec.hidden=(sec.dataset.page!=='explore')); }
-function setActionAll(els, href){
-  (Array.isArray(els)? els:[els]).forEach(el=>{
-    if (!el) return;
-    if (href){ el.href=href; el.removeAttribute('aria-disabled'); el.classList.remove('is-disabled'); }
-    else{ el.removeAttribute('href'); el.setAttribute('aria-disabled','true'); el.classList.add('is-disabled'); }
+/* ---------- Detail page: render & router (#detail/{id}) ---------- */
+function setAction(el, href){
+  if (!el) return;
+  if (href){ el.href = href; el.removeAttribute('aria-disabled'); el.classList.remove('is-disabled'); }
+  else { el.removeAttribute('href'); el.setAttribute('aria-disabled','true'); el.classList.add('is-disabled'); }
+}
+function showPageDetail(){
+  document.querySelectorAll('[data-page]').forEach(sec=>{
+    sec.hidden = (sec.dataset.page !== 'detail');
   });
+  // 取消 tabbar 高亮（交給 app.js 再回來時處理）
+  $$('.tabbar .tab').forEach(t=>{ t.setAttribute('aria-selected','false'); t.removeAttribute('aria-current'); });
+}
+function showPageExplore(){
+  document.querySelectorAll('[data-page]').forEach(sec=>{
+    sec.hidden = (sec.dataset.page !== 'explore');
+  });
+}
+
+function humanHours(m){
+  if (m.open_hours && typeof m.open_hours==='object'){
+    const wd = ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
+    const day = m.open_hours[wd];
+    if (day?.ranges?.length){
+      const s = day.ranges.map(r=>`${r.open}–${r.close}`).join(', ');
+      return `${wd.toUpperCase()}: ${s}`;
+    }
+  }
+  return m.openHours || '—';
 }
 
 async function loadDetailPage(id){
   showPageDetail();
-  elHero.style.backgroundImage=''; elName.textContent='Loading…';
-  elCat.textContent='—'; elAddr.textContent='—'; elDot.style.display='none';
-  elBadges.innerHTML=''; elDesc.textContent='—'; elRating.textContent='—';
-  elOpen.textContent='—'; elPrice.textContent='—'; recList.innerHTML='';
+
+  // reset UI
+  elHero.style.backgroundImage = '';
+  elName.textContent = 'Loading…';
+  elCat.textContent = ''; elAddr.textContent = ''; elDot.style.display = 'none';
+  elBadges.innerHTML = ''; elDesc.textContent = '';
+  elRating.textContent = '—'; elOpen.textContent = '—'; elPrice.textContent = '—';
+  recList.innerHTML = '';
 
   try{
     const m = await fetchMerchantById(id);
-    elName.textContent=m.name||''; elCat.textContent=m.category||''; elAddr.textContent=m.address||'';
-    elDot.style.display=(elCat.textContent&&elAddr.textContent)?'':'none';
-    const cover=m.cover||(Array.isArray(m.images)&&m.images[0])||''; if(cover) elHero.style.backgroundImage=`url("${cover}")`;
-    const rating=(m.rating!=null)?Number(m.rating).toFixed(1):null;
-    const open=isOpenNow(m);
-    const price=priceLevelNum(m);
-    const priceStr=price?'💲'.repeat(Math.max(1,Math.min(4,price))):'';
-    elBadges.innerHTML=`
-      ${rating?`<span class="badge">★ ${rating}</span>`:''}
-      <span class="badge ${open?'ok':'off'}">${open?'Open now':'Closed'}</span>
-      ${priceStr?`<span class="badge">${priceStr}</span>`:''}`;
-    elRating.textContent=rating||'—'; elOpen.textContent=open?'Open now':'Closed'; elPrice.textContent=priceStr||'—';
-    elDesc.textContent=m.description||'—';
 
-    const gq=(m.lat&&m.lng)?`${m.lat},${m.lng}`:(m.address||'');
-    const mapHref=gq?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq)}`:'';
-    setActionAll(actMaps,mapHref);
-    setActionAll(actPhone,m.phone?`tel:${String(m.phone).replace(/\s+/g,'')}`:'');
-    setActionAll(actWeb,m.website||'');
+    // hero/name/sub
+    const cover = m.cover || (m.images?.[0]) || '';
+    if (cover) elHero.style.backgroundImage = `url("${cover}")`;
+    elName.textContent = m.name || '';
+    elCat.textContent  = m.category || '';
+    elAddr.textContent = m.address || '';
+    elDot.style.display = (elCat.textContent && elAddr.textContent) ? '' : 'none';
+    elDesc.textContent  = m.description || '—';
 
-    actShare?.addEventListener('click',async()=>{
-      const url=location.href.split('#')[0]+`#detail/${m.id}`;
-      const text=`${m.name} — ${m.category||''}`;
-      try{await navigator.share?.({title:m.name,text,url});}catch(_){}
-    });
+    // badges
+    const rating = (m.rating!=null) ? Number(m.rating).toFixed(1) : null;
+    const open   = isOpenNow(m);
+    const price  = priceLevelNum(m);
+    const priceStr = price ? '💲'.repeat(Math.max(1, Math.min(4, price))) : '';
+    elBadges.innerHTML = `
+      ${rating ? `<span class="badge">★ ${rating}</span>` : ''}
+      <span class="badge ${open ? 'ok':'off'}">${open ? 'Open now':'Closed'}</span>
+      ${priceStr ? `<span class="badge">${priceStr}</span>` : ''}
+    `;
+    elRating.textContent = rating || '—';
+    elOpen.textContent   = open ? 'Open now' : 'Closed';
+    elPrice.textContent  = priceStr || '—';
 
-    const related=await fetchRelated({city_id:m.city_id,category:m.category,exceptId:m.id,limit:6});
-    recList.innerHTML=related.map(r=>`
+    // actions
+    const gq = (m.lat && m.lng) ? `${m.lat},${m.lng}` : (m.address || '');
+    setAction(actMap,   gq ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq)}` : null);
+    setAction(actPhone, m.phone ? `tel:${m.phone.replace(/\s+/g,'')}` : null);
+    setAction(actWeb,   m.website || null);
+    actShare?.addEventListener('click', async ()=>{
+      const url = location.href;
+      const text = `${m.name} — ${m.category || ''}`;
+      try{ await navigator.share?.({ title: m.name, text, url }); }catch(_){}
+    }, { once:true });
+
+    // related
+    const related = await fetchRelated({ city_id: m.city_id, category: m.category, exceptId: m.id, limit: 6 });
+    recList.innerHTML = related.map(r => `
       <a class="rec" data-id="${r.id}" role="button" tabindex="0" aria-label="Open ${r.name}">
         <div class="rthumb" style="background-image:url('${r.cover||''}')"></div>
         <div class="rname">${r.name}</div>
-      </a>`).join('');
-    recList.onclick=(e)=>{const a=e.target.closest('.rec');if(a)location.hash=`#detail/${a.dataset.id}`;};
+      </a>
+    `).join('');
+    recList.onclick = (e)=>{
+      const a = e.target.closest('.rec'); if (!a) return;
+      location.hash = `#detail/${a.dataset.id}`;
+    };
 
   }catch(err){
-    console.error('loadDetailPage error:',err);
-    elName.textContent='Failed to load'; elDesc.textContent='Please try again.';
+    elName.textContent = 'Failed to load';
+    elDesc.textContent = 'Please check your connection and try again.';
   }
 }
 
-function handleDetailRoute(){
-  const h=location.hash||'';
-  if(h.startsWith('#detail/')){const id=h.split('/')[1]; if(id) loadDetailPage(id);}
-  else showPageExplore();
+/* ---------- Router ---------- */
+function handleHash(){
+  const h = location.hash || '';
+  if (h.startsWith('#detail/')){
+    const id = h.split('/')[1];
+    if (id) loadDetailPage(id);
+    return;
+  }
+  // 其它 hash（或空）回 Explore（tabbar 由 app.js 管）
+  showPageExplore();
 }
-window.addEventListener('hashchange',handleDetailRoute);
-btnDetailBack?.addEventListener('click',()=>{location.hash='#explore';});
+window.addEventListener('hashchange', handleHash);
 
 /* ---------- Bootstrap ---------- */
 (async function init(){
   if (!wall) return;
+
   btnRetry?.addEventListener('click', ()=>{
     if (currentCity?.id) selectCity(currentCity.id, currentCity);
   });
+
   bindFilters();
+
   const cities = await loadCities();
   renderWall(cities);
+
+  // 城市牆事件
   wall.addEventListener('click', (e)=>{
     const btn = e.target.closest('.citycell');
     if (!btn) return;
     const city = cities.find(c => c.id === btn.dataset.id) || { id: btn.dataset.id };
     selectCity(btn.dataset.id, city);
   });
+  wall.addEventListener('keydown', (e)=>{
+    const cells = Array.from(wall.querySelectorAll('.citycell'));
+    const cur = cells.findIndex(b => b.getAttribute('aria-selected') === 'true');
+    if (e.key === 'ArrowRight'){ e.preventDefault(); const n = cells[Math.min(cur+1, cells.length-1)]; n?.focus(); n?.click(); }
+    if (e.key === 'ArrowLeft'){  e.preventDefault(); const p = cells[Math.max(cur-1, 0)];             p?.focus(); p?.click(); }
+  });
+
+  // 預設選第一個城市
   const first = wall.querySelector('.citycell');
   if (first){
-   
+    const c = cities.find(x=>x.id === first.dataset.id) || { id:first.dataset.id };
+    selectCity(first.dataset.id, c);
+  }
+
+  // 列表 → 進二級頁（hash 導向）
+  list.addEventListener('click', (e)=>{
+    const card = e.target.closest('.item'); if (!card) return;
+    const id = card.dataset.id; if (!id) return;
+    location.hash = `#detail/${id}`;
+  });
+  list.addEventListener('keydown', (e)=>{
+    if (e.key !== 'Enter') return;
+    const card = e.target.closest('.item'); if (!card) return;
+    const id = card.dataset.id; if (!id) return;
+    location.hash = `#detail/${id}`;
+  });
+
+  // 詳情返回
+  btnDetailBack?.addEventListener('click', ()=>{ location.hash = '#explore'; });
+
+  // 初始路由
+  handleHash();
+})();
