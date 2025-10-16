@@ -281,6 +281,61 @@
   </form>
 </section>
 
+<!-- ===== Detail Drawer (Merchant) ===== -->
+<div id="mdBackdrop" class="modal-backdrop" hidden aria-hidden="true">
+  <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="mdTitle">
+    <button id="mdClose" class="modal-close" aria-label="Close">✕</button>
+
+    <!-- 主圖 / 圖庫 -->
+    <div id="modalGallery" class="modal-gallery">
+      <div class="gimg placeholder"></div>
+    </div>
+
+    <div class="modal-body">
+      <!-- 標題區 -->
+      <h2 id="mdTitle">Loading…</h2>
+      <div class="place-meta">
+        <span id="mdCategory" class="meta"></span>
+        <span id="mdRating" class="meta"></span>
+        <span id="mdOpen"    class="meta"></span>
+        <span id="mdPrice"   class="meta"></span>
+      </div>
+
+      <!-- 標籤 -->
+      <div id="mdBadges" class="badges"></div>
+
+      <!-- 文字資訊 -->
+      <div class="place-info">
+        <div class="info-row">
+          <strong>Address</strong>
+          <div id="mdAddress" class="muted">No address yet</div>
+        </div>
+        <div class="info-row">
+          <strong>Hours</strong>
+          <div id="mdHours" class="muted">—</div>
+        </div>
+      </div>
+
+      <p id="mdDesc" class="place-desc"></p>
+
+      <!-- 動作列 -->
+      <div class="action-row">
+        <a id="mdPhone" class="btn action" aria-disabled="true">📞 <span>Call</span></a>
+        <a id="mdWA"    class="btn action" aria-disabled="true">💬 <span>WhatsApp</span></a>
+        <a id="mdWeb"   class="btn action" aria-disabled="true">🖥️ <span>Website</span></a>
+        <a id="mdMap"   class="btn action" aria-disabled="true">🗺️ <span>Map</span></a>
+        <button id="mdShare" class="btn action">🔗 <span>Share</span></button>
+      </div>
+
+      <!-- 推薦 -->
+      <div class="recommend">
+        <h3 class="rec-title">Recommended nearby</h3>
+        <div id="recList" class="rec-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
     <!-- ====== Settings（二級） ====== -->
     <section id="p-settings" class="overlay-page" hidden aria-labelledby="h-settings" data-page="settings">
       <header class="subappbar settings-header">
@@ -394,60 +449,7 @@
     </section>
   </main>
   
-<!-- ===== Detail Drawer (Merchant) ===== -->
-<div id="mdBackdrop" class="modal-backdrop" hidden aria-hidden="true">
-  <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="mdTitle">
-    <button id="mdClose" class="modal-close" aria-label="Close">✕</button>
 
-    <!-- 主圖 / 圖庫 -->
-    <div id="modalGallery" class="modal-gallery">
-      <div class="gimg placeholder"></div>
-    </div>
-
-    <div class="modal-body">
-      <!-- 標題區 -->
-      <h2 id="mdTitle">Loading…</h2>
-      <div class="place-meta">
-        <span id="mdCategory" class="meta"></span>
-        <span id="mdRating" class="meta"></span>
-        <span id="mdOpen"    class="meta"></span>
-        <span id="mdPrice"   class="meta"></span>
-      </div>
-
-      <!-- 標籤 -->
-      <div id="mdBadges" class="badges"></div>
-
-      <!-- 文字資訊 -->
-      <div class="place-info">
-        <div class="info-row">
-          <strong>Address</strong>
-          <div id="mdAddress" class="muted">No address yet</div>
-        </div>
-        <div class="info-row">
-          <strong>Hours</strong>
-          <div id="mdHours" class="muted">—</div>
-        </div>
-      </div>
-
-      <p id="mdDesc" class="place-desc"></p>
-
-      <!-- 動作列 -->
-      <div class="action-row">
-        <a id="mdPhone" class="btn action" aria-disabled="true">📞 <span>Call</span></a>
-        <a id="mdWA"    class="btn action" aria-disabled="true">💬 <span>WhatsApp</span></a>
-        <a id="mdWeb"   class="btn action" aria-disabled="true">🖥️ <span>Website</span></a>
-        <a id="mdMap"   class="btn action" aria-disabled="true">🗺️ <span>Map</span></a>
-        <button id="mdShare" class="btn action">🔗 <span>Share</span></button>
-      </div>
-
-      <!-- 推薦 -->
-      <div class="recommend">
-        <h3 class="rec-title">Recommended nearby</h3>
-        <div id="recList" class="rec-list"></div>
-      </div>
-    </div>
-  </div>
-</div>
 
   <!-- 底部導覽：由 partial 注入 -->
   <div data-include="partials/tabbar.html"></div>
