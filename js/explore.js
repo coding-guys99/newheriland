@@ -33,29 +33,36 @@ function priceLevelNum(m){
   return cnt || null;
 }
 function isOpenNow(m, ref=new Date()){
-  // 新版結構：open_hours.{sun..sat}.ranges[{open:"08:00",close:"20:00"}]
+  // 新版对象结构
   if (m.open_hours && typeof m.open_hours === 'object'){
     const wd = ['sun','mon','tue','wed','thu','fri','sat'][ref.getDay()];
     const day = m.open_hours[wd];
     if (!day || !Array.isArray(day.ranges) || !day.ranges.length) return false;
     const cur = ref.getHours()*60 + ref.getMinutes();
-    const toMin = (hhmm)=>{ const [h,mi] = (hhmm||'').split(':').map(x=>parseInt(x,10)); return (h||0)*60+(mi||0); };
+    const toMin = (hhmm)=>{ const [h,mi]=(hhmm||'').split(':').map(x=>parseInt(x,10)); return (h||0)*60+(mi||0); };
     return day.ranges.some(r=>{
       const o = toMin(r.open), c = toMin(r.close);
       return (c>o) ? (cur>=o && cur<c) : (cur>=o || cur<c); // 跨夜
     });
   }
-  // 舊字串："08:00 - 20:00" / "24H"
-  const t = (m.openHours||'').toLowerCase().trim();
+
+  // 旧字串：容错各种连接符与中文
+  let t = (m.openHours||'').trim().toLowerCase();
   if (!t) return false;
-  if (t.includes('24h')) return true;
-  const mm = t.match(/(\d{1,2}):?(\d{2})?\s*-\s*(\d{1,2}):?(\d{2})?/);
+  if (t.includes('24h') || t.includes('全天') || t.includes('24小時') || t.includes('24小时')) return true;
+
+  // 统一连接符（-、–、—、至、到）
+  t = t.replace(/[–—\-~至到]/g, '-').replace(/\s+/g,'');
+  const mm = t.match(/(\d{1,2}):?(\d{2})?-(\d{1,2}):?(\d{2})?/);
   if (!mm) return false;
-  const mins = (h,mi)=> parseInt(h,10)*60 + parseInt(mi||'0',10);
-  const start = mins(mm[1],mm[2]||'00'), end = mins(mm[3],mm[4]||'00');
-  const cur = ref.getHours()*60 + ref.getMinutes();
-  return (end>start) ? (cur>=start && cur<end) : (cur>=start || cur<end);
+
+  const toMin = (h,mi)=> parseInt(h||'0',10)*60 + parseInt(mi||'0',10);
+  const start = toMin(mm[1], mm[2]);
+  const end   = toMin(mm[3], mm[4]);
+  const cur   = ref.getHours()*60 + ref.getMinutes();
+  return (end>start) ? (cur>=start && cur<end) : (cur>=start || cur<end); // 跨夜
 }
+
 function shortAddr(s){ return (s||'').split(',')[0]; }
 
 /* ---------- Supabase ---------- */
@@ -300,13 +307,10 @@ function selectCity(id, cityObj){
 
 /* =========================================================
    ---------- Merchant Detail Overlay (Start) ----------
-   說明：
-   1) HTML 需要這些 id：#merchantDetail (整個 overlay 容器)
-      內部至少要有：
-      #mdTitle, #mdGallery, #mdName, #mdSub, #mdBadges,
-      #mdDesc, #mdHours, #mdInfo, #mdMap, #recList,
-      #actCall, #actWA, #actWeb, #actMap
-   2) 這段就是你之後要改的唯一區域（樣式/欄位/文案）
+   需要的 HTML 节点：#merchantDetail（容器）
+   以及 #mdTitle #mdGallery #mdName #mdSub #mdBadges
+        #mdDesc #mdHours #mdInfo #mdMap #recList
+        #actCall #actWA #actWeb #actMap
    ========================================================= */
 const mdRoot  = $('#merchantDetail');
 const mdClose = mdRoot?.querySelector('.md-close');
@@ -335,7 +339,6 @@ function setAction(el, href){
   else { el.removeAttribute('href'); el.setAttribute('aria-disabled','true'); el.classList?.add('is-disabled'); }
 }
 function humanHours(m){
-  // 先簡單：若 open_hours 有當天 ranges，就列一行；否則顯示 openHours 或 '—'
   if (m.open_hours && typeof m.open_hours==='object'){
     const wd = ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
     const day = m.open_hours[wd];
@@ -374,8 +377,8 @@ async function openDetailById(id){
   els.name.textContent = '';
   els.sub.textContent = '';
   els.badges.innerHTML = '';
-  els.desc.innerHTML = '';
-  els.hours.innerHTML = '';
+  els.desc.textContent = '';
+  els.hours.textContent = '';
   els.info.innerHTML = '';
   els.map.innerHTML = '';
   els.rec.innerHTML = '';
@@ -385,12 +388,12 @@ async function openDetailById(id){
   try{
     const m = await fetchMerchantById(id);
 
-    // 標題與次行
+    // 标题/次行
     els.title.textContent = m.name || '';
     els.name.textContent  = m.name || '';
     els.sub.textContent   = [m.category, shortAddr(m.address)].filter(Boolean).join(' · ');
 
-    // 徽章列
+    // 徽章
     const rating = (m.rating!=null) ? Number(m.rating).toFixed(1) : null;
     const open = isOpenNow(m);
     const price = priceLevelNum(m);
@@ -401,16 +404,15 @@ async function openDetailById(id){
       ${priceStr ? `<span class="badge">${priceStr}</span>` : ''}
     `;
 
-    // 圖片群
+    // 图集
     const imgs = [m.cover, ...(Array.isArray(m.images)?m.images:[])].filter(Boolean);
     els.gallery.innerHTML = imgs.length
       ? imgs.slice(0,6).map(src=>`<div class="md-photo" style="background:url('${src}') center/cover;border-radius:14px"></div>`).join('')
       : `<div class="md-photo sk-block"></div>`;
 
-    // About / Hours / Info
-    els.desc.innerHTML  = m.description || `<span style="color:#999">No description.</span>`;
-    els.hours.textContent = humanHours(m);
-
+    // About / Hours / Info（描述改用 textContent 更安全）
+    els.desc.textContent   = m.description || '—';
+    els.hours.textContent  = humanHours(m);
     els.info.innerHTML = [
       m.address ? `📍 ${m.address}` : '',
       m.phone   ? `📞 ${m.phone}`   : '',
@@ -418,24 +420,28 @@ async function openDetailById(id){
       m.website ? `🖥️ ${m.website}` : ''
     ].filter(Boolean).map(s=>`<div>${s}</div>`).join('') || '<div>—</div>';
 
-    // 簡易 map 佔位
+    // 简易 Map 占位
     if (m.lat && m.lng){
       els.map.innerHTML = `<div style="text-align:center;color:#555">(${Number(m.lat).toFixed(5)}, ${Number(m.lng).toFixed(5)})</div>`;
     }else{
       els.map.innerHTML = `<div style="text-align:center;color:#888">No coordinates</div>`;
     }
 
-    // 動作按鈕
-    const mapHref = (m.lat && m.lng) ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${m.lat},${m.lng}`)}` : (m.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.address)}` : '');
-    const telHref = m.phone   ? `tel:${m.phone.replace(/\s+/g,'')}` : '';
-    const waHref  = m.whatsapp? `https://wa.me/${m.whatsapp.replace(/[^\d]/g,'')}` : '';
+    // 动作按钮（清洗号码）
+    const mapHref = (m.lat && m.lng)
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${m.lat},${m.lng}`)}`
+      : (m.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.address)}` : '');
+
+    const telHref = m.phone ? `tel:${String(m.phone).replace(/\s+/g,'')}` : '';
+    const waHref  = m.whatsapp ? `https://wa.me/${String(m.whatsapp).replace(/[^\d]/g,'')}` : '';
     const webHref = m.website || '';
+
     setAction(els.actMap,  mapHref);
     setAction(els.actCall, telHref);
     setAction(els.actWA,   waHref);
     setAction(els.actWeb,  webHref);
 
-    // 相關推薦
+    // 相关推荐
     const related = await fetchRelated({ city_id: m.city_id, category: m.category, exceptId: m.id, limit: 6 });
     els.rec.innerHTML = related.map(r=>`
       <a class="rec" data-id="${r.id}">
@@ -451,10 +457,11 @@ async function openDetailById(id){
   }catch(err){
     console.error('openDetailById error:', err);
     els.title.textContent = 'Failed to load';
-    els.desc.innerHTML = 'Please check your connection and try again.';
+    els.desc.textContent  = 'Please check your connection and try again.';
   }
 }
 /* ---------- Merchant Detail Overlay (End) ---------- */
+
 
 /* ---------- Bootstrap ---------- */
 (async function init(){
