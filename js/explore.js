@@ -31,8 +31,8 @@ const elDesc   = $('#detailDesc');
 const elRating = $('#detailRating');
 const elOpen   = $('#detailOpen');
 const elPrice  = $('#detailPrice');
-const actMap   = $('#actMap');
-const actMap2 = document.getElementById('actMap2'); // 新增
+const actMap   = $('#actMap');     // 快速動作列的 Map
+const actMap2  = $('#actMap2');    // ← 請把 Location 標題旁的那顆改成這個 id
 const actPhone = $('#actPhone');
 const actWeb   = $('#actWeb');
 const actShare = $('#actShare');
@@ -329,7 +329,6 @@ function showPageDetail(){
 function restoreMainPage(){
   const current = document.querySelector('.tabbar .tab[aria-current="page"]')?.dataset.target
                || (location.hash||'').replace('#','') || 'home';
-
   document.querySelectorAll('[data-page]').forEach(sec=>{
     sec.hidden = (sec.dataset.page !== current);
   });
@@ -343,13 +342,6 @@ function restoreMainPage(){
       selectCity(id, city);
     }
   }
-}
-
-
-function showPageExplore(){
-  document.querySelectorAll('[data-page]').forEach(sec=>{
-    sec.hidden = (sec.dataset.page !== 'explore');
-  });
 }
 
 function humanHours(m){
@@ -401,11 +393,12 @@ async function loadDetailPage(id){
     elOpen.textContent   = open ? 'Open now' : 'Closed';
     elPrice.textContent  = priceStr || '—';
 
-    // actions
+    // actions（兩顆 Map 都要綁好）
     const gq = (m.lat && m.lng) ? `${m.lat},${m.lng}` : (m.address || '');
-    setAction(actMap,   gq ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq)}` : null);
-    setAction(actMap2,   gq ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq)}` : null);
-    setAction(actPhone, m.phone ? `tel:${m.phone.replace(/\s+/g,'')}` : null);
+    const mapHref = gq ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq)}` : null;
+    setAction(actMap,  mapHref);
+    setAction(actMap2, mapHref);
+    setAction(actPhone, m.phone   ? `tel:${m.phone.replace(/\s+/g,'')}` : null);
     setAction(actWeb,   m.website || null);
     actShare?.addEventListener('click', async ()=>{
       const url = location.href;
@@ -449,15 +442,9 @@ function handleHash(){
 
   // 回到 Explore（或初始沒有 hash）時，重算列表，確保篩選立即生效
   if (h === '#explore' || h === '') {
-    if (allMerchants.length) {
-      applyFilters();
-    }
+    if (allMerchants.length) applyFilters();
   }
 }
-
-
-
-
 window.addEventListener('hashchange', handleHash);
 
 /* ---------- Bootstrap ---------- */
