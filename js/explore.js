@@ -306,38 +306,46 @@ function selectCity(id, cityObj){
 }
 
 /* =========================================================
-   ---------- Merchant Detail Overlay (Start) ----------
-   需要的 HTML 节点：#merchantDetail（容器）
-   以及 #mdTitle #mdGallery #mdName #mdSub #mdBadges
-        #mdDesc #mdHours #mdInfo #mdMap #recList
-        #actCall #actWA #actWeb #actMap
+   Detail Page (data-page="detail") — render + router
+   依赖：isOpenNow, priceLevelNum, shortAddr, fetchMerchantById, fetchRelated
    ========================================================= */
-const mdRoot  = $('#merchantDetail');
-const mdClose = mdRoot?.querySelector('.md-close');
-const mdBack  = mdRoot?.querySelector('.md-back');
 
-function openOverlay(){
-  if (!mdRoot) return;
-  mdRoot.hidden = false;
-  document.body.style.overflow = 'hidden';
-  requestAnimationFrame(()=> mdRoot.classList.add('active'));
-}
-function closeOverlay(){
-  if (!mdRoot) return;
-  mdRoot.classList.remove('active');
-  document.body.style.overflow = '';
-  setTimeout(()=>{ mdRoot.hidden = true; }, 180);
-}
-mdClose?.addEventListener('click', closeOverlay);
-mdBack?.addEventListener('click', closeOverlay);
-mdRoot?.addEventListener('click', (e)=>{ if (e.target===mdRoot) closeOverlay(); });
-window.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeOverlay(); });
+// refs
+const pageDetail     = document.querySelector('[data-page="detail"]');
+const btnDetailBack  = document.getElementById('btnDetailBack');
+const elHero         = document.getElementById('detailHero');
+const elName         = document.getElementById('detailName');
+const elCat          = document.getElementById('detailCategory');
+const elAddr         = document.getElementById('detailAddress');
+const elDot          = document.getElementById('detailDot');
+const elBadges       = document.getElementById('detailBadges');
+const elDesc         = document.getElementById('detailDesc');
+const elRating       = document.getElementById('detailRating');
+const elOpen         = document.getElementById('detailOpen');
+const elPrice        = document.getElementById('detailPrice');
+const actPhone       = document.getElementById('actPhone');
+const actWeb         = document.getElementById('actWeb');
+// 你有两处 actMap，同一个 id；用“全选”方式一起赋值
+const actMaps        = Array.from(document.querySelectorAll('#actMap'));
+const actShare       = document.getElementById('actShare');
+const recList        = document.getElementById('detailRecList);
 
-function setAction(el, href){
-  if (!el) return;
-  if (href){ el.href=href; el.removeAttribute('aria-disabled'); el.classList?.remove('is-disabled'); }
-  else { el.removeAttribute('href'); el.setAttribute('aria-disabled','true'); el.classList?.add('is-disabled'); }
+// 工具：切页
+function showPageDetail(){  document.querySelectorAll('[data-page]')
+  .forEach(sec => sec.hidden = (sec.dataset.page !== 'detail')); }
+function showPageExplore(){ document.querySelectorAll('[data-page]')
+  .forEach(sec => sec.hidden = (sec.dataset.page !== 'explore')); }
+
+// 工具：批量设置动作按钮（Map 有两处）
+function setActionAll(els, href){
+  (Array.isArray(els)? els: [els]).forEach(el=>{
+    if (!el) return;
+    if (href){ el.href = href; el.removeAttribute('aria-disabled'); el.classList.remove('is-disabled'); }
+    else     { el.removeAttribute('href'); el.setAttribute('aria-disabled','true'); el.classList.add('is-disabled'); }
+  });
 }
+
+// 人类可读的今天营运时间（简版）
 function humanHours(m){
   if (m.open_hours && typeof m.open_hours==='object'){
     const wd = ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
@@ -350,117 +358,109 @@ function humanHours(m){
   return m.openHours || '—';
 }
 
-async function openDetailById(id){
-  if (!mdRoot){ console.warn('Detail overlay HTML (#merchantDetail) not found.'); return; }
+// 主渲染
+async function loadDetailPage(id){
+  showPageDetail();
 
-  // 快取 DOM
-  const els = {
-    title:  $('#mdTitle'),
-    gallery:$('#mdGallery'),
-    name:   $('#mdName'),
-    sub:    $('#mdSub'),
-    badges: $('#mdBadges'),
-    desc:   $('#mdDesc'),
-    hours:  $('#mdHours'),
-    info:   $('#mdInfo'),
-    map:    $('#mdMap'),
-    rec:    $('#recList'),
-    actCall:$('#actCall'),
-    actWA:  $('#actWA'),
-    actWeb: $('#actWeb'),
-    actMap: $('#actMap'),
-  };
-
-  // reset skeleton
-  els.title.textContent = 'Loading…';
-  els.gallery.innerHTML = `<div class="md-photo sk-block"></div><div class="md-photo sk-block"></div><div class="md-photo sk-block"></div>`;
-  els.name.textContent = '';
-  els.sub.textContent = '';
-  els.badges.innerHTML = '';
-  els.desc.textContent = '';
-  els.hours.textContent = '';
-  els.info.innerHTML = '';
-  els.map.innerHTML = '';
-  els.rec.innerHTML = '';
-
-  openOverlay();
+  // skeleton / reset
+  elHero.style.backgroundImage = '';
+  elName.textContent = 'Loading…';
+  elCat.textContent = '—';
+  elAddr.textContent = '—';
+  elDot.style.display = 'none';
+  elBadges.innerHTML = '';
+  elDesc.textContent = '—';
+  elRating.textContent = '—';
+  elOpen.textContent = '—';
+  elPrice.textContent = '—';
+  recList.innerHTML = '';
 
   try{
     const m = await fetchMerchantById(id);
 
     // 标题/次行
-    els.title.textContent = m.name || '';
-    els.name.textContent  = m.name || '';
-    els.sub.textContent   = [m.category, shortAddr(m.address)].filter(Boolean).join(' · ');
+    elName.textContent = m.name || '';
+    elCat.textContent  = m.category || '';
+    elAddr.textContent = m.address  || '';
+    elDot.style.display = (elCat.textContent && elAddr.textContent) ? '' : 'none';
 
-    // 徽章
-    const rating = (m.rating!=null) ? Number(m.rating).toFixed(1) : null;
-    const open = isOpenNow(m);
-    const price = priceLevelNum(m);
+    // Hero 图（单张）
+    const cover = m.cover || (Array.isArray(m.images) && m.images[0]) || '';
+    if (cover) elHero.style.backgroundImage = `url("${cover}")`;
+
+    // 徽章列
+    const rating   = (m.rating!=null) ? Number(m.rating).toFixed(1) : null;
+    const isOpen   = isOpenNow(m);
+    const price    = priceLevelNum(m);
     const priceStr = price ? '💲'.repeat(Math.max(1, Math.min(4, price))) : '';
-    els.badges.innerHTML = `
+    elBadges.innerHTML = `
       ${rating ? `<span class="badge">★ ${rating}</span>` : ''}
-      <span class="badge ${open?'ok':'off'}">${open?'Open now':'Closed'}</span>
+      <span class="badge ${isOpen ? 'ok':'off'}">${isOpen ? 'Open now' : 'Closed'}</span>
       ${priceStr ? `<span class="badge">${priceStr}</span>` : ''}
     `;
+    elRating.textContent = rating || '—';
+    elOpen.textContent   = isOpen ? 'Open now' : 'Closed';
+    elPrice.textContent  = priceStr || '—';
 
-    // 图集
-    const imgs = [m.cover, ...(Array.isArray(m.images)?m.images:[])].filter(Boolean);
-    els.gallery.innerHTML = imgs.length
-      ? imgs.slice(0,6).map(src=>`<div class="md-photo" style="background:url('${src}') center/cover;border-radius:14px"></div>`).join('')
-      : `<div class="md-photo sk-block"></div>`;
+    // About / Hours / Info
+    elDesc.textContent = m.description || '—';
 
-    // About / Hours / Info（描述改用 textContent 更安全）
-    els.desc.textContent   = m.description || '—';
-    els.hours.textContent  = humanHours(m);
-    els.info.innerHTML = [
-      m.address ? `📍 ${m.address}` : '',
-      m.phone   ? `📞 ${m.phone}`   : '',
-      m.email   ? `✉️ ${m.email}`   : '',
-      m.website ? `🖥️ ${m.website}` : ''
-    ].filter(Boolean).map(s=>`<div>${s}</div>`).join('') || '<div>—</div>';
+    // Location 卡片里的 “Open in Maps” 已通过 actMaps 一起赋值
+    const gq = (m.lat && m.lng) ? `${m.lat},${m.lng}` : (m.address || '');
+    const mapHref = gq ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq)}` : '';
+    setActionAll(actMaps, mapHref);
 
-    // 简易 Map 占位
-    if (m.lat && m.lng){
-      els.map.innerHTML = `<div style="text-align:center;color:#555">(${Number(m.lat).toFixed(5)}, ${Number(m.lng).toFixed(5)})</div>`;
-    }else{
-      els.map.innerHTML = `<div style="text-align:center;color:#888">No coordinates</div>`;
+    // quick actions
+    setActionAll(actPhone, m.phone   ? `tel:${String(m.phone).replace(/\s+/g,'')}` : '');
+    setActionAll(actWeb,   m.website || '');
+
+    // share
+    if (actShare){
+      actShare.onclick = async ()=>{
+        const url  = location.href.split('#')[0] + `#detail/${m.id}`;
+        const text = `${m.name} — ${m.category || ''}`;
+        try{ await navigator.share?.({ title:m.name, text, url }); }catch(_){}
+      };
     }
-
-    // 动作按钮（清洗号码）
-    const mapHref = (m.lat && m.lng)
-      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${m.lat},${m.lng}`)}`
-      : (m.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.address)}` : '');
-
-    const telHref = m.phone ? `tel:${String(m.phone).replace(/\s+/g,'')}` : '';
-    const waHref  = m.whatsapp ? `https://wa.me/${String(m.whatsapp).replace(/[^\d]/g,'')}` : '';
-    const webHref = m.website || '';
-
-    setAction(els.actMap,  mapHref);
-    setAction(els.actCall, telHref);
-    setAction(els.actWA,   waHref);
-    setAction(els.actWeb,  webHref);
 
     // 相关推荐
     const related = await fetchRelated({ city_id: m.city_id, category: m.category, exceptId: m.id, limit: 6 });
-    els.rec.innerHTML = related.map(r=>`
-      <a class="rec" data-id="${r.id}">
-        <div class="rthumb" style="background:url('${r.cover||''}') center/cover;height:90px;border-radius:12px"></div>
+    recList.innerHTML = related.map(r=>`
+      <a class="rec" data-id="${r.id}" role="button" tabindex="0" aria-label="Open ${r.name}">
+        <div class="rthumb" style="background-image:url('${r.cover||''}')"></div>
         <div class="rname">${r.name}</div>
       </a>
     `).join('');
-    els.rec.onclick = (e)=>{
+    recList.onclick = (e)=>{
       const a = e.target.closest('.rec'); if (!a) return;
-      openDetailById(a.dataset.id);
+      location.hash = `#detail/${a.dataset.id}`;
     };
 
   }catch(err){
-    console.error('openDetailById error:', err);
-    els.title.textContent = 'Failed to load';
-    els.desc.textContent  = 'Please check your connection and try again.';
+    console.error('loadDetailPage error:', err);
+    elName.textContent = 'Failed to load';
+    elDesc.textContent = 'Please check your connection and try again.';
   }
 }
-/* ---------- Merchant Detail Overlay (End) ---------- */
+
+// Router：#detail/{id} → 详页；其它 → Explore
+function handleDetailRoute(){
+  const h = location.hash || '';
+  if (h.startsWith('#detail/')){
+    const id = h.split('/')[1];
+    if (id) loadDetailPage(id);
+  }else{
+    showPageExplore();
+  }
+}
+window.addEventListener('hashchange', handleDetailRoute);
+
+// 返回键
+btnDetailBack?.addEventListener('click', ()=>{ location.hash = '#explore'; });
+
+// 首次进来时看 hash
+handleDetailRoute();
+
 
 
 /* ---------- Bootstrap ---------- */
