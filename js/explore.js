@@ -18,6 +18,63 @@ const filtersBox = $('#expFilters');
 const chipsCats  = $$('.chips--cats .chip',  filtersBox);
 const chipsQuick = $$('.chips--quick .chip', filtersBox);
 
+// ---- Advanced Filter Drawer wiring ----
+const btnOpenFilter   = $('#btnOpenFilter');
+const advFilter       = $('#advFilter');
+const btnFilterClose  = $('#btnFilterClose');
+const btnFilterApply  = $('#btnFilterApply');
+const btnFilterReset  = $('#btnFilterReset');
+
+function openAdv(){ 
+  if (!advFilter) return;
+  advFilter.hidden = false;
+  document.body.style.overflow = 'hidden';
+  requestAnimationFrame(()=> advFilter.classList.add('active'));
+}
+function closeAdv(){
+  if (!advFilter) return;
+  advFilter.classList.remove('active');
+  document.body.style.overflow = '';
+  setTimeout(()=> { advFilter.hidden = true; }, 160);
+}
+
+// open / close
+btnOpenFilter?.addEventListener('click', openAdv);
+btnFilterClose?.addEventListener('click', closeAdv);
+advFilter?.addEventListener('click', (e)=>{ if (e.target === advFilter) closeAdv(); });
+window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && !advFilter?.hidden) closeAdv(); });
+
+// optional: read controls -> update existing state then re-filter
+btnFilterApply?.addEventListener('click', () => {
+  const ratingBtn = advFilter?.querySelector('.chips .chip.is-on,[data-af-rating].is-on') || null;
+  const ratingVal = ratingBtn ? ratingBtn.dataset.afRating : '';
+  state.minRating = ratingVal ? Number(ratingVal) : null;
+
+  const openNow = $('#afOpenNow')?.checked;
+  state.open = !!openNow;
+
+  applyFilters();
+  closeAdv();
+});
+
+// optional: chip toggling inside drawer
+advFilter?.addEventListener('click', (e)=>{
+  const chip = e.target.closest('[data-af-rating]');
+  if (!chip) return;
+  advFilter.querySelectorAll('[data-af-rating]').forEach(c => c.classList.remove('is-on'));
+  chip.classList.add('is-on');
+});
+
+// optional: reset
+btnFilterReset?.addEventListener('click', ()=>{
+  state.minRating = null;
+  state.open = false;
+  const onChip = advFilter?.querySelector('[data-af-rating].is-on');
+  onChip && onChip.classList.remove('is-on');
+  const openNow = $('#afOpenNow');
+  if (openNow) openNow.checked = false;
+});
+
 /* Detail page refs (你的 HTML) */
 const pageDetail    = document.querySelector('[data-page="detail"]');
 const btnDetailBack = $('#btnDetailBack');
