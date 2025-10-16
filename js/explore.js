@@ -327,13 +327,24 @@ function showPageDetail(){
 }
 
 function restoreMainPage(){
-  // 依照 tabbar 目前選中的按鈕來顯示對應主頁
   const current = document.querySelector('.tabbar .tab[aria-current="page"]')?.dataset.target
                || (location.hash||'').replace('#','') || 'home';
+
   document.querySelectorAll('[data-page]').forEach(sec=>{
     sec.hidden = (sec.dataset.page !== current);
   });
+
+  // 保底：回到 explore 且尚未載入任何商家時，自動選第一個城市
+  if (current === 'explore' && !allMerchants.length) {
+    const first = wall?.querySelector('.citycell');
+    if (first) {
+      const id = first.dataset.id;
+      const city = { id, name: first.querySelector('.name')?.textContent || id };
+      selectCity(id, city);
+    }
+  }
 }
+
 
 function showPageExplore(){
   document.querySelectorAll('[data-page]').forEach(sec=>{
