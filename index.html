@@ -397,89 +397,112 @@
     </section>
   </main>
   
-<!-- ========================================================= -->
-<!-- Merchant Detail Overlay -->
-<!-- ========================================================= -->
-<div id="merchantDetail" hidden>
-  <div class="md-mask"></div>
-  <div class="md-card">
+<!-- Detail Page (overlay style) -->
+<section data-page="detail" class="detail-overlay" hidden aria-labelledby="detailName" role="dialog" aria-modal="true">
+  <!-- 半透明遮罩（点击可返回） -->
+  <div class="detail-mask" id="detailMask"></div>
 
-    <!-- Header -->
-    <header class="md-header">
-      <button class="md-back" aria-label="Back">←</button>
-      <h2 id="mdTitle">Merchant Name</h2>
-      <div class="md-actions">
-        <button id="actShare" title="Share">🔗</button>
-        <button id="actFav" title="Save">♡</button>
-        <button class="md-close" title="Close">✕</button>
+  <!-- 主卡片 -->
+  <div class="detail-card">
+
+    <!-- 顶部 AppBar -->
+    <header class="detail-appbar">
+      <button id="btnDetailBack" class="icon-btn" aria-label="Back">←</button>
+      <h1 class="detail-title" id="detailTitle">Details</h1>
+      <div class="detail-actions">
+        <button id="detailShare" class="icon-btn" aria-label="Share">🔗</button>
+        <button class="icon-btn" aria-label="Favorite">♡</button>
       </div>
     </header>
 
-    <!-- Hero Gallery -->
-    <section id="mdGallery" class="md-gallery">
-      <div class="md-photo sk-block"></div>
-    </section>
+    <!-- 可滚动内容 -->
+    <div class="detail-scroll">
 
-    <!-- Info Summary -->
-    <section class="md-summary">
-      <div>
-        <h3 id="mdName">Merchant Name</h3>
-        <p id="mdSub" class="md-sub">Category · Area</p>
-      </div>
-      <div id="mdBadges" class="md-badges">
-        <span class="badge ok">Open now</span>
-        <span class="badge">$</span>
-      </div>
-    </section>
+      <!-- Hero（主图 / 画廊占位，背景图由 JS 注入到 #detailHero） -->
+      <section id="detailHero" class="detail-hero" aria-hidden="true"></section>
 
-    <!-- Quick Actions -->
-    <nav class="md-actions-row">
-      <a id="actCall" aria-disabled="true"><i>📞</i>Call</a>
-      <a id="actWA" aria-disabled="true"><i>💬</i>WhatsApp</a>
-      <a id="actWeb" aria-disabled="true"><i>🌐</i>Website</a>
-      <a id="actMap" aria-disabled="true"><i>🗺️</i>Map</a>
-    </nav>
+      <!-- 概要区：标题 / 次行 / 徽章 -->
+      <section class="detail-summary">
+        <h2 id="detailName" class="detail-name">—</h2>
+        <p class="detail-sub">
+          <span id="detailCategory"></span>
+          <span id="detailDot" class="dot" aria-hidden="true">·</span>
+          <span id="detailAddress"></span>
+        </p>
+        <div id="detailBadges" class="badges">
+          <!-- JS 注入：★4.6、Open now、$$ 等 -->
+        </div>
 
-    <!-- About -->
-    <section class="md-block">
-      <h4>About</h4>
-      <p id="mdDesc" class="md-desc">Loading description…</p>
-    </section>
+        <!-- 三个小指标：评分 / 营业 / 价格 -->
+        <div class="detail-stats">
+          <div class="stat">
+            <div class="stat-k">Rating</div>
+            <div id="detailRating" class="stat-v">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-k">Status</div>
+            <div id="detailOpen" class="stat-v">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-k">Price</div>
+            <div id="detailPrice" class="stat-v">—</div>
+          </div>
+        </div>
+      </section>
 
-    <!-- Hours -->
-    <section class="md-block">
-      <div class="md-block-head">
-        <h4>Hours</h4>
-        <span id="mdOpenStatus" class="md-open-tag">—</span>
-      </div>
-      <div id="mdHours" class="md-hours">—</div>
-    </section>
+      <!-- 快速动作 -->
+      <nav class="detail-quick">
+        <a id="detailPhone" class="qaction" aria-disabled="true"><span>📞</span>Call</a>
+        <a id="detailWeb"   class="qaction" aria-disabled="true"><span>🖥️</span>Website</a>
+        <a id="detailMap"   class="qaction" aria-disabled="true"><span>🗺️</span>Map</a>
+      </nav>
 
-    <!-- Info -->
-    <section class="md-block">
-      <h4>Info</h4>
-      <div id="mdInfo" class="md-info">
-        <div>📍 Address</div>
-      </div>
-    </section>
+      <!-- About -->
+      <section class="detail-block">
+        <h3 class="block-title">About</h3>
+        <p id="detailDesc" class="detail-desc">—</p>
+      </section>
 
-    <!-- Map -->
-    <section class="md-block">
-      <div class="md-block-head">
-        <h4>Location</h4>
-        <a id="actMap2" class="md-openmap" target="_blank">Open in Maps</a>
-      </div>
-      <div id="mdMap" class="md-map">—</div>
-    </section>
+      <!-- Hours（可改由 JS 注入固定文字；若你之后要展开成每周时段，在此追加列表即可） -->
+      <section class="detail-block">
+        <h3 class="block-title">Hours</h3>
+        <div id="detailHours" class="detail-hours">—</div>
+      </section>
 
-    <!-- Related -->
-    <section class="md-block">
-      <h4>You may also like</h4>
-      <div id="recList" class="md-related"></div>
-    </section>
+      <!-- Info -->
+      <section class="detail-block">
+        <h3 class="block-title">Info</h3>
+        <div class="info-grid">
+          <div class="info-row">
+            <div class="info-k">Address</div>
+            <div class="info-v"><span id="detailAddressInfo">—</span></div>
+          </div>
+          <!-- 需要可再加：电话/网站/社媒 等 -->
+        </div>
+      </section>
 
+      <!-- Map 预览（静态容器；如要内嵌地图库，用这个盒子） -->
+      <section class="detail-block">
+        <div class="block-head">
+          <h3 class="block-title">Location</h3>
+          <a id="detailMapOpen" class="openmap-link" target="_blank" rel="noopener">Open in Maps</a>
+        </div>
+        <div id="detailMapBox" class="map-box">Map Preview</div>
+      </section>
+
+      <!-- 相关推荐 -->
+      <section class="detail-block">
+        <h3 class="block-title">You may also like</h3>
+        <div id="detailRecList" class="related-list">
+          <!-- JS 注入 <a class="rec"> ... -->
+        </div>
+      </section>
+
+      <div class="detail-safe"></div>
+    </div>
   </div>
-</div>
+</section>
+
 
 
   <!-- 底部導覽：由 partial 注入 -->
@@ -491,6 +514,7 @@
   <script type="module" src="js/explore.js"></script>
 </body>
 </html>
+
 
 
 
