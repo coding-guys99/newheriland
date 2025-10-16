@@ -1,11 +1,11 @@
 // js/explore.js
-// Explore — Supabase per-city fetch + client-side filters + Detail Drawer (data-filled)
+// Explore — Supabase per-city fetch + client-side filters + Detail Page router
 import { supabase } from './app.js';
 
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-// ---- DOM refs (match your HTML) ----
+/* ---------- DOM refs ---------- */
 const wall  = $('#cityWall');
 const head  = $('#resultHead');
 const sk    = $('#skList');
@@ -14,17 +14,35 @@ const empty = $('#emptyState');
 const errBx = $('#errorState');
 const btnRetry = $('#btnRetry');
 
-// Filters
 const filtersBox = $('#expFilters');
 const chipsCats  = $$('.chips--cats .chip',  filtersBox);
 const chipsQuick = $$('.chips--quick .chip', filtersBox);
 
-// ===== Filter state =====
+// detail page refs
+const pageDetail   = document.querySelector('[data-page="detail"]');
+const btnDetailBack = $('#btnDetailBack');
+const elHero   = $('#detailHero');
+const elName   = $('#detailName');
+const elCat    = $('#detailCategory');
+const elAddr   = $('#detailAddress');
+const elDot    = $('#detailDot');
+const elBadges = $('#detailBadges');
+const elDesc   = $('#detailDesc');
+const elRating = $('#detailRating');
+const elOpen   = $('#detailOpen');
+const elPrice  = $('#detailPrice');
+const actMap   = $('#detailMap');
+const actPhone = $('#detailPhone');
+const actWeb   = $('#detailWeb');
+const actShare = $('#detailShare');
+const recList  = $('#detailRecList');
+
+/* ---------- State ---------- */
 const state = { cats:new Set(), open:false, minRating:null, sort:'latest' };
 let currentCity = null;
 let allMerchants = [];
 
-/* ----------------- Helpers ----------------- */
+/* ---------- Helpers ---------- */
 const toNum = (n)=>{ const x = Number(n); return Number.isFinite(x) ? x : null; };
 function priceLevelNum(m){
   if (typeof m.priceLevel === 'number') return m.priceLevel;
@@ -42,7 +60,7 @@ function isOpenNow(m, ref=new Date()){
     const toMin = (hhmm)=>{ const [h,mi] = hhmm.split(':').map(x=>parseInt(x,10)); return h*60+(mi||0); };
     return day.ranges.some(r=>{
       const o = toMin(r.open), c = toMin(r.close);
-      return (c>o) ? (cur>=o && cur<c) : (cur>=o || cur<c);
+      return (c>o) ? (cur>=o && cur<c) : (cur>=o || cur<c); // 跨夜
     });
   }
   const t = (m.openHours||'').toLowerCase().trim();
@@ -56,7 +74,7 @@ function isOpenNow(m, ref=new Date()){
   return (end>start) ? (cur>=start && cur<end) : (cur>=start || cur<end);
 }
 
-/* ----------------- Supabase ----------------- */
+/* ---------- Supabase ---------- */
 async function loadCities(){
   try{
     const { data, error } = await supabase
@@ -116,7 +134,7 @@ async function fetchRelated({city_id, category, exceptId, limit=6}={}){
   return sameCat.length ? sameCat : data;
 }
 
-/* ----------------- Render: wall & list ----------------- */
+/* ---------- Render: wall & list ---------- */
 function renderWall(cities){
   wall.innerHTML = '';
   cities.slice(0,12).forEach((c,i)=>{
@@ -173,7 +191,7 @@ function renderMerchants(items){
   }).join('');
 }
 
-/* ----------------- Filters (client-side) ----------------- */
+/* ---------- Filters (client-side) ---------- */
 function applyFilters(){
   let arr = [...allMerchants];
 
@@ -207,7 +225,6 @@ function applyFilters(){
   renderMerchants(arr);
   if (head) head.textContent = `${currentCity?.name || currentCity?.id || 'City'} — ${arr.length} places`;
 }
-
 function bindFilters(){
   if (!filtersBox) return;
 
@@ -252,7 +269,7 @@ function bindFilters(){
   });
 }
 
-/* ----------------- City switching ----------------- */
+/* ---------- City switching ---------- */
 function selectCity(id, cityObj){
   currentCity = cityObj || { id };
 
@@ -290,183 +307,121 @@ function selectCity(id, cityObj){
   });
 }
 
-/* ----------------- Detail Drawer ----------------- */
-const md       = document.getElementById('mdBackdrop');
-const mdClose  = document.getElementById('mdClose');
-
-function openDrawer(){
-  if (!md) return;
-  md.hidden = false;
-  md.classList.add('active');
-}
-function closeDrawer(){
-  if (!md) return;
-  md.classList.remove('active');
-  md.hidden = true;
-}
+/* ---------- Detail page: render & router ---------- */
 function setAction(el, href){
   if (!el) return;
   if (href){
-    el.href = href;
-    el.removeAttribute('aria-disabled');
-    el.classList?.remove('is-disabled');
+    el.href = href; el.removeAttribute('aria-disabled'); el.classList.remove('is-disabled');
   }else{
-    el.removeAttribute('href');
-    el.setAttribute('aria-disabled','true');
-    el.classList?.add('is-disabled');
+    el.removeAttribute('href'); el.setAttribute('aria-disabled','true'); el.classList.add('is-disabled');
   }
 }
-
-function fillDetail(m){
-  const t = document.getElementById('mdTitle');
-  if (t) t.textContent = m.name || 'Untitled';
-
-  const cat = document.getElementById('mdCategory');
-  if (cat) cat.textContent = m.category || '';
-
-  const rate = document.getElementById('mdRating');
-  if (rate) rate.textContent = (m.rating != null) ? `★ ${Number(m.rating).toFixed(1)}` : '';
-
-  const openNow = isOpenNow(m);
-  const openEl = document.getElementById('mdOpen');
-  if (openEl) openEl.textContent = openNow ? 'Open now' : 'Closed';
-
-  const priceEl = document.getElementById('mdPrice');
-  const p = priceLevelNum(m);
-  if (priceEl) priceEl.textContent = p ? '💲'.repeat(Math.max(1, Math.min(4, p))) : '';
-
-  const addrEl = document.getElementById('mdAddress');
-  if (addrEl){
-    if (m.address){
-      addrEl.textContent = m.address;
-      addrEl.classList.remove('muted');
-    } else {
-      addrEl.textContent = 'No address yet';
-      addrEl.classList.add('muted');
-    }
-  }
-
-  const descEl = document.getElementById('mdDesc');
-  if (descEl) descEl.textContent = m.description || '';
-
-  const hoursEl = document.getElementById('mdHours');
-  if (hoursEl){
-    if (m.open_hours && typeof m.open_hours === 'object'){
-      hoursEl.textContent = 'See daily schedule';
-    } else {
-      hoursEl.textContent = m.openHours || '';
-    }
-  }
-
-  const tagsWrap = document.getElementById('mdBadges');
-  if (tagsWrap){
-    tagsWrap.innerHTML = '';
-    const tags = Array.isArray(m.tagIds)
-      ? m.tagIds
-      : Array.isArray(m.tags)
-      ? m.tags
-      : (typeof m.tags === 'string'
-        ? m.tags.split(',').map(s => s.trim()).filter(Boolean)
-        : []);
-    tags.slice(0,8).forEach(tg => {
-      const s = document.createElement('span');
-      s.className = 'badge';
-      s.textContent = `#${tg}`;
-      tagsWrap.appendChild(s);
-    });
-  }
-
-  // actions
-  setAction(document.getElementById('mdPhone'),
-    m.phone ? `tel:${m.phone.replace(/\s+/g,'')}` : null);
-  setAction(document.getElementById('mdWA'),
-    m.whatsapp ? `https://wa.me/${m.whatsapp.replace(/\D+/g,'')}` : null);
-  setAction(document.getElementById('mdWeb'), m.website || null);
-
-  let mapHref = null;
-  if (m.lat != null && m.lng != null)
-    mapHref = `https://www.google.com/maps?q=${m.lat},${m.lng}`;
-  else if (m.location && m.location.lat != null)
-    mapHref = `https://www.google.com/maps?q=${m.location.lat},${m.location.lng}`;
-  else if (m.address)
-    mapHref = `https://www.google.com/maps?q=${encodeURIComponent(m.address)}`;
-  setAction(document.getElementById('mdMap'), mapHref);
-
-  const shareBtn = document.getElementById('mdShare');
-  if (shareBtn){
-    shareBtn.onclick = async ()=>{
-      const shareData = {
-        title: m.name,
-        text: `${m.name} — ${m.category||''}`,
-        url: location.href
-      };
-      try{
-        if (navigator.share) await navigator.share(shareData);
-        else await navigator.clipboard.writeText(`${m.name}\n${location.href}`);
-      }catch{}
-    };
-  }
-
-  const gallery = document.getElementById('modalGallery');
-  if (gallery){
-    const cover = m.cover || (m.images?.[0]) || '';
-    gallery.innerHTML = cover
-      ? `<div class="gimg" style="background-image:url('${cover}')"></div>`
-      : `<div class="gimg placeholder"></div>`;
-  }
+function showPageDetail(){ // hide others
+  document.querySelectorAll('[data-page]').forEach(sec=>{
+    sec.hidden = (sec.dataset.page !== 'detail');
+  });
+  // 取消底部 tab 高亮
+  $$('.tabbar .tab').forEach(t=>{
+    t.setAttribute('aria-selected','false');
+    t.removeAttribute('aria-current');
+  });
+}
+function showPageExplore(){
+  document.querySelectorAll('[data-page]').forEach(sec=>{
+    sec.hidden = (sec.dataset.page !== 'explore');
+  });
+  // 不改變 tabbar 由 app.js 管
 }
 
-async function openDetailById(id){
-  if (!md){ console.warn('Detail drawer HTML (#mdBackdrop) not found.'); return; }
+async function loadDetailPage(id){
+  showPageDetail();
+  // 簡易 loading 狀態
+  elHero.style.backgroundImage = '';
+  elName.textContent = 'Loading…';
+  elCat.textContent = '';
+  elAddr.textContent = '';
+  elDot.style.display = 'none';
+  elBadges.innerHTML = '';
+  elDesc.textContent = '';
+  elRating.textContent = '';
+  elOpen.textContent = '';
+  elPrice.textContent = '';
+  recList.innerHTML = '';
+
   try{
-    openDrawer();
-    md.classList.add('loading');
-
     const m = await fetchMerchantById(id);
-    fillDetail(m);
 
-    try{
-      const related = await fetchRelated({
-        city_id: m.city_id, category: m.category, exceptId: m.id, limit: 6
-      });
-      const rec = document.getElementById('recList');
-      if (rec){
-        rec.innerHTML = related.map(r => `
-          <a class="rec" data-id="${r.id}" role="button" tabindex="0" aria-label="Open ${r.name}">
-            <div class="rthumb" style="background-image:url('${r.cover||''}')"></div>
-            <div class="rname">${r.name}</div>
-          </a>
-        `).join('');
-        // 覆蓋式綁定避免重複疊加
-        rec.onclick = (e)=>{
-          const a = e.target.closest('.rec'); if (!a) return;
-          openDetailById(a.dataset.id);
-        };
-        rec.onkeydown = (e)=>{
-          if (e.key !== 'Enter') return;
-          const a = e.target.closest('.rec'); if (!a) return;
-          openDetailById(a.dataset.id);
-        };
-      }
-    }catch(e){ /* ignore */ }
+    // hero
+    const cover = m.cover || (m.images?.[0]) || '';
+    if (cover) elHero.style.backgroundImage = `url("${cover}")`;
+
+    // 主資料
+    elName.textContent = m.name || '';
+    elCat.textContent = m.category || '';
+    elAddr.textContent = m.address || '';
+    elDot.style.display = (elCat.textContent && elAddr.textContent) ? '' : 'none';
+    elDesc.textContent = m.description || '';
+
+    // badges
+    const rating = (m.rating!=null) ? Number(m.rating).toFixed(1) : null;
+    const open = isOpenNow(m);
+    const price = priceLevelNum(m);
+    const priceStr = price ? '💲'.repeat(Math.max(1, Math.min(4, price))) : '';
+    elBadges.innerHTML = `
+      ${rating ? `<span class="badge">★ ${rating}</span>` : ''}
+      <span class="badge ${open ? 'ok':'off'}">${open ? 'Open now':'Closed'}</span>
+      ${priceStr ? `<span class="badge">${priceStr}</span>` : ''}
+    `;
+    elRating.textContent = rating || '—';
+    elOpen.textContent   = open ? 'Open now' : 'Closed';
+    elPrice.textContent  = priceStr || '—';
+
+    // actions
+    const gq = (m.lat && m.lng) ? `${m.lat},${m.lng}` : (m.address || '');
+    setAction(actMap, gq ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq)}` : null);
+    setAction(actPhone, m.phone ? `tel:${m.phone}` : null);
+    setAction(actWeb, m.website || null);
+    if (actShare){
+      actShare.onclick = async ()=>{
+        const url = location.href;
+        const text = `${m.name} — ${m.category || ''}`;
+        try{ await navigator.share?.({ title: m.name, text, url }) }catch(_){}
+      };
+    }
+
+    // related
+    const related = await fetchRelated({ city_id: m.city_id, category: m.category, exceptId: m.id, limit: 6 });
+    recList.innerHTML = related.map(r => `
+      <a class="rec" data-id="${r.id}" role="button" tabindex="0" aria-label="Open ${r.name}">
+        <div class="rthumb" style="background-image:url('${r.cover||''}')"></div>
+        <div class="rname">${r.name}</div>
+      </a>
+    `).join('');
+    recList.onclick = (e)=>{
+      const a = e.target.closest('.rec'); if (!a) return;
+      location.hash = `#detail/${a.dataset.id}`;
+    };
 
   }catch(err){
-    console.error('openDetailById error:', err);
-    const tt = document.getElementById('mdTitle');
-    const dd = document.getElementById('mdDesc');
-    if (tt) tt.textContent = 'Failed to load';
-    if (dd) dd.textContent = 'Please check your connection and try again.';
-  }finally{
-    if (md) md.classList.remove('loading');
+    elName.textContent = 'Failed to load';
+    elDesc.textContent = 'Please check your connection and try again.';
   }
 }
 
-// 綁定關閉
-mdClose?.addEventListener('click', closeDrawer);
-md?.addEventListener('click', (e)=>{ if (e.target === md) closeDrawer(); });
-window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeDrawer(); });
+/* ---------- Router: #detail/{id} ---------- */
+function handleHash(){
+  const h = location.hash || '';
+  if (h.startsWith('#detail/')){
+    const id = h.split('/')[1];
+    if (id) loadDetailPage(id);
+    return;
+  }
+  // 其它 hash（或空）回 Explore（原有 app.js 仍管理 tabbar）
+  showPageExplore();
+}
+window.addEventListener('hashchange', handleHash);
 
-/* ----------------- Bootstrap ----------------- */
+/* ---------- Bootstrap ---------- */
 (async function init(){
   if (!wall) return;
 
@@ -498,18 +453,22 @@ window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeDrawer();
     selectCity(first.dataset.id, c);
   }
 
-  // 綁定列表→開詳情
+  // 列表 → 進二級頁（改為 hash 導向）
   list.addEventListener('click', (e)=>{
-    const card = e.target.closest('.item');
-    if (!card) return;
-    const id = card.dataset.id;
-    if (id) openDetailById(id);
+    const card = e.target.closest('.item'); if (!card) return;
+    const id = card.dataset.id; if (!id) return;
+    location.hash = `#detail/${id}`;
   });
   list.addEventListener('keydown', (e)=>{
     if (e.key !== 'Enter') return;
-    const card = e.target.closest('.item');
-    if (!card) return;
-    const id = card.dataset.id;
-    if (id) openDetailById(id);
+    const card = e.target.closest('.item'); if (!card) return;
+    const id = card.dataset.id; if (!id) return;
+    location.hash = `#detail/${id}`;
   });
+
+  // 詳情返回
+  btnDetailBack?.addEventListener('click', ()=>{ location.hash = '#explore'; });
+
+  // 初始路由
+  handleHash();
 })();
