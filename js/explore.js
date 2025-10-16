@@ -32,6 +32,7 @@ const elRating = $('#detailRating');
 const elOpen   = $('#detailOpen');
 const elPrice  = $('#detailPrice');
 const actMap   = $('#actMap');
+const actMap2 = document.getElementById('actMap2'); // 新增
 const actPhone = $('#actPhone');
 const actWeb   = $('#actWeb');
 const actShare = $('#actShare');
@@ -392,6 +393,7 @@ async function loadDetailPage(id){
     // actions
     const gq = (m.lat && m.lng) ? `${m.lat},${m.lng}` : (m.address || '');
     setAction(actMap,   gq ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq)}` : null);
+    setAction(actMap2,   gq ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq)}` : null);
     setAction(actPhone, m.phone ? `tel:${m.phone.replace(/\s+/g,'')}` : null);
     setAction(actWeb,   m.website || null);
     actShare?.addEventListener('click', async ()=>{
@@ -430,9 +432,18 @@ function handleHash(){
     }
     return;
   }
-  // 非 detail：不要強制切到 explore，恢復目前 tab 選中的主頁
+
+  // 非 detail：恢復目前 tab 選中的主頁
   restoreMainPage();
+
+  // 回到 Explore（或初始沒有 hash）時，重算列表，確保篩選立即生效
+  if (h === '#explore' || h === '') {
+    if (allMerchants.length) {
+      applyFilters();
+    }
+  }
 }
+
 
 
 
