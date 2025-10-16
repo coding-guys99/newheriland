@@ -18,30 +18,35 @@ const filtersBox = $('#expFilters');
 const chipsCats  = $$('.chips--cats .chip',  filtersBox);
 const chipsQuick = $$('.chips--quick .chip', filtersBox);
 
-/* ===== Advanced Filter Drawer wiring (matches your HTML) ===== */
+/* ---------- State ---------- */
+const state = { cats:new Set(), open:false, minRating:null, sort:'latest' };
+let currentCity = null;
+let allMerchants = [];
 
-// 外層篩選列：開啟按鈕（你外面那顆 🎯 Filter）
+/* ===== Advanced Filter Drawer wiring (放在 state 之后) ===== */
+
+// 外层 Filter 按钮
 const btnOpenFilter = document.getElementById('btnOpenFilter');
 
-// 抽屜節點 & 控制鍵（用你的 id）
-const advFilter     = document.getElementById('advFilter');
-const btnAdvClose   = document.getElementById('btnAdvClose');
-const btnAdvApply   = document.getElementById('btnAdvApply');
-const btnAdvReset   = document.getElementById('btnAdvReset');
+// 抽屉与按钮
+const advFilter   = document.getElementById('advFilter');
+const btnAdvClose = document.getElementById('btnAdvClose');
+const btnAdvApply = document.getElementById('btnAdvApply');
+const btnAdvReset = document.getElementById('btnAdvReset');
 
-// 分組容器
-const afCats   = document.getElementById('afCats');    // data-cat   （多選）
-const afThemes = document.getElementById('afThemes');  // data-theme（多選）
-const afAttrs  = document.getElementById('afAttrs');   // data-attr （多選）
-const afMore   = document.getElementById('afMore');    // data-open / data-rating / data-price
-const afSort   = document.getElementById('afSort');    // data-sort（單選）
+// 分组容器
+const afCats   = document.getElementById('afCats');
+const afThemes = document.getElementById('afThemes');
+const afAttrs  = document.getElementById('afAttrs');
+const afMore   = document.getElementById('afMore');
+const afSort   = document.getElementById('afSort');
 
-// 擴充 state：保留進階的選項（先不影響列表，之後可接到 applyFilters）
+// 扩充 state（确保在 state 定义之后做）
 state.themes = state.themes || new Set();
 state.attrs  = state.attrs  || new Set();
-state.prices = state.prices || new Set();   // 多選 $/$$/$$$/$$$$
+state.prices = state.prices || new Set();
 
-// 打開 / 關閉抽屜
+// 打开 / 关闭
 function openAF(){
   if (!advFilter) return;
   advFilter.hidden = false;
@@ -53,16 +58,12 @@ function closeAF(){
   setTimeout(()=>{ advFilter.hidden = true; }, 150);
 }
 
-// 綁開關
 btnOpenFilter?.addEventListener('click', openAF);
 btnAdvClose?.addEventListener('click', closeAF);
-// 點背景（空白處）也關（你的 overlay-page 可能沒背景層，保險寫一下）
 advFilter?.addEventListener('click', (e)=>{ if (e.target === advFilter) closeAF(); });
 window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && !advFilter?.hidden) closeAF(); });
 
-// —— Chips 切換邏輯 ——
-
-// 通用：多選切換（加/移除 .is-on）
+// 多选切换工具
 function toggleMulti(container, attr, set){
   container?.addEventListener('click', (e)=>{
     const btn = e.target.closest(`.chip[${attr}]`); if (!btn) return;
@@ -76,7 +77,7 @@ toggleMulti(afCats,   'data-cat',   state.cats);
 toggleMulti(afThemes, 'data-theme', state.themes);
 toggleMulti(afAttrs,  'data-attr',  state.attrs);
 
-// More 區：Open=切換；Rating=單選；Price=多選
+// More：open 切换、rating 单选、price 多选
 afMore?.addEventListener('click', (e)=>{
   const btn = e.target.closest('.chip'); if (!btn) return;
 
@@ -86,9 +87,7 @@ afMore?.addEventListener('click', (e)=>{
     state.open = on;
     return;
   }
-
   if (btn.hasAttribute('data-rating')){
-    // 單選
     afMore.querySelectorAll('.chip[data-rating]').forEach(b=>{
       b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
     });
@@ -96,9 +95,7 @@ afMore?.addEventListener('click', (e)=>{
     state.minRating = Number(btn.getAttribute('data-rating'));
     return;
   }
-
   if (btn.hasAttribute('data-price')){
-    // 多選：$ / $$ / $$$ / $$$$
     const val = Number(btn.getAttribute('data-price'));
     const on  = btn.classList.toggle('is-on');
     btn.setAttribute('aria-pressed', on ? 'true':'false');
@@ -107,7 +104,7 @@ afMore?.addEventListener('click', (e)=>{
   }
 });
 
-// Sort：單選
+// Sort：单选
 afSort?.addEventListener('click', (e)=>{
   const btn = e.target.closest('.chip[data-sort]'); if (!btn) return;
   afSort.querySelectorAll('.chip[data-sort]').forEach(b=>{
@@ -117,24 +114,19 @@ afSort?.addEventListener('click', (e)=>{
   state.sort = btn.getAttribute('data-sort') || 'latest';
 });
 
-// —— Apply / Reset ——
-
-// 把抽屜選擇同步到外層「輕量 chips」視覺（只同步：sort / open / rating）
+// 同步外层轻量 chips
 function syncLightBarFromState(){
-  // sort（單選）
-  document.querySelectorAll('.chips--quick .chip[data-sort]')?.forEach(b=>{
+  document.querySelectorAll('.chips--quick .chip[data-sort]').forEach(b=>{
     const on = (b.getAttribute('data-sort') === state.sort);
     b.classList.toggle('is-on', on);
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
-  // open
   const lightOpen = document.querySelector('.chips--quick .chip[data-open]');
   if (lightOpen){
     lightOpen.classList.toggle('is-on', !!state.open);
     lightOpen.setAttribute('aria-pressed', state.open ? 'true' : 'false');
   }
-  // rating（只有 4.5 這顆，或你有別顆就一起判斷）
-  document.querySelectorAll('.chips--quick .chip[data-rating]')?.forEach(b=>{
+  document.querySelectorAll('.chips--quick .chip[data-rating]').forEach(b=>{
     const val = Number(b.getAttribute('data-rating'));
     const on  = (state.minRating != null && state.minRating === val);
     b.classList.toggle('is-on', on);
@@ -142,38 +134,24 @@ function syncLightBarFromState(){
   });
 }
 
+// Apply / Reset
 btnAdvApply?.addEventListener('click', ()=>{
-  // 目前的 applyFilters() 只看 cats / open / minRating / sort
-  // 若未來要用 themes / attrs / prices，也在 applyFilters() 裡加條件即可
   applyFilters();
   syncLightBarFromState();
   closeAF();
 });
-
 btnAdvReset?.addEventListener('click', ()=>{
-  // 清 state
-  state.cats.clear();
-  state.themes.clear();
-  state.attrs.clear();
-  state.prices.clear();
-  state.open = false;
-  state.minRating = null;
-  state.sort = 'latest';
+  state.cats.clear(); state.themes.clear(); state.attrs.clear(); state.prices.clear();
+  state.open = false; state.minRating = null; state.sort = 'latest';
 
-  // 清抽屜視覺
-  advFilter?.querySelectorAll('.chip.is-on')?.forEach(b=>{
+  advFilter?.querySelectorAll('.chip.is-on').forEach(b=>{
     b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
   });
-  // 預設 sort=latest 標記回來
   const firstSort = afSort?.querySelector('.chip[data-sort="latest"]');
   if (firstSort){
     firstSort.classList.add('is-on'); firstSort.setAttribute('aria-pressed','true');
   }
-
-  // 外層輕量 chips 也回復預設
   syncLightBarFromState();
-
-  // 重新套用
   applyFilters();
 });
 
