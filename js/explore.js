@@ -175,10 +175,6 @@ const actWeb   = $('#actWeb');
 const actShare = $('#actShare');
 const recList  = $('#detailRecList');
 
-/* ---------- State ---------- */
-const state = { cats:new Set(), open:false, minRating:null, sort:'latest' };
-let currentCity = null;
-let allMerchants = [];
 
 /* ---------- Helpers ---------- */
 const toNum = (n)=>{ const x = Number(n); return Number.isFinite(x) ? x : null; };
