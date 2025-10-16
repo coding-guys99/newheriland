@@ -95,11 +95,14 @@ function initApp(){
     });
 
     // deep-link：#explore、#map…
-    const initHash = () => {
-      const h = (location.hash||'').replace('#','');
-      if (PAGES.includes(h)) showPage(h, {push:false});
-      else showPage(active, {push:false});
-    };
+    function initHash() {
+  const h = (location.hash || '').replace('#','');
+ if (h.startsWith('detail/')) return; // 交給 explore.js 的路由處理
+
+  if (PAGES.includes(h)) showPage(h, { push:false });
+  else showPage(active, { push:false });
+}
+
     window.addEventListener('hashchange', initHash);
     initHash();
   })();
@@ -293,4 +296,5 @@ function tryInitWhenTabbarReady() {
     initApp();
   }
 }
+
 
