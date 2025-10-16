@@ -409,14 +409,26 @@ async function loadDetailPage(id){
 /* ---------- Router ---------- */
 function handleHash(){
   const h = location.hash || '';
+
+  // 如果是 detail 頁
   if (h.startsWith('#detail/')){
     const id = h.split('/')[1];
     if (id) loadDetailPage(id);
     return;
   }
-  // 其它 hash（或空）回 Explore（tabbar 由 app.js 管）
-  showPageExplore();
+
+  // 若是其他主要頁面（home/map/saved/add/explore）
+  const page = h.replace('#','');
+  const mainPages = ['home','explore','map','saved','add'];
+  if (!mainPages.includes(page)) return; // 不在主要頁清單中就不動作
+
+  // 只在 explore 時顯示 explore 頁
+  if (page === 'explore' || h === '' || h === '#explore') {
+    showPageExplore();
+  }
 }
+
+
 window.addEventListener('hashchange', handleHash);
 
 /* ---------- Bootstrap ---------- */
