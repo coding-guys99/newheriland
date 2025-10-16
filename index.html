@@ -152,6 +152,90 @@
   </div>
 </section>
 
+<!-- ===================== Detail Page ===================== -->
+<section data-page="detail" class="detail" hidden aria-labelledby="detailName">
+  <!-- Sticky AppBar -->
+  <header class="d-appbar">
+    <button id="btnDetailBack" class="icon-btn" aria-label="Back">←</button>
+    <h1 class="d-title" id="detailName">Loading…</h1>
+    <div class="d-actions">
+      <button id="actShare" class="icon-btn" title="Share" aria-label="Share">🔗</button>
+      <button class="icon-btn" title="Favorite" aria-label="Favorite">♡</button>
+    </div>
+  </header>
+
+  <!-- Scroll area -->
+  <div class="d-scroll">
+    <!-- Hero Gallery（目前單張，之後可擴充多張橫滑） -->
+    <section class="d-hero">
+      <div id="detailHero" class="d-hero-photo" aria-hidden="true"></div>
+      <div class="d-hero-over">
+        <div class="d-subrow">
+          <span id="detailCategory" class="d-cat">—</span>
+          <span id="detailDot" class="dot">·</span>
+          <span id="detailAddress" class="d-area">—</span>
+        </div>
+        <div id="detailBadges" class="d-badges">
+          <!-- JS 注入：★ 4.6、Open now、$$ 等 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick actions -->
+    <nav class="d-quick">
+      <a id="actPhone" aria-disabled="true"><i>📞</i><span>Call</span></a>
+      <a id="actWeb"   aria-disabled="true"><i>🌐</i><span>Website</span></a>
+      <a id="actMap"   aria-disabled="true"><i>🗺️</i><span>Map</span></a>
+    </nav>
+
+    <!-- About -->
+    <section class="d-card">
+      <h2 class="d-h2">About</h2>
+      <p id="detailDesc" class="d-desc">—</p>
+    </section>
+
+    <!-- Hours / Meta -->
+    <section class="d-card d-meta">
+      <div class="d-meta-col">
+        <div class="d-kv">
+          <div class="k">Status</div>
+          <div id="detailOpen" class="v">—</div>
+        </div>
+        <div class="d-kv">
+          <div class="k">Rating</div>
+          <div id="detailRating" class="v">—</div>
+        </div>
+      </div>
+      <div class="d-meta-col">
+        <div class="d-kv">
+          <div class="k">Price</div>
+          <div id="detailPrice" class="v">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Location（可放嵌入地圖；目前留白卡） -->
+    <section class="d-card">
+      <div class="d-head-row">
+        <h2 class="d-h2">Location</h2>
+        <a id="actMap" class="link-inline" aria-label="Open in Maps">Open in Maps</a>
+      </div>
+      <div class="d-mapbox" aria-hidden="true">
+        <div class="d-mapph">Map preview</div>
+      </div>
+    </section>
+
+    <!-- Related -->
+    <section class="d-card">
+      <h2 class="d-h2">You may also like</h2>
+      <div id="detailRecList" class="d-related">
+        <!-- JS 注入 -->
+      </div>
+    </section>
+
+    <div class="d-safe"></div>
+  </div>
+</section>
 
 
     <!-- Map -->
@@ -397,113 +481,6 @@
     </section>
   </main>
   
-<!-- Detail Page (overlay style) -->
-<section data-page="detail" class="detail-overlay" hidden aria-labelledby="detailName" role="dialog" aria-modal="true">
-  <!-- 半透明遮罩（点击可返回） -->
-  <div class="detail-mask" id="detailMask"></div>
-
-  <!-- 主卡片 -->
-  <div class="detail-card">
-
-    <!-- 顶部 AppBar -->
-    <header class="detail-appbar">
-      <button id="btnDetailBack" class="icon-btn" aria-label="Back">←</button>
-      <h1 class="detail-title" id="detailTitle">Details</h1>
-      <div class="detail-actions">
-        <button id="detailShare" class="icon-btn" aria-label="Share">🔗</button>
-        <button class="icon-btn" aria-label="Favorite">♡</button>
-      </div>
-    </header>
-
-    <!-- 可滚动内容 -->
-    <div class="detail-scroll">
-
-      <!-- Hero（主图 / 画廊占位，背景图由 JS 注入到 #detailHero） -->
-      <section id="detailHero" class="detail-hero" aria-hidden="true"></section>
-
-      <!-- 概要区：标题 / 次行 / 徽章 -->
-      <section class="detail-summary">
-        <h2 id="detailName" class="detail-name">—</h2>
-        <p class="detail-sub">
-          <span id="detailCategory"></span>
-          <span id="detailDot" class="dot" aria-hidden="true">·</span>
-          <span id="detailAddress"></span>
-        </p>
-        <div id="detailBadges" class="badges">
-          <!-- JS 注入：★4.6、Open now、$$ 等 -->
-        </div>
-
-        <!-- 三个小指标：评分 / 营业 / 价格 -->
-        <div class="detail-stats">
-          <div class="stat">
-            <div class="stat-k">Rating</div>
-            <div id="detailRating" class="stat-v">—</div>
-          </div>
-          <div class="stat">
-            <div class="stat-k">Status</div>
-            <div id="detailOpen" class="stat-v">—</div>
-          </div>
-          <div class="stat">
-            <div class="stat-k">Price</div>
-            <div id="detailPrice" class="stat-v">—</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 快速动作 -->
-      <nav class="detail-quick">
-        <a id="detailPhone" class="qaction" aria-disabled="true"><span>📞</span>Call</a>
-        <a id="detailWeb"   class="qaction" aria-disabled="true"><span>🖥️</span>Website</a>
-        <a id="detailMap"   class="qaction" aria-disabled="true"><span>🗺️</span>Map</a>
-      </nav>
-
-      <!-- About -->
-      <section class="detail-block">
-        <h3 class="block-title">About</h3>
-        <p id="detailDesc" class="detail-desc">—</p>
-      </section>
-
-      <!-- Hours（可改由 JS 注入固定文字；若你之后要展开成每周时段，在此追加列表即可） -->
-      <section class="detail-block">
-        <h3 class="block-title">Hours</h3>
-        <div id="detailHours" class="detail-hours">—</div>
-      </section>
-
-      <!-- Info -->
-      <section class="detail-block">
-        <h3 class="block-title">Info</h3>
-        <div class="info-grid">
-          <div class="info-row">
-            <div class="info-k">Address</div>
-            <div class="info-v"><span id="detailAddressInfo">—</span></div>
-          </div>
-          <!-- 需要可再加：电话/网站/社媒 等 -->
-        </div>
-      </section>
-
-      <!-- Map 预览（静态容器；如要内嵌地图库，用这个盒子） -->
-      <section class="detail-block">
-        <div class="block-head">
-          <h3 class="block-title">Location</h3>
-          <a id="detailMapOpen" class="openmap-link" target="_blank" rel="noopener">Open in Maps</a>
-        </div>
-        <div id="detailMapBox" class="map-box">Map Preview</div>
-      </section>
-
-      <!-- 相关推荐 -->
-      <section class="detail-block">
-        <h3 class="block-title">You may also like</h3>
-        <div id="detailRecList" class="related-list">
-          <!-- JS 注入 <a class="rec"> ... -->
-        </div>
-      </section>
-
-      <div class="detail-safe"></div>
-    </div>
-  </div>
-</section>
-
-
 
   <!-- 底部導覽：由 partial 注入 -->
   <div data-include="partials/tabbar.html"></div>
@@ -514,6 +491,7 @@
   <script type="module" src="js/explore.js"></script>
 </body>
 </html>
+
 
 
 
