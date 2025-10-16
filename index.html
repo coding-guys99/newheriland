@@ -151,7 +151,49 @@
   </div>
 </section>
 
+<!-- ====== Detail Page (二級) ====== -->
+<section data-page="detail" aria-labelledby="h-detail" hidden>
+  <header class="detail-header">
+    <button class="btn-back" id="btnDetailBack" aria-label="Back">←</button>
+    <h1 id="h-detail">Place detail</h1>
+  </header>
 
+  <div class="detail-content">
+    <!-- Hero -->
+    <div class="detail-hero" id="detailHero" aria-hidden="true"></div>
+
+    <div class="detail-main">
+      <h2 id="detailName">—</h2>
+      <div class="detail-sub">
+        <span id="detailCategory"></span>
+        <span id="detailDot" style="display:none"> · </span>
+        <span id="detailAddress"></span>
+      </div>
+
+      <div class="badges" id="detailBadges"></div>
+
+      <p id="detailDesc" class="detail-desc"></p>
+
+      <div class="detail-info">
+        <div>⭐ <span id="detailRating"></span></div>
+        <div>🕐 <span id="detailOpen"></span></div>
+        <div>💲 <span id="detailPrice"></span></div>
+      </div>
+
+      <div class="detail-actions">
+        <a id="detailMap" class="btn" target="_blank" rel="noopener">📍 Map</a>
+        <a id="detailPhone" class="btn" target="_blank" rel="noopener">📞 Call</a>
+        <a id="detailWeb" class="btn" target="_blank" rel="noopener">🌐 Website</a>
+        <button id="detailShare" class="btn">🔗 Share</button>
+      </div>
+    </div>
+
+    <div class="detail-recommend">
+      <h3>More places nearby</h3>
+      <div class="rec-list" id="detailRecList"></div>
+    </div>
+  </div>
+</section>
 
     <!-- Map -->
     <section data-page="map" aria-labelledby="h-map" class="section" hidden>
@@ -281,60 +323,7 @@
   </form>
 </section>
 
-<!-- ===== Detail Drawer (Merchant) ===== -->
-<div id="mdBackdrop" class="modal-backdrop" hidden aria-hidden="true">
-  <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="mdTitle">
-    <button id="mdClose" class="modal-close" aria-label="Close">✕</button>
 
-    <!-- 主圖 / 圖庫 -->
-    <div id="modalGallery" class="modal-gallery">
-      <div class="gimg placeholder"></div>
-    </div>
-
-    <div class="modal-body">
-      <!-- 標題區 -->
-      <h2 id="mdTitle">Loading…</h2>
-      <div class="place-meta">
-        <span id="mdCategory" class="meta"></span>
-        <span id="mdRating" class="meta"></span>
-        <span id="mdOpen"    class="meta"></span>
-        <span id="mdPrice"   class="meta"></span>
-      </div>
-
-      <!-- 標籤 -->
-      <div id="mdBadges" class="badges"></div>
-
-      <!-- 文字資訊 -->
-      <div class="place-info">
-        <div class="info-row">
-          <strong>Address</strong>
-          <div id="mdAddress" class="muted">No address yet</div>
-        </div>
-        <div class="info-row">
-          <strong>Hours</strong>
-          <div id="mdHours" class="muted">—</div>
-        </div>
-      </div>
-
-      <p id="mdDesc" class="place-desc"></p>
-
-      <!-- 動作列 -->
-      <div class="action-row">
-        <a id="mdPhone" class="btn action" aria-disabled="true">📞 <span>Call</span></a>
-        <a id="mdWA"    class="btn action" aria-disabled="true">💬 <span>WhatsApp</span></a>
-        <a id="mdWeb"   class="btn action" aria-disabled="true">🖥️ <span>Website</span></a>
-        <a id="mdMap"   class="btn action" aria-disabled="true">🗺️ <span>Map</span></a>
-        <button id="mdShare" class="btn action">🔗 <span>Share</span></button>
-      </div>
-
-      <!-- 推薦 -->
-      <div class="recommend">
-        <h3 class="rec-title">Recommended nearby</h3>
-        <div id="recList" class="rec-list"></div>
-      </div>
-    </div>
-  </div>
-</div>
 
     <!-- ====== Settings（二級） ====== -->
     <section id="p-settings" class="overlay-page" hidden aria-labelledby="h-settings" data-page="settings">
