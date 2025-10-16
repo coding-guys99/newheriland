@@ -318,9 +318,22 @@ function showPageDetail(){
   document.querySelectorAll('[data-page]').forEach(sec=>{
     sec.hidden = (sec.dataset.page !== 'detail');
   });
-  // 取消 tabbar 高亮（交給 app.js 再回來時處理）
-  $$('.tabbar .tab').forEach(t=>{ t.setAttribute('aria-selected','false'); t.removeAttribute('aria-current'); });
+  // 取消 tabbar 高亮（交給 app.js 在返回時處理）
+  $$('.tabbar .tab').forEach(t=>{
+    t.setAttribute('aria-selected','false');
+    t.removeAttribute('aria-current');
+  });
 }
+
+function restoreMainPage(){
+  // 依照 tabbar 目前選中的按鈕來顯示對應主頁
+  const current = document.querySelector('.tabbar .tab[aria-current="page"]')?.dataset.target
+               || (location.hash||'').replace('#','') || 'home';
+  document.querySelectorAll('[data-page]').forEach(sec=>{
+    sec.hidden = (sec.dataset.page !== current);
+  });
+}
+
 function showPageExplore(){
   document.querySelectorAll('[data-page]').forEach(sec=>{
     sec.hidden = (sec.dataset.page !== 'explore');
@@ -409,24 +422,18 @@ async function loadDetailPage(id){
 /* ---------- Router ---------- */
 function handleHash(){
   const h = location.hash || '';
-
-  // 如果是 detail 頁
   if (h.startsWith('#detail/')){
     const id = h.split('/')[1];
-    if (id) loadDetailPage(id);
+    if (id){
+      showPageDetail();
+      loadDetailPage(id);
+    }
     return;
   }
-
-  // 若是其他主要頁面（home/map/saved/add/explore）
-  const page = h.replace('#','');
-  const mainPages = ['home','explore','map','saved','add'];
-  if (!mainPages.includes(page)) return; // 不在主要頁清單中就不動作
-
-  // 只在 explore 時顯示 explore 頁
-  if (page === 'explore' || h === '' || h === '#explore') {
-    showPageExplore();
-  }
+  // 非 detail：不要強制切到 explore，恢復目前 tab 選中的主頁
+  restoreMainPage();
 }
+
 
 
 window.addEventListener('hashchange', handleHash);
