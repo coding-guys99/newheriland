@@ -135,3 +135,19 @@
 .btn{border-radius:10px;padding:10px 14px;border:1px solid rgba(0,0,0,.12);background:#fff}
 .btn.primary{background:#111;color:#fff;border-color:#111}
 .btn.ghost{background:transparent}
+
+/* 讓 All 佔滿整列、較薄 */
+.citycell--all{
+  grid-column: 1 / -1;        /* 占滿 4 欄 */
+  grid-auto-rows: auto;
+  min-height: 44px;            /* 比 88px 小一半，像條狀按鈕 */
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  justify-items: start;
+  padding: 8px 12px;
+  gap: 10px;
+}
+.citycell--all .ico{ font-size:18px }
+.citycell--all .name{ font-weight:800; font-size:13px }
+.citycell--all .count{ justify-self: end; font-size:12px; color:#6b7280 }
