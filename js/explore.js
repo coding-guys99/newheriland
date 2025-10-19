@@ -467,44 +467,6 @@ function bindFilters(){
   });
 }
 
-/* ---------- City switching ---------- */
-function selectCity(id, cityObj){
-  currentCity = cityObj || { id };
-
-  $$('.citycell', wall).forEach(b=>{
-    const on = b.dataset.id === id;
-    b.setAttribute('aria-selected', on ? 'true':'false');
-  });
-
-  head && (head.textContent = `${currentCity.name || id} — loading…`);
-  sk.hidden = false; list.hidden = true;
-  empty.hidden = true; errBx.hidden = true;
-
-  fetchMerchants(id).then(res=>{
-    sk.hidden = true;
-
-    if (!res.ok){
-      errBx.hidden = false;
-      list.hidden = true;
-      head && (head.textContent = `${currentCity.name || id}`);
-      return;
-    }
-
-    allMerchants = res.data || [];
-    list.hidden = false;
-
-    // 重置排序為 latest（視覺也重置）
-    state.sort = 'latest';
-    $$('.chips--quick .chip[data-sort]', filtersBox).forEach(b=>{
-      const on = (b.dataset.sort === 'latest');
-      b.classList.toggle('is-on', on);
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
-
-    applyFilters();
-  });
-}
-
 /* ---------- Detail page: render & router (#detail/{id}) ---------- */
 function setAction(el, href){
   if (!el) return;
