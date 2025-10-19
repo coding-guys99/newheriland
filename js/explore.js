@@ -282,7 +282,7 @@ async function fetchRelated({city_id, category, exceptId, limit=6}={}){
 /* ---------- Render: wall & list ---------- */
 function renderWall(cities){
   wall.innerHTML = '';
-  cities.slice(0,13).forEach((c,i)=>{
+  cities.slice(0,16).forEach((c,i)=>{
     const btn = document.createElement('button');
     btn.className = 'citycell';
     btn.setAttribute('role','tab');
