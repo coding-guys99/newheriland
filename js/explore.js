@@ -231,22 +231,30 @@ async function loadCities(){
     ];
   }
 }
-async function fetchMerchants(cityId, {limit=500} = {}){
-  try{
-    const { data, error } = await supabase
+
+// 用城市抓商家；若 cityId === 'all' 就不要加 city 過濾
+async function fetchMerchants(cityId, {limit=500} = {}) {
+  try {
+    let q = supabase
       .from('merchants')
       .select('*')
-      .eq('city_id', cityId)
-      .eq('status','active')
-      .order('updated_at',{ascending:false})
+      .eq('status', 'active')
+      .order('updated_at', { ascending: false })
       .limit(limit);
+
+    if (cityId !== 'all') {
+      q = q.eq('city_id', cityId);
+    }
+
+    const { data, error } = await q;
     if (error) throw error;
-    return { ok:true, data: data || [] };
-  }catch(err){
+    return { ok: true, data: data || [] };
+  } catch (err) {
     console.error('fetchMerchants:', err);
-    return { ok:false, error: err };
+    return { ok: false, error: err };
   }
 }
+
 async function fetchMerchantById(id){
   const { data, error } = await supabase
     .from('merchants')
@@ -590,7 +598,23 @@ window.addEventListener('hashchange', handleHash);
 
   bindFilters();
 
+  // 先抓城市
   const cities = await loadCities();
+
+  // 👉 這裡插入一個虛擬的「All」
+  // （可選）順手查一下全部商家的總數，塞到 count 顯示
+  let allCount = 0;
+  try {
+    const { count, error } = await supabase
+      .from('merchants')
+      .select('*', { count: 'exact', head: true })
+      .eq('status','active');
+    if (!error && Number.isFinite(count)) allCount = count;
+  } catch(_) {}
+
+  cities.unshift({ id: 'all', name: 'All', icon: '🗂️', count: allCount });
+
+  // 畫城市牆
   renderWall(cities);
 
   // 城市牆事件
@@ -607,7 +631,7 @@ window.addEventListener('hashchange', handleHash);
     if (e.key === 'ArrowLeft'){  e.preventDefault(); const p = cells[Math.max(cur-1, 0)];             p?.focus(); p?.click(); }
   });
 
-  // 預設選第一個城市
+  // 預設就選第一個（現在會是 All）
   const first = wall.querySelector('.citycell');
   if (first){
     const c = cities.find(x=>x.id === first.dataset.id) || { id:first.dataset.id };
