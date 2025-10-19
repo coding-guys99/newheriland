@@ -212,15 +212,16 @@ function isOpenNow(m, ref=new Date()){
 const shortAddr = s => (s||'').split(',')[0];
 
 /* ---------- Supabase ---------- */
+// 可选：抓取后就先排除 'all'
 async function loadCities(){
   try{
     const { data, error } = await supabase
       .from('cities')
       .select('id,name,icon,count,sort_order')
       .order('sort_order',{ascending:true})
-      .limit(12);
+      .limit(20); // 先多拿几笔，后面再筛 12
     if (error) throw error;
-    return data || [];
+    return (data || []).filter(c => c.id !== 'all'); // <— 过滤掉表里的 all
   }catch(e){
     console.warn('Load cities failed, fallback:', e);
     return [
@@ -319,33 +320,46 @@ async function fetchRelated({city_id, category, exceptId, limit=6}={}){
 }
 
 // A) renderWall：先插 All（全寬），再畫 12 城
+// 只渲染 12 个真实城市；All 只由我们前端那颗长条负责
 function renderWall(cities){
-  wall.innerHTML = '';
+  // 先放 All 长矩形（若你已在别处插入，就保留那处，这里忽略 All）
+  // —— 如果你是用 JS 注入 All 的：
+  const total = cities.reduce((sum, c) => sum + (toNum(c.count) || 0), 0);
+  // 确保只有一个 All 节点
+  let allBtn = wall.querySelector('.citycell--all');
+  if (!allBtn){
+    allBtn = document.createElement('button');
+    allBtn.className = 'citycell citycell--all';
+    allBtn.dataset.id = 'all';
+    allBtn.setAttribute('role','tab');
+    allBtn.setAttribute('aria-selected','true'); // 默认选中 All（可按需调）
+    allBtn.innerHTML = `
+      <span class="ico">🌏</span>
+      <span class="name">All Sarawak</span>
+      <span class="count">${total}</span>
+    `;
+    wall.innerHTML = ''; // 清空后先放 All
+    wall.appendChild(allBtn);
+  }else{
+    // 更新数量
+    allBtn.querySelector('.count').textContent = String(total);
+  }
 
-  // 全寬「All」
-  const allBtn = document.createElement('button');
-  allBtn.className = 'citycell citycell--all';
-  allBtn.setAttribute('role', 'tab');
-  allBtn.dataset.id = 'all';
-  allBtn.setAttribute('aria-selected', 'true'); // 預設選 All 或你要第一個城市也可
-  allBtn.innerHTML = `
-    <span class="ico">🗂️</span>
-    <span class="name">All Sarawak</span>
-    <span class="count">${Number(allMerchants?.length || 0)}</span>
-  `;
-  wall.appendChild(allBtn);
+  // 过滤掉表里的 'all'，只取前 12 个真实城市
+  const pure = cities.filter(c => c.id !== 'all').slice(0, 12);
 
-  // 12 城
-  cities.slice(0,12).forEach((c,i)=>{
+  // 再渲染 4×3 城市格
+  pure.forEach((c,i)=>{
     const btn = document.createElement('button');
     btn.className = 'citycell';
     btn.setAttribute('role','tab');
     btn.dataset.id = c.id;
-    btn.setAttribute('aria-selected', 'false');
+    // 如果你希望默认选 All：这里就全部设为 false；否则第一个城市为 true
+    btn.setAttribute('aria-selected','false');
     btn.innerHTML = `
       <span class="ico">${c.icon || '🏙️'}</span>
       <span class="name">${c.name || c.id}</span>
-      <span class="count">${Number(c.count) || 0}</span>
+      <span class="count">${toNum(c.count) ?? 0}</span>
     `;
     wall.appendChild(btn);
   });
