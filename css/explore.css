@@ -140,13 +140,13 @@
 .citycell--all{
   grid-column: 1 / -1;        /* 占滿 4 欄 */
   grid-auto-rows: auto;
-  min-height: 44px;            /* 比 88px 小一半，像條狀按鈕 */
+  min-height: 30px;            /* 比 88px 小一半，像條狀按鈕 */
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   justify-items: start;
   padding: 8px 12px;
-  gap: 10px;
+  gap: 0px;
 }
 .citycell--all .ico{ font-size:18px }
 .citycell--all .name{ font-weight:800; font-size:13px }
