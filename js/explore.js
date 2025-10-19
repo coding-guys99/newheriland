@@ -232,27 +232,66 @@ async function loadCities(){
   }
 }
 
-// 用城市抓商家；若 cityId === 'all' 就不要加 city 過濾
-async function fetchMerchants(cityId, {limit=500} = {}) {
-  try {
+// B) fetchMerchants：若是 all 就不要加 city 篩選
+async function fetchMerchants(cityId, {limit=500} = {}){
+  try{
     let q = supabase
       .from('merchants')
       .select('*')
-      .eq('status', 'active')
-      .order('updated_at', { ascending: false })
+      .eq('status','active')
+      .order('updated_at',{ascending:false})
       .limit(limit);
 
-    if (cityId !== 'all') {
-      q = q.eq('city_id', cityId);
-    }
+    if (cityId && cityId !== 'all') q = q.eq('city_id', cityId);
 
     const { data, error } = await q;
     if (error) throw error;
-    return { ok: true, data: data || [] };
-  } catch (err) {
+    return { ok:true, data: data || [] };
+  }catch(err){
     console.error('fetchMerchants:', err);
-    return { ok: false, error: err };
+    return { ok:false, error: err };
   }
+}
+
+// C) selectCity：照常，但 id==='all' 會抓全部
+function selectCity(id, cityObj){
+  currentCity = cityObj || { id };
+
+  // 高亮
+  $$('.citycell', wall).forEach(b=>{
+    const on = b.dataset.id === id;
+    b.setAttribute('aria-selected', on ? 'true':'false');
+  });
+
+  head && (head.textContent = `${(currentCity.name || (id==='all'?'All Sarawak':id))} — loading…`);
+  sk.hidden = false; list.hidden = true; empty.hidden = true; errBx.hidden = true;
+
+  fetchMerchants(id).then(res=>{
+    sk.hidden = true;
+
+    if (!res.ok){
+      errBx.hidden = false; list.hidden = true;
+      head && (head.textContent = `${currentCity.name || id}`);
+      return;
+    }
+
+    allMerchants = res.data || [];
+    list.hidden = false;
+
+    // 更新 All 的計數
+    const allCell = wall.querySelector('.citycell--all .count');
+    if (allCell) allCell.textContent = allMerchants.length;
+
+    // 重置排序為 latest
+    state.sort = 'latest';
+    $$('.chips--quick .chip[data-sort]', filtersBox).forEach(b=>{
+      const on = (b.dataset.sort === 'latest');
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+
+    applyFilters();
+  });
 }
 
 async function fetchMerchantById(id){
@@ -279,23 +318,39 @@ async function fetchRelated({city_id, category, exceptId, limit=6}={}){
   return sameCat.length ? sameCat : data;
 }
 
-/* ---------- Render: wall & list ---------- */
+// A) renderWall：先插 All（全寬），再畫 12 城
 function renderWall(cities){
   wall.innerHTML = '';
-  cities.slice(0,16).forEach((c,i)=>{
+
+  // 全寬「All」
+  const allBtn = document.createElement('button');
+  allBtn.className = 'citycell citycell--all';
+  allBtn.setAttribute('role', 'tab');
+  allBtn.dataset.id = 'all';
+  allBtn.setAttribute('aria-selected', 'true'); // 預設選 All 或你要第一個城市也可
+  allBtn.innerHTML = `
+    <span class="ico">🗂️</span>
+    <span class="name">All Sarawak</span>
+    <span class="count">${Number(allMerchants?.length || 0)}</span>
+  `;
+  wall.appendChild(allBtn);
+
+  // 12 城
+  cities.slice(0,12).forEach((c,i)=>{
     const btn = document.createElement('button');
     btn.className = 'citycell';
     btn.setAttribute('role','tab');
     btn.dataset.id = c.id;
-    btn.setAttribute('aria-selected', i===0 ? 'true':'false');
+    btn.setAttribute('aria-selected', 'false');
     btn.innerHTML = `
       <span class="ico">${c.icon || '🏙️'}</span>
       <span class="name">${c.name || c.id}</span>
-      <span class="count">${toNum(c.count) ?? 0}</span>
+      <span class="count">${Number(c.count) || 0}</span>
     `;
     wall.appendChild(btn);
   });
 }
+
 
 function renderMerchants(items){
   if (!items.length){
