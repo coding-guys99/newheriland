@@ -407,7 +407,7 @@ main { min-height: calc(100dvh - 88px); }
   display: grid;
   grid-template-columns: repeat(4, 1fr);   /* ← 4 欄 */
   grid-auto-rows: 88px;                    /* 每格高度 */
-  gap: 10px;
+  gap: 0px;
   padding: 6px 4px 12px;
 }
 .citycell{
@@ -415,7 +415,7 @@ main { min-height: calc(100dvh - 88px); }
   background: color-mix(in srgb, #ffffff 92%, transparent);
   -webkit-backdrop-filter: blur(8px) saturate(120%);
   backdrop-filter: blur(8px) saturate(120%);
-  border-radius: 14px; cursor:pointer;
+  border-radius: 0px; cursor:pointer;
   display:grid; grid-template-rows: 1fr auto auto; place-items:center;
   padding: 8px 6px; box-shadow: 0 8px 20px rgba(0,0,0,.08);
   transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
