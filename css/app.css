@@ -408,7 +408,7 @@ main { min-height: calc(100dvh - 88px); }
   grid-template-columns: repeat(4, 1fr);   /* ← 4 欄 */
   grid-auto-rows: 88px;                    /* 每格高度 */
   gap: 0px;
-  padding: 6px 4px 12px;
+  padding: 6px 4px 6px;
 }
 .citycell{
   appearance:none; border:1px solid rgba(0,0,0,.08);
