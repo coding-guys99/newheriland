@@ -252,72 +252,136 @@
       <div class="card">收藏清單</div>
     </section>
 
-    <!-- Add (Creator) -->
-<!-- 基本欄位（已有就忽略） -->
-<form id="addForm">
-  <div class="field">
-    <label>Name</label>
-    <input id="fName" required placeholder="Merchant name" />
-  </div>
+    <!-- ===================== Add (Create Merchant) ===================== -->
+<section data-page="add" class="add" hidden aria-labelledby="h-add">
+  <h1 id="h-add" data-focusable-heading>Add a place</h1>
 
-  <div class="field">
-    <label>City</label>
-    <select id="fCity" required>
-      <option value="" disabled selected>Select city</option>
-      <option value="kuching">Kuching</option>
-      <option value="sibu">Sibu</option>
-      <option value="miri">Miri</option>
-      <option value="bintulu">Bintulu</option>
-      <!-- ...你的 12 城市 -->
-    </select>
-  </div>
+  <form id="addForm" novalidate>
+    <!-- 基本資料 -->
+    <div class="card">
+      <div class="card-hd">Basic</div>
+      <div class="grid">
+        <label class="fld">
+          <span class="k">Name <b>*</b></span>
+          <input id="fName" name="name" type="text" placeholder="Brilliant Creative Florist" required maxlength="80" />
+          <small class="err" data-err-for="name"></small>
+        </label>
 
-  <div class="field">
-    <label>Address</label>
-    <input id="fAddress" placeholder="e.g., No. 12, Market Rd., Sibu" />
-  </div>
+        <label class="fld">
+          <span class="k">City <b>*</b></span>
+          <select id="fCity" name="city_id" required></select>
+          <small class="err" data-err-for="city_id"></small>
+        </label>
 
-  <!-- Category 多選（至少選 1 會當 Primary） -->
-  <div class="field">
-    <label>Categories (multi-select)</label>
-    <div id="catChips" class="chips">
-      <button type="button" class="chip" data-val="Taste">🍽️ Taste</button>
-      <button type="button" class="chip" data-val="Nature">🏖️ Nature</button>
-      <button type="button" class="chip" data-val="Culture">🏛️ Culture</button>
-      <button type="button" class="chip" data-val="Stay">🏠 Stay</button>
-      <button type="button" class="chip" data-val="Local">🛍️ Local</button>
-      <button type="button" class="chip" data-val="Experience">💡 Experience</button>
+        <label class="fld">
+          <span class="k">Category <b>*</b></span>
+          <div id="catChips" class="chips-line">
+            <button type="button" class="chip" data-cat="Taste">🍽️ Taste</button>
+            <button type="button" class="chip" data-cat="Nature">🏖️ Nature</button>
+            <button type="button" class="chip" data-cat="Culture">🏛️ Culture</button>
+            <button type="button" class="chip" data-cat="Stay">🏠 Stay</button>
+            <button type="button" class="chip" data-cat="Local">🛍️ Local</button>
+            <button type="button" class="chip" data-cat="Experience">💡 Experience</button>
+          </div>
+          <input id="fCategory" name="category" type="hidden" required />
+          <small class="err" data-err-for="category"></small>
+        </label>
+
+        <label class="fld">
+          <span class="k">Tags</span>
+          <div id="tagBox" class="tagbox" aria-label="Tags input">
+            <input id="fTagInput" type="text" placeholder="Type and press Enter…" />
+          </div>
+          <input id="fTags" name="tags" type="hidden" />
+        </label>
+
+        <label class="fld span-2">
+          <span class="k">Description</span>
+          <textarea id="fDesc" name="description" rows="4" placeholder="Short description (10–600 chars)"></textarea>
+        </label>
+      </div>
     </div>
-    <div class="hint">第一個選到的會當作主分類（category），全部會寫進 categories[]。</div>
-  </div>
 
-  <!-- Tags 多選 -->
-  <div class="field">
-    <label>Tags (multi-select)</label>
-    <div id="tagChips" class="chips">
-      <button type="button" class="chip" data-val="Market">Market</button>
-      <button type="button" class="chip" data-val="Heritage">Heritage</button>
-      <button type="button" class="chip" data-val="Family">Family</button>
-      <button type="button" class="chip" data-val="Instagram">Instagram</button>
-      <button type="button" class="chip" data-val="Sunset">Sunset</button>
-      <button type="button" class="chip" data-val="Wi-Fi">Wi-Fi</button>
-      <button type="button" class="chip" data-val="Parking">Parking</button>
-      <button type="button" class="chip" data-val="Halal">Halal</button>
-      <button type="button" class="chip" data-val="Vegan">Vegan</button>
+    <!-- 地址與聯絡 -->
+    <div class="card">
+      <div class="card-hd">Address & Contact</div>
+      <div class="grid">
+        <label class="fld span-2">
+          <span class="k">Address <b>*</b></span>
+          <input id="fAddress" name="address" type="text" placeholder="No. 2, Jalan Lanang, Sibu, Sarawak" required />
+          <small class="err" data-err-for="address"></small>
+        </label>
+        <label class="fld">
+          <span class="k">Phone</span>
+          <input id="fPhone" name="phone" type="tel" placeholder="+60 84-xxxxx" />
+        </label>
+        <label class="fld">
+          <span class="k">Website</span>
+          <input id="fWebsite" name="website" type="url" placeholder="https://example.com" />
+        </label>
+      </div>
     </div>
-  </div>
 
-  <!-- 營業時間（Google 風格） -->
-  <div class="field">
-    <label>Opening hours</label>
-    <div id="hoursEditor"></div>
-    <div class="hint">每一天可以新增多段時間；未勾選代表公休。</div>
-  </div>
+    <!-- 營業時間（週別） -->
+    <div class="card">
+      <div class="card-hd">Opening hours</div>
 
-  <div class="actions">
-    <button id="btnSave" class="btn btn-primary" type="submit">Save</button>
-  </div>
-</form>
+      <div class="oh-toolbar">
+        <button type="button" class="btn ghost" id="btnOH247">24/7</button>
+        <button type="button" class="btn ghost" id="btnOHWeekday">Mon–Fri</button>
+        <button type="button" class="btn ghost" id="btnOHWeekend">Sat–Sun</button>
+        <button type="button" class="btn ghost" id="btnOHClear">Clear all</button>
+      </div>
+
+      <div id="ohTable" class="oh-table" role="group" aria-label="Opening hours editor">
+        <!-- JS 產生 7 列：Mon..Sun 每列可新增多段 -->
+      </div>
+      <input id="fOpenHours" name="open_hours" type="hidden" />
+    </div>
+
+    <!-- 圖片（可拍照/多張/排序） -->
+    <div class="card">
+      <div class="card-hd">Photos</div>
+      <div class="photos-bar">
+        <input id="fPhotos" type="file" accept="image/*" capture="environment" multiple hidden />
+        <button type="button" class="btn" id="btnPickPhotos">Add photos</button>
+        <span class="muted">Up to 10. First one is the cover.</span>
+      </div>
+      <div id="photoGrid" class="photo-grid" aria-live="polite"></div>
+    </div>
+
+    <!-- 社群 -->
+    <div class="card">
+      <div class="card-hd">Social</div>
+      <div class="grid">
+        <label class="fld">
+          <span class="k">Instagram</span>
+          <input id="fIG" name="ig" type="url" placeholder="https://instagram.com/yourpage" />
+        </label>
+        <label class="fld">
+          <span class="k">Facebook</span>
+          <input id="fFB" name="fb" type="url" placeholder="https://facebook.com/yourpage" />
+        </label>
+        <label class="fld">
+          <span class="k">TikTok</span>
+          <input id="fTT" name="tiktok" type="url" placeholder="https://tiktok.com/@yourpage" />
+        </label>
+        <label class="fld">
+          <span class="k">YouTube</span>
+          <input id="fYT" name="youtube" type="url" placeholder="https://youtube.com/@yourpage" />
+        </label>
+      </div>
+    </div>
+
+    <!-- 送出 -->
+    <div class="form-actions">
+      <button type="button" class="btn ghost" id="btnSaveDraft">Save draft</button>
+      <button type="submit" class="btn primary" id="btnSubmit">Publish</button>
+    </div>
+
+    <div id="addToast" class="toast" role="status" aria-live="polite" hidden></div>
+  </form>
+</section>
 
 
     <!-- ====== Settings（二級） ====== -->
