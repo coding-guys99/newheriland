@@ -1,0 +1,151 @@
+/* css/add.css */
+/* 整體結構 */
+#addForm {
+  display: grid;
+  gap: 14px;
+  padding: 12px;
+}
+
+/* 區塊標題 */
+.add-h2 {
+  font-weight: 800;
+  font-size: 14px;
+  color: #1f2937;
+  letter-spacing: .2px;
+  margin: 12px 2px 6px;
+}
+
+/* 輸入列 */
+.field {
+  display: grid;
+  gap: 6px;
+}
+.field label {
+  font-size: 12px;
+  color: #4b5563;
+}
+.input, .select, .textarea {
+  width: 100%;
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 12px;
+  padding: 12px 12px;
+  font-size: 14px;
+  background: #fff;
+  transition: box-shadow .12s ease, border-color .12s ease;
+}
+.input:focus, .select:focus, .textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37,99,235,.10);
+}
+.textarea {
+  min-height: 100px;
+  resize: none;
+}
+
+/* Chips */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  appearance: none;
+  border: 1px solid rgba(0,0,0,.12);
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .12s ease, border-color .12s ease, transform .06s ease;
+}
+.chip:hover { background: #f8fafc; }
+.chip:active { transform: translateY(1px); }
+.chip.is-on {
+  background: #eef2ff;
+  border-color: #6366f1;
+}
+
+/* 本地圖片預覽 */
+#previewGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+#previewGrid .thumb {
+  position: relative;
+  width: 100%;
+  padding-top: 66%;
+  border-radius: 12px;
+  background: #e5e7eb center/cover no-repeat;
+  overflow: hidden;
+}
+#previewGrid .thumb .thumb-del {
+  position: absolute;
+  top: 6px; right: 6px;
+  border: none;
+  background: rgba(0,0,0,.6);
+  color: #fff;
+  border-radius: 999px;
+  width: 24px; height: 24px;
+  line-height: 24px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* 按鈕列 */
+.form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+.btn {
+  appearance: none;
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn.primary {
+  background: #111827;
+  color: #fff;
+  border-color: #111827;
+}
+.btn[disabled] {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+/* 簡易 toast */
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%) translateY(20px);
+  background: #111827;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .18s ease, opacity .18s ease;
+  z-index: 40;
+}
+#toast.on {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+#toast[data-type="warn"] { background:#b91c1c; }
+
+/* 暗色 */
+@media (prefers-color-scheme: dark){
+  .input, .select, .textarea, .chip { background: #0b0f12; color: #e5e7eb; border-color: rgba(255,255,255,.14); }
+  .chip.is-on { background: #1f2937; border-color: #6366f1; }
+  #previewGrid .thumb { background: #111827; }
+  .btn { background:#0b0f12; color:#e5e7eb; border-color: rgba(255,255,255,.14); }
+  .btn.primary { background:#e5e7eb; color:#111827; border-color: #e5e7eb; }
+}
