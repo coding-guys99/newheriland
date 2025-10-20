@@ -75,32 +75,56 @@ function priceLevelNum(m){
   return cnt || null;
 }
 
-/** 判斷是否「現在營業」：支援 open_hours JSON 與 openHours 字串 */
-function isOpenNow(m, ref=new Date()){
-  // open_hours: { mon:{open:true,ranges:[{open:"09:00",close:"18:00"}]}, ... }
-  if (m.open_hours && typeof m.open_hours === 'object'){
+// 放在 Helpers 區塊（shortAddr、priceLevelNum 之後）
+function getOpenStruct(m){
+  // 優先用 open_days，其次 open_hours（若 open_hours 也是新結構亦可）
+  const obj = m.open_days || m.open_hours;
+  if (obj && typeof obj === 'object') return obj;
+  return null; // 讓 isOpenNow 回退到舊字串 openHours
+}
+
+/** 判斷是否「現在營業」：支援 open_days/open_hours(JSON) 與 openHours(字串) */
+function isOpenNow(m, ref = new Date()){
+  const openObj = getOpenStruct(m);
+  if (openObj){
     const wd = ['sun','mon','tue','wed','thu','fri','sat'][ref.getDay()];
-    const day = m.open_hours[wd];
-    if (!day || day.open === false) return false;
+    const day = openObj[wd];
+
+    // day 不存在或 day.closed === true → 關門
+    if (!day || day.closed === true) return false;
+
     const ranges = Array.isArray(day.ranges) ? day.ranges : [];
     if (!ranges.length) return false;
-    const cur = ref.getHours()*60 + ref.getMinutes();
-    const toMin = (hhmm)=>{ const [h,mi] = (hhmm||'').split(':').map(x=>parseInt(x,10)); return (h||0)*60+(mi||0); };
-    return ranges.some(r=>{
-      const o = toMin(r.open), c = toMin(r.close);
-      return (c>o) ? (cur>=o && cur<c) : (cur>=o || cur<c); // 支援跨夜
+
+    const cur = ref.getHours() * 60 + ref.getMinutes();
+    const toMin = (hhmm) => {
+      const [h, mi] = (hhmm || '').split(':').map(x => parseInt(x, 10));
+      if (!Number.isFinite(h)) return 0;
+      const m = Number.isFinite(mi) ? mi : 0;
+      // 支援 "24:00"
+      return (h === 24 && m === 0) ? 1440 : (h * 60 + m);
+    };
+
+    return ranges.some(r => {
+      const o = toMin(r.open);
+      const c = toMin(r.close);
+      // 正常時段（同日）
+      if (c > o) return (cur >= o && cur < c);
+      // 跨夜（e.g. 22:00–02:00），或 00:00–24:00
+      return (cur >= o || cur < c);
     });
   }
-  // openHours: "08:00 - 20:00" / "24H"
-  const t = (m.openHours||'').toLowerCase().trim();
+
+  // 回退：舊字串 "08:00 - 20:00" / "24H"
+  const t = (m.openHours || '').toLowerCase().trim();
   if (!t) return false;
   if (t.includes('24h')) return true;
   const mm = t.match(/(\d{1,2}):?(\d{2})?\s*-\s*(\d{1,2}):?(\d{2})?/);
   if (!mm) return false;
-  const mins = (h,mi)=> parseInt(h,10)*60 + parseInt(mi||'0',10);
-  const start = mins(mm[1],mm[2]||'00'), end = mins(mm[3],mm[4]||'00');
-  const cur = ref.getHours()*60 + ref.getMinutes();
-  return (end>start) ? (cur>=start && cur<end) : (cur>=start || cur<end);
+  const mins = (h, mi) => parseInt(h, 10) * 60 + parseInt(mi || '0', 10);
+  const start = mins(mm[1], mm[2] || '00'), end = mins(mm[3], mm[4] || '00');
+  const cur = ref.getHours() * 60 + ref.getMinutes();
+  return (end > start) ? (cur >= start && cur < end) : (cur >= start || cur < end);
 }
 
 function setAction(el, href){
@@ -529,14 +553,19 @@ function restoreMainPage(){
 }
 
 function humanHours(m){
-  if (m.open_hours && typeof m.open_hours==='object'){
-    const wd = ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
-    const day = m.open_hours[wd];
-    if (day?.ranges?.length){
-      const s = day.ranges.map(r=>`${r.open}–${r.close}`).join(', ');
+  const openObj = getOpenStruct(m);
+  if (openObj){
+    const wd   = ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
+    const day  = openObj[wd];
+    if (!day) return '—';
+    if (day.closed) return `${wd.toUpperCase()}: Closed`;
+    if (day.ranges?.length){
+      const s = day.ranges.map(r => `${r.open}–${r.close}`).join(', ');
       return `${wd.toUpperCase()}: ${s}`;
     }
+    return `${wd.toUpperCase()}: —`;
   }
+  // 舊資料回退
   return m.openHours || '—';
 }
 
