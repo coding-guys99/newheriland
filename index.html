@@ -253,106 +253,71 @@
     </section>
 
     <!-- Add (Creator) -->
-<!-- Add -->
-<section data-page="add" class="section" aria-labelledby="h-add" hidden>
-  <h1 id="h-add" data-focusable-heading>Add a place</h1>
+<!-- 基本欄位（已有就忽略） -->
+<form id="addForm">
+  <div class="field">
+    <label>Name</label>
+    <input id="fName" required placeholder="Merchant name" />
+  </div>
 
-  <form id="addForm" class="add-form">
-    <div class="fld">
-      <label>Name</label>
-      <input id="fName" type="text" placeholder="Brilliant Creative Florist" required>
+  <div class="field">
+    <label>City</label>
+    <select id="fCity" required>
+      <option value="" disabled selected>Select city</option>
+      <option value="kuching">Kuching</option>
+      <option value="sibu">Sibu</option>
+      <option value="miri">Miri</option>
+      <option value="bintulu">Bintulu</option>
+      <!-- ...你的 12 城市 -->
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Address</label>
+    <input id="fAddress" placeholder="e.g., No. 12, Market Rd., Sibu" />
+  </div>
+
+  <!-- Category 多選（至少選 1 會當 Primary） -->
+  <div class="field">
+    <label>Categories (multi-select)</label>
+    <div id="catChips" class="chips">
+      <button type="button" class="chip" data-val="Taste">🍽️ Taste</button>
+      <button type="button" class="chip" data-val="Nature">🏖️ Nature</button>
+      <button type="button" class="chip" data-val="Culture">🏛️ Culture</button>
+      <button type="button" class="chip" data-val="Stay">🏠 Stay</button>
+      <button type="button" class="chip" data-val="Local">🛍️ Local</button>
+      <button type="button" class="chip" data-val="Experience">💡 Experience</button>
     </div>
+    <div class="hint">第一個選到的會當作主分類（category），全部會寫進 categories[]。</div>
+  </div>
 
-    <div class="fld two">
-      <div>
-        <label>City</label>
-        <select id="fCity" required>
-          <option value="" disabled selected>Select a city</option>
-          <option value="kuching">Kuching</option>
-          <option value="miri">Miri</option>
-          <option value="sibu">Sibu</option>
-          <option value="bintulu">Bintulu</option>
-          <option value="sarikei">Sarikei</option>
-          <option value="limbang">Limbang</option>
-          <option value="lawas">Lawas</option>
-          <option value="mukah">Mukah</option>
-          <option value="kapit">Kapit</option>
-          <option value="betong">Betong</option>
-          <option value="samarahan">Samarahan</option>
-          <option value="serian">Serian</option>
-        </select>
-      </div>
-      <div>
-        <label>Category</label>
-        <select id="fCategory" required>
-          <option value="" disabled selected>Select</option>
-          <option value="Taste">Taste</option>
-          <option value="Nature">Nature</option>
-          <option value="Culture">Culture</option>
-          <option value="Stay">Stay</option>
-          <option value="Local">Local</option>
-          <option value="Experience">Experience</option>
-        </select>
-      </div>
+  <!-- Tags 多選 -->
+  <div class="field">
+    <label>Tags (multi-select)</label>
+    <div id="tagChips" class="chips">
+      <button type="button" class="chip" data-val="Market">Market</button>
+      <button type="button" class="chip" data-val="Heritage">Heritage</button>
+      <button type="button" class="chip" data-val="Family">Family</button>
+      <button type="button" class="chip" data-val="Instagram">Instagram</button>
+      <button type="button" class="chip" data-val="Sunset">Sunset</button>
+      <button type="button" class="chip" data-val="Wi-Fi">Wi-Fi</button>
+      <button type="button" class="chip" data-val="Parking">Parking</button>
+      <button type="button" class="chip" data-val="Halal">Halal</button>
+      <button type="button" class="chip" data-val="Vegan">Vegan</button>
     </div>
+  </div>
 
-    <div class="fld">
-      <label>Address</label>
-      <input id="fAddress" type="text" placeholder="No. 123, Jalan XXX, Sibu" required>
-      <small class="help">只需填寫地址即可，地圖連結會用地址開啟。</small>
-    </div>
+  <!-- 營業時間（Google 風格） -->
+  <div class="field">
+    <label>Opening hours</label>
+    <div id="hoursEditor"></div>
+    <div class="hint">每一天可以新增多段時間；未勾選代表公休。</div>
+  </div>
 
-    <div class="fld two">
-      <div>
-        <label>Website</label>
-        <input id="fWebsite" type="url" placeholder="https://…">
-      </div>
-      <div>
-        <label>Phone</label>
-        <input id="fPhone" type="tel" placeholder="+60 …">
-      </div>
-    </div>
-
-    <div class="fld two">
-      <div>
-        <label>Price level</label>
-        <select id="fPrice">
-          <option value="">—</option>
-          <option value="1">$</option>
-          <option value="2">$$</option>
-          <option value="3">$$$</option>
-          <option value="4">$$$$</option>
-        </select>
-      </div>
-      <div>
-        <label>Hours (simple)</label>
-        <input id="fHours" type="text" placeholder="e.g. 09:00 - 18:00 / 24H">
-      </div>
-    </div>
-
-    <div class="fld">
-      <label>Description</label>
-      <textarea id="fDesc" rows="4" placeholder="Brief intro…"></textarea>
-    </div>
-
-    <div class="fld">
-      <label>Photos</label>
-      <input id="fPhotos" type="file" accept="image/*" capture="environment" multiple>
-      <div id="previewGrid" class="grid"></div>
-      <small class="help">首張會作為封面。</small>
-    </div>
-
-    <div class="actions">
-      <button id="btnSave" class="btn btn-primary" type="submit">Publish</button>
-      <button id="btnDraft" class="btn" type="button">Save draft (local)</button>
-    </div>
-
-    <div id="addMsg" class="msg" role="status" aria-live="polite"></div>
-  </form>
-</section>
-
-
-
+  <div class="actions">
+    <button id="btnSave" class="btn btn-primary" type="submit">Save</button>
+  </div>
+</form>
 
 
     <!-- ====== Settings（二級） ====== -->
@@ -479,6 +444,7 @@
   <script type="module" src="js/explore.js"></script>
 </body>
 </html>
+
 
 
 
