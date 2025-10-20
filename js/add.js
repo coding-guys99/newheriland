@@ -288,3 +288,140 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   });
 
 })();
+
+/* ===== Opening Hours Editor ===== */
+const HOURS_DAYS = ['mon','tue','wed','thu','fri','sat','sun'];
+
+function makeRangeChip(open='09:00', close='18:00'){
+  const chip = document.createElement('span');
+  chip.className = 'hr-chip';
+  chip.innerHTML = `
+    <input type="time" class="hr-open" value="${open}">
+    <span>–</span>
+    <input type="time" class="hr-close" value="${close}">
+    <button type="button" class="hr-del" title="Remove">×</button>
+  `;
+  chip.querySelector('.hr-del').addEventListener('click', ()=> chip.remove());
+  return chip;
+}
+
+function setRowMode(row, mode){
+  const rangesBox = row.querySelector('.hr-ranges');
+  const noteInput = row.querySelector('.hr-note');
+
+  if (mode === 'open'){
+    rangesBox.innerHTML = '';
+    rangesBox.appendChild(makeRangeChip());      // 預設一組時間
+    const add = document.createElement('button');
+    add.type = 'button'; add.className = 'hr-add'; add.textContent = '＋ Add range';
+    add.addEventListener('click', ()=>{
+      if (rangesBox.querySelectorAll('.hr-chip').length >= 3) return;
+      rangesBox.insertBefore(makeRangeChip(), add);
+    });
+    rangesBox.appendChild(add);
+    noteInput.disabled = true; noteInput.value = '';
+  }
+  else if (mode === '24h'){
+    rangesBox.innerHTML = '';
+    rangesBox.appendChild(makeRangeChip('00:00','24:00'));
+    rangesBox.querySelectorAll('input').forEach(i=> i.disabled = true);
+    noteInput.disabled = true; noteInput.value = '';
+  }
+  else if (mode === 'closed'){
+    rangesBox.innerHTML = '<em style="color:#666">Closed</em>';
+    noteInput.disabled = true; noteInput.value = '';
+  }
+  else if (mode === 'special'){
+    rangesBox.innerHTML = '';
+    rangesBox.appendChild(makeRangeChip());      // 可再加更多
+    const add = document.createElement('button');
+    add.type = 'button'; add.className = 'hr-add'; add.textContent = '＋ Add range';
+    add.addEventListener('click', ()=>{
+      if (rangesBox.querySelectorAll('.hr-chip').length >= 3) return;
+      rangesBox.insertBefore(makeRangeChip(), add);
+    });
+    rangesBox.appendChild(add);
+    noteInput.disabled = false;
+  }
+}
+
+function initHoursEditor(root = document.getElementById('hoursEditor')){
+  if (!root) return;
+  root.querySelectorAll('.hr-row').forEach(row=>{
+    const sel = row.querySelector('.hr-mode');
+    // 預設 Open
+    setRowMode(row, sel.value || 'open');
+    sel.addEventListener('change', ()=> setRowMode(row, sel.value));
+  });
+}
+
+/* 讀取輸入 → 產生 open_days JSON（存到 supabase） */
+function getOpenDaysJSON(root = document.getElementById('hoursEditor')){
+  const out = {};
+  root.querySelectorAll('.hr-row').forEach(row=>{
+    const day = row.getAttribute('data-day');
+    const mode = row.querySelector('.hr-mode').value;
+    const note = row.querySelector('.hr-note').value.trim();
+
+    if (mode === 'closed'){
+      out[day] = { closed: true, ranges: [] };
+      return;
+    }
+    if (mode === '24h'){
+      out[day] = { closed: false, ranges: [{ open:'00:00', close:'24:00' }] };
+      return;
+    }
+    // open 或 special
+    const ranges = [];
+    row.querySelectorAll('.hr-chip').forEach(ch=>{
+      const open = ch.querySelector('.hr-open')?.value || '';
+      const close = ch.querySelector('.hr-close')?.value || '';
+      if (open && close) ranges.push({ open, close });
+    });
+    out[day] = { closed:false, ranges };
+    if (mode === 'special' && note) out[day].note = note;
+  });
+  return out;
+}
+
+/* 把已存的 open_days JSON 放回 UI（用於編輯） */
+function setOpenDaysJSON(data, root = document.getElementById('hoursEditor')){
+  if (!root || !data) return;
+  root.querySelectorAll('.hr-row').forEach(row=>{
+    const day = row.getAttribute('data-day');
+    const rec = data[day] || {};
+    const sel = row.querySelector('.hr-mode');
+
+    // 決定模式
+    let mode = 'open';
+    if (rec.closed) mode = 'closed';
+    else if (Array.isArray(rec.ranges) && rec.ranges[0]?.open === '00:00' && rec.ranges[0]?.close === '24:00'){
+      mode = '24h';
+    } else if (rec.note) mode = 'special';
+
+    sel.value = mode;
+    setRowMode(row, mode);
+
+    // 填入範圍與備註
+    if (Array.isArray(rec.ranges) && (mode === 'open' || mode === 'special')){
+      const box = row.querySelector('.hr-ranges');
+      const addBtn = box.querySelector('.hr-add');
+      // 先清掉預設一組，換成資料
+      box.querySelectorAll('.hr-chip').forEach(c=>c.remove());
+      rec.ranges.forEach(r=>{
+        const chip = makeRangeChip(r.open, r.close);
+        addBtn ? box.insertBefore(chip, addBtn) : box.appendChild(chip);
+      });
+    }
+    if (rec.note) {
+      const note = row.querySelector('.hr-note');
+      note.value = rec.note;
+      note.disabled = (mode!=='special');
+    }
+  });
+}
+
+// 導出到全域，讓你的其它代碼（submit / 編輯）能調用
+window.initHoursEditor = initHoursEditor;
+window.getOpenDaysJSON = getOpenDaysJSON;
+window.setOpenDaysJSON = setOpenDaysJSON;
