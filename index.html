@@ -253,88 +253,70 @@
     </section>
 
     <!-- Add (Creator) -->
-<section data-page="add" class="section" hidden>
-  <h1 data-focusable-heading>Add</h1>
+<!-- Add -->
+<section data-page="add" class="section" aria-labelledby="h-add" hidden>
+  <h1 id="h-add" data-focusable-heading>Add a place</h1>
 
-  <form id="addForm">
-    <div class="field">
-      <label for="fName">Name *</label>
-      <input id="fName" class="input" placeholder="Brilliant Creative Florist" required>
+  <form id="addForm" class="add-form">
+    <div class="fld">
+      <label>Name</label>
+      <input id="fName" type="text" placeholder="Brilliant Creative Florist" required>
     </div>
 
-    <div class="field">
-      <label for="fCity">City *</label>
-      <select id="fCity" class="select">
-        <option value="">Select a city</option>
-        <option value="kuching">Kuching</option>
-        <option value="miri">Miri</option>
-        <option value="sibu">Sibu</option>
-        <!-- …其餘城市 -->
-      </select>
-    </div>
-
-    <div class="field">
-      <label>Category *</label>
-      <div id="catChips" class="chips">
-        <button type="button" class="chip" data-cat="Taste">🍽️ Taste</button>
-        <button type="button" class="chip" data-cat="Nature">🏖️ Nature</button>
-        <button type="button" class="chip" data-cat="Culture">🏛️ Culture</button>
-        <button type="button" class="chip" data-cat="Stay">🏠 Stay</button>
-        <button type="button" class="chip" data-cat="Local">🛍️ Local</button>
-        <button type="button" class="chip" data-cat="Experience">💡 Experience</button>
-      </div>
-    </div>
-
-    <div class="field">
-      <label>Themes (optional)</label>
-      <div id="themeChips" class="chips">
-        <button type="button" class="chip" data-theme="Market">Market</button>
-        <button type="button" class="chip" data-theme="Heritage">Heritage</button>
-        <button type="button" class="chip" data-theme="Family">Family</button>
-        <button type="button" class="chip" data-theme="Instagram">Instagram</button>
-      </div>
-    </div>
-
-    <div class="field">
-      <label>Attributes (optional)</label>
-      <div id="attrChips" class="chips">
-        <button type="button" class="chip" data-attr="Halal">Halal</button>
-        <button type="button" class="chip" data-attr="Vegan">Vegan</button>
-        <button type="button" class="chip" data-attr="Parking">Parking</button>
-        <button type="button" class="chip" data-attr="Wi-Fi">Wi-Fi</button>
-      </div>
-    </div>
-
-    <div class="field">
-      <label for="fAddress">Address</label>
-      <input id="fAddress" class="input" placeholder="Market Rd., Sibu">
-    </div>
-
-    <div class="field" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+    <div class="fld two">
       <div>
-        <label for="fLat">Lat</label>
-        <input id="fLat" class="input" inputmode="decimal" placeholder="2.287">
+        <label>City</label>
+        <select id="fCity" required>
+          <option value="" disabled selected>Select a city</option>
+          <option value="kuching">Kuching</option>
+          <option value="miri">Miri</option>
+          <option value="sibu">Sibu</option>
+          <option value="bintulu">Bintulu</option>
+          <option value="sarikei">Sarikei</option>
+          <option value="limbang">Limbang</option>
+          <option value="lawas">Lawas</option>
+          <option value="mukah">Mukah</option>
+          <option value="kapit">Kapit</option>
+          <option value="betong">Betong</option>
+          <option value="samarahan">Samarahan</option>
+          <option value="serian">Serian</option>
+        </select>
       </div>
       <div>
-        <label for="fLng">Lng</label>
-        <input id="fLng" class="input" inputmode="decimal" placeholder="111.827">
+        <label>Category</label>
+        <select id="fCategory" required>
+          <option value="" disabled selected>Select</option>
+          <option value="Taste">Taste</option>
+          <option value="Nature">Nature</option>
+          <option value="Culture">Culture</option>
+          <option value="Stay">Stay</option>
+          <option value="Local">Local</option>
+          <option value="Experience">Experience</option>
+        </select>
       </div>
     </div>
 
-    <div class="field">
-      <label for="fPhone">Phone</label>
-      <input id="fPhone" class="input" placeholder="+60 …">
+    <div class="fld">
+      <label>Address</label>
+      <input id="fAddress" type="text" placeholder="No. 123, Jalan XXX, Sibu" required>
+      <small class="help">只需填寫地址即可，地圖連結會用地址開啟。</small>
     </div>
 
-    <div class="field">
-      <label for="fWebsite">Website</label>
-      <input id="fWebsite" class="input" type="url" placeholder="https://…">
-    </div>
-
-    <div class="field" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+    <div class="fld two">
       <div>
-        <label for="fPrice">Price</label>
-        <select id="fPrice" class="select">
+        <label>Website</label>
+        <input id="fWebsite" type="url" placeholder="https://…">
+      </div>
+      <div>
+        <label>Phone</label>
+        <input id="fPhone" type="tel" placeholder="+60 …">
+      </div>
+    </div>
+
+    <div class="fld two">
+      <div>
+        <label>Price level</label>
+        <select id="fPrice">
           <option value="">—</option>
           <option value="1">$</option>
           <option value="2">$$</option>
@@ -343,45 +325,32 @@
         </select>
       </div>
       <div>
-        <label for="fRating">Rating</label>
-        <input id="fRating" class="input" type="number" min="0" max="5" step="0.1" placeholder="4.5">
+        <label>Hours (simple)</label>
+        <input id="fHours" type="text" placeholder="e.g. 09:00 - 18:00 / 24H">
       </div>
     </div>
 
-    <div class="field">
-      <label for="fHours">Hours (simple)</label>
-      <input id="fHours" class="input" placeholder="09:00-18:00 / 24H">
+    <div class="fld">
+      <label>Description</label>
+      <textarea id="fDesc" rows="4" placeholder="Brief intro…"></textarea>
     </div>
 
-    <div class="field">
-      <label for="fDesc">Description</label>
-      <textarea id="fDesc" class="textarea" placeholder="Write something…"></textarea>
+    <div class="fld">
+      <label>Photos</label>
+      <input id="fPhotos" type="file" accept="image/*" capture="environment" multiple>
+      <div id="previewGrid" class="grid"></div>
+      <small class="help">首張會作為封面。</small>
     </div>
 
-    <div class="field">
-      <label for="fCoverUrl">Cover URL</label>
-      <input id="fCoverUrl" class="input" type="url" placeholder="https://…/image.jpg">
+    <div class="actions">
+      <button id="btnSave" class="btn btn-primary" type="submit">Publish</button>
+      <button id="btnDraft" class="btn" type="button">Save draft (local)</button>
     </div>
 
-    <div class="field">
-      <label for="fImagesUrls">Images URLs (one per line)</label>
-      <textarea id="fImagesUrls" class="textarea" placeholder="https://…/1.jpg&#10;https://…/2.jpg"></textarea>
-    </div>
-
-    <div class="field">
-      <label for="fPhotos">Local preview only (optional)</label>
-      <input id="fPhotos" class="input" type="file" accept="image/*" multiple>
-      <div id="previewGrid"></div>
-    </div>
-
-    <div class="form-actions">
-      <button id="btnReset" type="button" class="btn">Reset</button>
-      <button id="btnSave"  type="submit" class="btn primary">Save</button>
-    </div>
-
-    <div id="toast" role="status" aria-live="polite"></div>
+    <div id="addMsg" class="msg" role="status" aria-live="polite"></div>
   </form>
 </section>
+
 
 
 
@@ -510,6 +479,7 @@
   <script type="module" src="js/explore.js"></script>
 </body>
 </html>
+
 
 
 
