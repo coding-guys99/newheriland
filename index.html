@@ -322,22 +322,103 @@
       </div>
     </div>
 
-    <!-- 營業時間（週別） -->
-    <div class="card">
-      <div class="card-hd">Opening hours</div>
+    <!-- 營業時間（週別、Google 風格） -->
+<div class="card">
+  <div class="card-hd">Opening hours</div>
 
-      <div class="oh-toolbar">
-        <button type="button" class="btn ghost" id="btnOH247">24/7</button>
-        <button type="button" class="btn ghost" id="btnOHWeekday">Mon–Fri</button>
-        <button type="button" class="btn ghost" id="btnOHWeekend">Sat–Sun</button>
-        <button type="button" class="btn ghost" id="btnOHClear">Clear all</button>
-      </div>
+  <!-- 快速套用 -->
+  <div class="oh-toolbar">
+    <button type="button" class="btn ghost" id="btnOH247">24/7</button>
+    <button type="button" class="btn ghost" id="btnOHWeekday">Mon–Fri</button>
+    <button type="button" class="btn ghost" id="btnOHWeekend">Sat–Sun</button>
+    <button type="button" class="btn ghost" id="btnOHClear">Clear all</button>
+  </div>
 
-      <div id="ohTable" class="oh-table" role="group" aria-label="Opening hours editor">
-        <!-- JS 產生 7 列：Mon..Sun 每列可新增多段 -->
-      </div>
-      <input id="fOpenHours" name="open_hours" type="hidden" />
+  <!-- 編輯器 -->
+  <div id="ohTable" class="oh-table" role="group" aria-label="Opening hours editor">
+    <!-- 7 天固定列（JS 會幫每列插入時間範圍 chip 與刪除鈕） -->
+    <div class="oh-row" data-day="mon">
+      <div class="oh-day">Mon</div>
+      <select class="oh-mode" aria-label="Mon mode">
+        <option value="open">Open</option>
+        <option value="24h">24H</option>
+        <option value="closed">Closed</option>
+        <option value="special">Special</option>
+      </select>
+      <div class="oh-ranges"></div>
+      <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Mon note">
     </div>
+    <div class="oh-row" data-day="tue">
+      <div class="oh-day">Tue</div>
+      <select class="oh-mode" aria-label="Tue mode">
+        <option value="open">Open</option>
+        <option value="24h">24H</option>
+        <option value="closed">Closed</option>
+        <option value="special">Special</option>
+      </select>
+      <div class="oh-ranges"></div>
+      <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Tue note">
+    </div>
+    <div class="oh-row" data-day="wed">
+      <div class="oh-day">Wed</div>
+      <select class="oh-mode" aria-label="Wed mode">
+        <option value="open">Open</option>
+        <option value="24h">24H</option>
+        <option value="closed">Closed</option>
+        <option value="special">Special</option>
+      </select>
+      <div class="oh-ranges"></div>
+      <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Wed note">
+    </div>
+    <div class="oh-row" data-day="thu">
+      <div class="oh-day">Thu</div>
+      <select class="oh-mode" aria-label="Thu mode">
+        <option value="open">Open</option>
+        <option value="24h">24H</option>
+        <option value="closed">Closed</option>
+        <option value="special">Special</option>
+      </select>
+      <div class="oh-ranges"></div>
+      <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Thu note">
+    </div>
+    <div class="oh-row" data-day="fri">
+      <div class="oh-day">Fri</div>
+      <select class="oh-mode" aria-label="Fri mode">
+        <option value="open">Open</option>
+        <option value="24h">24H</option>
+        <option value="closed">Closed</option>
+        <option value="special">Special</option>
+      </select>
+      <div class="oh-ranges"></div>
+      <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Fri note">
+    </div>
+    <div class="oh-row" data-day="sat">
+      <div class="oh-day">Sat</div>
+      <select class="oh-mode" aria-label="Sat mode">
+        <option value="open">Open</option>
+        <option value="24h">24H</option>
+        <option value="closed">Closed</option>
+        <option value="special">Special</option>
+      </select>
+      <div class="oh-ranges"></div>
+      <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Sat note">
+    </div>
+    <div class="oh-row" data-day="sun">
+      <div class="oh-day">Sun</div>
+      <select class="oh-mode" aria-label="Sun mode">
+        <option value="open">Open</option>
+        <option value="24h">24H</option>
+        <option value="closed">Closed</option>
+        <option value="special">Special</option>
+      </select>
+      <div class="oh-ranges"></div>
+      <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Sun note">
+    </div>
+  </div>
+
+  <!-- 存進表單（送出時會塞 JSON 字串） -->
+  <input id="fOpenDays" name="open_days" type="hidden" />
+</div>
 
     <!-- 圖片（可拍照/多張/排序） -->
     <div class="card">
