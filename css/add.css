@@ -149,3 +149,28 @@
   .btn { background:#0b0f12; color:#e5e7eb; border-color: rgba(255,255,255,.14); }
   .btn.primary { background:#e5e7eb; color:#111827; border-color: #e5e7eb; }
 }
+
+.add-form { display:grid; gap:14px; }
+.fld label { display:block; font-weight:600; margin-bottom:6px; }
+.fld input, .fld select, .fld textarea {
+  width:100%; padding:10px 12px; border:1px solid #e5e7eb; border-radius:12px;
+  font:inherit; background:#fff;
+}
+.fld.two { display:grid; gap:12px; grid-template-columns: 1fr 1fr; }
+.fld small.help { color:#6b7280; display:block; margin-top:6px; }
+.actions { display:flex; gap:10px; margin-top:4px; }
+.btn { padding:10px 14px; border-radius:12px; border:1px solid #e5e7eb; background:#fff; }
+.btn-primary { background:#111827; color:#fff; border-color:#111827; }
+.msg { margin-top:8px; min-height:20px; color:#374151; }
+
+#previewGrid.grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-top:8px; }
+#previewGrid .thumb {
+  position:relative; padding-top:100%; border-radius:12px; background:#f3f4f6 center/cover no-repeat; overflow:hidden;
+}
+#previewGrid .thumb button {
+  position:absolute; top:6px; right:6px; border:none; background:rgba(0,0,0,.6); color:#fff; width:24px; height:24px; border-radius:50%;
+}
+@media (max-width:480px){
+  .fld.two { grid-template-columns: 1fr; }
+  #previewGrid.grid { grid-template-columns: repeat(3, 1fr); }
+}
