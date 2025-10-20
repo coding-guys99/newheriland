@@ -4,144 +4,193 @@ import { supabase } from './app.js';
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-const form     = $('#addForm');
-const fName    = $('#fName');
-const fCity    = $('#fCity');
-const fCategory= $('#fCategory');
-const fAddress = $('#fAddress');
-const fWebsite = $('#fWebsite');
-const fPhone   = $('#fPhone');
-const fPrice   = $('#fPrice');
-const fHours   = $('#fHours');
-const fDesc    = $('#fDesc');
-const fPhotos  = $('#fPhotos');
-const grid     = $('#previewGrid');
-const btnSave  = $('#btnSave');
-const btnDraft = $('#btnDraft');
-const msgBox   = $('#addMsg');
-
-// --- 本地預覽 ---
-function renderPreview(files){
-  grid.innerHTML = '';
-  const list = Array.from(files).slice(0, 12);
-  list.forEach(file=>{
-    const url = URL.createObjectURL(file);
-    const cell = document.createElement('div');
-    cell.className = 'thumb';
-    cell.style.backgroundImage = `url("${url}")`;
-    const del = document.createElement('button');
-    del.type = 'button'; del.textContent = '×';
-    del.addEventListener('click', ()=> cell.remove());
-    cell.appendChild(del);
-    grid.appendChild(cell);
+/* ----- Multi-select chips (categories / tags) ----- */
+function bindMultiChips(container, set){
+  container?.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.chip'); if (!btn) return;
+    const v = btn.dataset.val;
+    const on = btn.classList.toggle('is-on');
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (on) set.add(v); else set.delete(v);
+  });
+  // keyboard: Enter
+  container?.addEventListener('keydown', (e)=>{
+    if (e.key !== 'Enter') return;
+    const btn = e.target.closest('.chip'); if (!btn) return;
+    btn.click();
   });
 }
-fPhotos?.addEventListener('change', (e)=>{
-  renderPreview(e.target.files || []);
-});
 
-// --- 小工具 ---
-const toNumberOrNull = v => {
-  const n = Number(v); return Number.isFinite(n) ? n : null;
-};
-function setBusy(on){
-  btnSave.disabled = on;
-  btnDraft.disabled = on;
-  form.style.opacity = on ? .7 : 1;
-}
-function say(t, isErr=false){
-  msgBox.textContent = t || '';
-  msgBox.style.color = isErr ? '#b91c1c' : '#374151';
-}
+/* ----- Hours editor (Google style) ----- */
+const DAYS = [
+  { key:'mon', label:'Mon' },
+  { key:'tue', label:'Tue' },
+  { key:'wed', label:'Wed' },
+  { key:'thu', label:'Thu' },
+  { key:'fri', label:'Fri' },
+  { key:'sat', label:'Sat' },
+  { key:'sun', label:'Sun' },
+];
 
-// --- 圖片上傳到 Supabase Storage ---
-async function uploadImagesToSupabase(files, {bucket='merchant-photos', folder='public'} = {}){
-  const urls = [];
-  for (const file of files){
-    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-    const path = `${folder}/${crypto.randomUUID()}.${ext}`;
-    const { error } = await supabase.storage.from(bucket).upload(path, file, {
-      cacheControl: '3600', upsert: false
-    });
-    if (error) throw error;
-    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-    if (data?.publicUrl) urls.push(data.publicUrl);
+function buildTimeOptions(stepMin=30){
+  const opts = [];
+  for (let h=0; h<24; h++){
+    for (let m=0; m<60; m+=stepMin){
+      const hh = String(h).padStart(2,'0');
+      const mm = String(m).padStart(2,'0');
+      opts.push(`${hh}:${mm}`);
+    }
   }
-  return urls;
+  // 24:00 不做，避免超過一天
+  return opts;
+}
+const TIME_OPTS = buildTimeOptions(30);
+
+function timeSelect(value=''){
+  return `
+    <select class="open-time">
+      ${TIME_OPTS.map(t => `<option value="${t}" ${t===value?'selected':''}>${t}</option>`).join('')}
+    </select>
+    <span>–</span>
+    <select class="close-time">
+      ${TIME_OPTS.map(t => `<option value="${t}">${t}</option>`).join('')}
+    </select>
+  `;
 }
 
-// --- 表單提交：上傳圖 → 寫 merchants ---
-form?.addEventListener('submit', async (e)=>{
-  e.preventDefault();
+function renderHoursEditor(root){
+  if (!root) return;
+  root.innerHTML = DAYS.map(d => `
+    <div class="hours-row" data-day="${d.key}">
+      <div class="day">${d.label}</div>
+      <label class="toggle">
+        <input type="checkbox" class="chk-open" />
+        <span>Open</span>
+      </label>
+      <div class="ranges">
+        <button type="button" class="add-range" hidden>+ Add range</button>
+      </div>
+    </div>
+  `).join('');
 
-  // 基本驗證
-  if (!fName.value.trim()){ fName.focus(); return; }
-  if (!fCity.value){ fCity.focus(); return; }
-  if (!fCategory.value){ fCategory.focus(); return; }
-  if (!fAddress.value.trim()){ fAddress.focus(); return; }
+  // 行為：開關 + 新增刪除時間段
+  $$('.hours-row', root).forEach(row=>{
+    const chk = $('.chk-open', row);
+    const rangesBox = $('.ranges', row);
+    const btnAdd = $('.add-range', row);
 
-  setBusy(true); say('Uploading photos…');
+    function addRange(initOpen='09:00', initClose='18:00'){
+      const div = document.createElement('div');
+      div.className = 'time-range';
+      div.innerHTML = `
+        ${timeSelect(initOpen)}
+        <button type="button" class="btn-del" aria-label="Remove">✕</button>
+      `;
+      rangesBox.insertBefore(div, btnAdd);
+      // 填入 close 預設
+      div.querySelector('.close-time').value = initClose;
 
-  try{
-    const files = Array.from(fPhotos.files || []);
-    const imageUrls = files.length ? await uploadImagesToSupabase(files) : [];
-    const cover = imageUrls[0] || null;
+      div.querySelector('.btn-del').addEventListener('click', ()=>{
+        div.remove();
+        if (!rangesBox.querySelector('.time-range')) btnAdd.hidden = false;
+      });
+    }
+
+    chk.addEventListener('change', ()=>{
+      const on = chk.checked;
+      btnAdd.hidden = !on;
+      if (on && !rangesBox.querySelector('.time-range')){
+        addRange();
+      }
+      if (!on){
+        rangesBox.querySelectorAll('.time-range').forEach(x=>x.remove());
+      }
+    });
+
+    btnAdd.addEventListener('click', ()=> addRange());
+  });
+}
+
+function serializeOpenHours(root){
+  const out = {};
+  $$('.hours-row', root).forEach(row=>{
+    const day = row.dataset.day;
+    const open = $('.chk-open', row).checked;
+    const ranges = [];
+    row.querySelectorAll('.time-range').forEach(tr=>{
+      const o = tr.querySelector('.open-time')?.value;
+      const c = tr.querySelector('.close-time')?.value;
+      if (o && c) ranges.push({ open: o, close: c });
+    });
+    out[day] = { open, ranges };
+  });
+  return out;
+}
+
+/* ----- Save ----- */
+(async function initAddPage(){
+  const form = $('#addForm');
+  if (!form) return;
+
+  // init chips
+  const catSet = new Set();
+  const tagSet = new Set();
+  bindMultiChips($('#catChips'), catSet);
+  bindMultiChips($('#tagChips'), tagSet);
+
+  // init hours editor
+  const hoursRoot = $('#hoursEditor');
+  renderHoursEditor(hoursRoot);
+
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+
+    const name = $('#fName')?.value.trim();
+    const city_id = $('#fCity')?.value;
+    const address = $('#fAddress')?.value.trim();
+
+    if (!name || !city_id){
+      alert('Please fill in Name and City.');
+      return;
+    }
+
+    const categories = Array.from(catSet);
+    const category = categories[0] || null;  // 以第一個為主分類
+    const tags = Array.from(tagSet);
+    const open_hours = serializeOpenHours(hoursRoot);
 
     const payload = {
-      name: fName.value.trim(),
-      city_id: fCity.value,
-      category: fCategory.value,
-      address: fAddress.value.trim(),
-      website: fWebsite.value.trim() || null,
-      phone: fPhone.value.trim() || null,
-      price_level: toNumberOrNull(fPrice.value),
-      openHours: fHours.value.trim() || null,  // 現階段簡版時間字串
-      description: fDesc.value.trim() || null,
-      cover,
-      images: imageUrls.length ? imageUrls : null,
+      name,
+      city_id,
+      address,
+      category,       // 仍保留單一欄位供現有 explore 使用
+      categories,     // 新增多選欄位（建議在 DB 建 text[]）
+      tags,           // 多選標籤（建議在 DB 建 text[]）
+      open_hours,     // JSONB 結構
       status: 'active'
-      // lat/lng 留空即可（之後要地理編碼再補）
     };
 
-    say('Saving…');
-    const { data, error } = await supabase.from('merchants').insert(payload).select('id').single();
-    if (error) throw error;
+    // 👉 Supabase 欄位建議（避免 400）：
+    // merchants 表新增（若還沒有）：
+    //   alter table merchants add column if not exists categories text[];
+    //   alter table merchants add column if not exists tags text[];
+    //   alter table merchants add column if not exists open_hours jsonb;
 
-    say('✅ Published!', false);
-    form.reset();
-    grid.innerHTML = '';
-  }catch(err){
-    console.error('Save failed:', err);
-    say('Save failed. Please try again.', true);
-  }finally{
-    setBusy(false);
-  }
-});
+    try{
+      const { data, error } = await supabase
+        .from('merchants')
+        .insert(payload)
+        .select('id')
+        .single();
 
-// 可選：儲存草稿（localStorage）
-btnDraft?.addEventListener('click', ()=>{
-  const draft = {
-    name: fName.value, city_id: fCity.value, category: fCategory.value,
-    address: fAddress.value, website: fWebsite.value, phone: fPhone.value,
-    price_level: fPrice.value, openHours: fHours.value, description: fDesc.value
-  };
-  localStorage.setItem('add_draft', JSON.stringify(draft));
-  say('Draft saved locally.');
-});
-// 自動載入草稿
-(function loadDraft(){
-  try{
-    const s = localStorage.getItem('add_draft');
-    if (!s) return;
-    const d = JSON.parse(s);
-    fName.value = d.name || '';
-    fCity.value = d.city_id || '';
-    fCategory.value = d.category || '';
-    fAddress.value = d.address || '';
-    fWebsite.value = d.website || '';
-    fPhone.value = d.phone || '';
-    fPrice.value = d.price_level || '';
-    fHours.value = d.openHours || '';
-    fDesc.value = d.description || '';
-  }catch{}
+      if (error) throw error;
+      alert('Saved!');
+
+      // 可選：跳回 Explore
+      location.hash = '#explore';
+    }catch(err){
+      console.error('Save failed:', err);
+      alert(`Save failed: ${err.message || err}`);
+    }
+  });
 })();
