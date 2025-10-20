@@ -289,139 +289,168 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
 })();
 
-/* ===== Opening Hours Editor ===== */
-const HOURS_DAYS = ['mon','tue','wed','thu','fri','sat','sun'];
+/* ===== Opening Hours Editor (Google-like) ===== */
+const DAYS = ['mon','tue','wed','thu','fri','sat','sun'];
 
-function makeRangeChip(open='09:00', close='18:00'){
+function ohMakeChip(open='09:00', close='18:00'){
   const chip = document.createElement('span');
-  chip.className = 'hr-chip';
+  chip.className = 'oh-chip';
   chip.innerHTML = `
-    <input type="time" class="hr-open" value="${open}">
+    <input type="time" class="oh-open" value="${open}">
     <span>–</span>
-    <input type="time" class="hr-close" value="${close}">
-    <button type="button" class="hr-del" title="Remove">×</button>
+    <input type="time" class="oh-close" value="${close}">
+    <button type="button" class="oh-del" title="Remove">×</button>
   `;
-  chip.querySelector('.hr-del').addEventListener('click', ()=> chip.remove());
+  chip.querySelector('.oh-del').addEventListener('click', ()=> chip.remove());
   return chip;
 }
-
-function setRowMode(row, mode){
-  const rangesBox = row.querySelector('.hr-ranges');
-  const noteInput = row.querySelector('.hr-note');
-
-  if (mode === 'open'){
-    rangesBox.innerHTML = '';
-    rangesBox.appendChild(makeRangeChip());      // 預設一組時間
+function ohSetRowMode(row, mode){
+  const box  = row.querySelector('.oh-ranges');
+  const note = row.querySelector('.oh-note');
+  if (mode==='open'){
+    box.innerHTML = '';
+    box.appendChild(ohMakeChip());
     const add = document.createElement('button');
-    add.type = 'button'; add.className = 'hr-add'; add.textContent = '＋ Add range';
+    add.type='button'; add.className='oh-add'; add.textContent='＋ Add range';
     add.addEventListener('click', ()=>{
-      if (rangesBox.querySelectorAll('.hr-chip').length >= 3) return;
-      rangesBox.insertBefore(makeRangeChip(), add);
+      if (box.querySelectorAll('.oh-chip').length>=3) return;
+      box.insertBefore(ohMakeChip(), add);
     });
-    rangesBox.appendChild(add);
-    noteInput.disabled = true; noteInput.value = '';
-  }
-  else if (mode === '24h'){
-    rangesBox.innerHTML = '';
-    rangesBox.appendChild(makeRangeChip('00:00','24:00'));
-    rangesBox.querySelectorAll('input').forEach(i=> i.disabled = true);
-    noteInput.disabled = true; noteInput.value = '';
-  }
-  else if (mode === 'closed'){
-    rangesBox.innerHTML = '<em style="color:#666">Closed</em>';
-    noteInput.disabled = true; noteInput.value = '';
-  }
-  else if (mode === 'special'){
-    rangesBox.innerHTML = '';
-    rangesBox.appendChild(makeRangeChip());      // 可再加更多
+    box.appendChild(add);
+    note.disabled = true; note.value='';
+  }else if(mode==='24h'){
+    box.innerHTML='';
+    const c = ohMakeChip('00:00','24:00');
+    c.querySelectorAll('input').forEach(i=> i.disabled=true);
+    box.appendChild(c);
+    note.disabled = true; note.value='';
+  }else if(mode==='closed'){
+    box.innerHTML = '<em style="color:#666">Closed</em>';
+    note.disabled = true; note.value='';
+  }else{ // special
+    box.innerHTML='';
+    box.appendChild(ohMakeChip());
     const add = document.createElement('button');
-    add.type = 'button'; add.className = 'hr-add'; add.textContent = '＋ Add range';
+    add.type='button'; add.className='oh-add'; add.textContent='＋ Add range';
     add.addEventListener('click', ()=>{
-      if (rangesBox.querySelectorAll('.hr-chip').length >= 3) return;
-      rangesBox.insertBefore(makeRangeChip(), add);
+      if (box.querySelectorAll('.oh-chip').length>=3) return;
+      box.insertBefore(ohMakeChip(), add);
     });
-    rangesBox.appendChild(add);
-    noteInput.disabled = false;
+    box.appendChild(add);
+    note.disabled = false;
   }
 }
-
-function initHoursEditor(root = document.getElementById('hoursEditor')){
+function initHoursEditor(root = document.getElementById('ohTable')){
   if (!root) return;
-  root.querySelectorAll('.hr-row').forEach(row=>{
-    const sel = row.querySelector('.hr-mode');
-    // 預設 Open
-    setRowMode(row, sel.value || 'open');
-    sel.addEventListener('change', ()=> setRowMode(row, sel.value));
+  root.querySelectorAll('.oh-row').forEach(row=>{
+    const sel = row.querySelector('.oh-mode');
+    ohSetRowMode(row, sel.value || 'open');
+    sel.addEventListener('change', ()=> ohSetRowMode(row, sel.value));
+  });
+
+  // 快速套用
+  const setAll = (fn)=> root.querySelectorAll('.oh-row').forEach(fn);
+  document.getElementById('btnOH247')?.addEventListener('click', ()=>{
+    setAll(row=>{
+      row.querySelector('.oh-mode').value='24h';
+      ohSetRowMode(row,'24h');
+    });
+  });
+  document.getElementById('btnOHWeekday')?.addEventListener('click', ()=>{
+    setAll(row=>{
+      const d = row.getAttribute('data-day');
+      if (['mon','tue','wed','thu','fri'].includes(d)){
+        row.querySelector('.oh-mode').value='open';
+        ohSetRowMode(row,'open');
+        const chip = row.querySelector('.oh-chip');
+        chip.querySelector('.oh-open').value = '09:00';
+        chip.querySelector('.oh-close').value = '19:00';
+      }
+    });
+  });
+  document.getElementById('btnOHWeekend')?.addEventListener('click', ()=>{
+    setAll(row=>{
+      const d = row.getAttribute('data-day');
+      if (['sat','sun'].includes(d)){
+        row.querySelector('.oh-mode').value='open';
+        ohSetRowMode(row,'open');
+        const chip = row.querySelector('.oh-chip');
+        chip.querySelector('.oh-open').value = '09:00';
+        chip.querySelector('.oh-close').value = '13:00';
+      }
+    });
+  });
+  document.getElementById('btnOHClear')?.addEventListener('click', ()=>{
+    setAll(row=>{
+      row.querySelector('.oh-mode').value='closed';
+      ohSetRowMode(row,'closed');
+    });
   });
 }
-
-/* 讀取輸入 → 產生 open_days JSON（存到 supabase） */
-function getOpenDaysJSON(root = document.getElementById('hoursEditor')){
+function getOpenDaysJSON(root = document.getElementById('ohTable')){
   const out = {};
-  root.querySelectorAll('.hr-row').forEach(row=>{
-    const day = row.getAttribute('data-day');
-    const mode = row.querySelector('.hr-mode').value;
-    const note = row.querySelector('.hr-note').value.trim();
+  root.querySelectorAll('.oh-row').forEach(row=>{
+    const day  = row.getAttribute('data-day');
+    const mode = row.querySelector('.oh-mode').value;
+    const note = row.querySelector('.oh-note').value.trim();
 
-    if (mode === 'closed'){
-      out[day] = { closed: true, ranges: [] };
-      return;
-    }
-    if (mode === '24h'){
-      out[day] = { closed: false, ranges: [{ open:'00:00', close:'24:00' }] };
-      return;
-    }
-    // open 或 special
-    const ranges = [];
-    row.querySelectorAll('.hr-chip').forEach(ch=>{
-      const open = ch.querySelector('.hr-open')?.value || '';
-      const close = ch.querySelector('.hr-close')?.value || '';
-      if (open && close) ranges.push({ open, close });
+    if (mode==='closed'){ out[day]={closed:true, ranges:[]}; return; }
+    if (mode==='24h'){ out[day]={closed:false, ranges:[{open:'00:00',close:'24:00'}]}; return; }
+
+    const ranges=[];
+    row.querySelectorAll('.oh-chip').forEach(c=>{
+      const o = c.querySelector('.oh-open')?.value;
+      const cl= c.querySelector('.oh-close')?.value;
+      if (o && cl) ranges.push({open:o, close:cl});
     });
-    out[day] = { closed:false, ranges };
-    if (mode === 'special' && note) out[day].note = note;
+    out[day]={closed:false, ranges};
+    if (mode==='special' && note) out[day].note = note;
   });
   return out;
 }
-
-/* 把已存的 open_days JSON 放回 UI（用於編輯） */
-function setOpenDaysJSON(data, root = document.getElementById('hoursEditor')){
-  if (!root || !data) return;
-  root.querySelectorAll('.hr-row').forEach(row=>{
+function setOpenDaysJSON(data, root = document.getElementById('ohTable')){
+  if (!data) return;
+  root.querySelectorAll('.oh-row').forEach(row=>{
     const day = row.getAttribute('data-day');
     const rec = data[day] || {};
-    const sel = row.querySelector('.hr-mode');
+    const sel = row.querySelector('.oh-mode');
 
-    // 決定模式
-    let mode = 'open';
-    if (rec.closed) mode = 'closed';
-    else if (Array.isArray(rec.ranges) && rec.ranges[0]?.open === '00:00' && rec.ranges[0]?.close === '24:00'){
-      mode = '24h';
-    } else if (rec.note) mode = 'special';
+    let mode='open';
+    if (rec.closed) mode='closed';
+    else if (rec.ranges?.[0]?.open==='00:00' && rec.ranges?.[0]?.close==='24:00') mode='24h';
+    else if (rec.note) mode='special';
 
-    sel.value = mode;
-    setRowMode(row, mode);
+    sel.value = mode; ohSetRowMode(row, mode);
 
-    // 填入範圍與備註
-    if (Array.isArray(rec.ranges) && (mode === 'open' || mode === 'special')){
-      const box = row.querySelector('.hr-ranges');
-      const addBtn = box.querySelector('.hr-add');
-      // 先清掉預設一組，換成資料
-      box.querySelectorAll('.hr-chip').forEach(c=>c.remove());
+    if ((mode==='open'||mode==='special') && Array.isArray(rec.ranges)){
+      const box = row.querySelector('.oh-ranges');
+      box.querySelectorAll('.oh-chip').forEach(c=>c.remove());
+      const addBtn = box.querySelector('.oh-add');
       rec.ranges.forEach(r=>{
-        const chip = makeRangeChip(r.open, r.close);
+        const chip = ohMakeChip(r.open, r.close);
         addBtn ? box.insertBefore(chip, addBtn) : box.appendChild(chip);
       });
     }
-    if (rec.note) {
-      const note = row.querySelector('.hr-note');
-      note.value = rec.note;
-      note.disabled = (mode!=='special');
-    }
+    if (rec.note){ const n=row.querySelector('.oh-note'); n.value=rec.note; n.disabled=(mode!=='special'); }
   });
 }
 
-// 導出到全域，讓你的其它代碼（submit / 編輯）能調用
+// 導出為全域，讓 submit 時可存入 hidden input
 window.initHoursEditor = initHoursEditor;
 window.getOpenDaysJSON = getOpenDaysJSON;
 window.setOpenDaysJSON = setOpenDaysJSON;
+
+/* ---- 在 Add 頁初始化時呼叫一次 ---- */
+document.addEventListener('DOMContentLoaded', ()=>{
+  if (document.querySelector('[data-page="add"]')) {
+    initHoursEditor();
+  }
+});
+
+/* ---- 在表單送出前把 JSON 塞入 hidden 欄位 ---- */
+const addForm = document.getElementById('addForm');
+addForm?.addEventListener('submit', (e)=>{
+  const json = getOpenDaysJSON();
+  document.getElementById('fOpenDays').value = JSON.stringify(json);
+  // 其餘欄位照你的既有流程送到 supabase
+});
