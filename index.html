@@ -178,7 +178,7 @@
     </section>
     
     <!-- 圖片下方的即時資訊徽章：★ / Open now / $$ -->
-<div id="detailMeta" class="d-meta-inline" aria-live="polite"></div>
+<div id="detailMeta" class="d-meta-inline"></div>
 
 <!-- 標籤列（不是卡片，純一行或多行換行的 chip/文字） -->
 <div id="detailTags" class="d-tags-inline"></div>
@@ -199,10 +199,9 @@
     <section class="d-card" id="addressCard">
   <div class="d-head-row">
     <h2 class="d-h2">Address</h2>
-    <a id="actMap2" class="link-inline" aria-label="Open in Maps">Open in Maps</a>
+    <button id="btnCopyAddr" class="chip" type="button">Copy</button>
   </div>
-  <address id="detailAddressText" class="d-address">—</address>
-  <button id="btnCopyAddr" class="btn-link sm" type="button" aria-label="Copy address">Copy</button>
+  <p id="detailAddressText" class="d-address">—</p>
 </section>
 
     <!-- Hours（Weekly table，可選） -->
@@ -241,7 +240,7 @@
     <!-- Location（可放嵌入地圖；目前留白卡） -->
 <section class="d-card" id="mapCard">
   <div class="d-head-row">
-    <h2 class="d-h2">Map</h2>
+    <h2 class="d-h2">Location</h2>
     <a id="actMap2" class="link-inline" aria-label="Open in Maps">Open in Maps</a>
   </div>
   <div class="d-mapbox" aria-hidden="true">
