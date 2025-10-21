@@ -13,6 +13,7 @@ const list  = $('#merchantList');
 const empty = $('#emptyState');
 const errBx = $('#errorState');
 const btnRetry = $('#btnRetry');
+const tabbar = document.querySelector('.tabbar');
 
 /* ---------- Light filter bar ---------- */
 const filtersBox = $('#expFilters');
@@ -583,6 +584,7 @@ function showPageDetail(){
     t.setAttribute('aria-selected','false');
     t.removeAttribute('aria-current');
   });
+  tabbar && (tabbar.style.display = 'none');  // 或者 document.body.classList.add('detail-active')
 }
 
 function restoreMainPage(){
@@ -600,6 +602,7 @@ function restoreMainPage(){
       selectCity(id, city);
     }
   }
+  tabbar && (tabbar.style.display = '');      // 或者 document.body.classList.remove('detail-active')
 }
 
 function humanHours(m){
