@@ -683,37 +683,62 @@ async function loadDetailPage(id){
       }
     }
 
-    // ===== Map A：靜態縮圖 + 點擊開新分頁 =====
-    const box = document.querySelector('.d-mapbox');
-    if (box){
-      const mapHref = (m.lat && m.lng)
-        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${m.lat},${m.lng}`)}`
-        : (m.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.address)}` : null);
-      setAction(actMap,  mapHref);
-      setAction(actMap2, mapHref);
-
-      async function renderThumb(){
-        let pos = (m.lat && m.lng) ? {lat: m.lat, lng: m.lng} : null;
-        if (!pos && m.address) pos = await geocodeAddress(m.address);
-        if (pos){
-          const w = Math.max(320, Math.floor((box.clientWidth || 640)));
-          const h = Math.round(w * 0.56);
-          const img = osmStaticURL(pos, { zoom: 15, w, h });
-          box.innerHTML = `
-            <button class="map-thumb" id="actMapThumb" aria-label="Open in Maps">
-              <img src="${img}" alt="Map preview" decoding="async" loading="lazy">
-            </button>
-          `;
-          const thumbBtn = $('#actMapThumb');
-          if (thumbBtn && mapHref){
-            thumbBtn.addEventListener('click', ()=> window.open(mapHref, '_blank'), { once:true });
-          }
-        }else{
-          box.innerHTML = `<div class="d-mapph">Map preview</div>`;
-        }
+    // ===== Map A：靜態縮圖 + 點擊開新分頁（以地址為準）=====
+const box = document.querySelector('.d-mapbox');
+if (box){
+  // 1) 先用地址 geocode；失敗才退回 lat/lng
+  async function resolvePosAndHref(m){
+    // 先試地址
+    if (m.address && m.address.trim()){
+      const pos = await geocodeAddress(m.address.trim());
+      if (pos){
+        return {
+          pos,
+          href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.address.trim())}`
+        };
       }
-      renderThumb();
     }
+    // 沒地址或 geocode 失敗 → 用座標
+    if (m.lat && m.lng){
+      const q = `${m.lat},${m.lng}`;
+      return {
+        pos: { lat: m.lat, lng: m.lng },
+        href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`
+      };
+    }
+    return { pos:null, href:null };
+  }
+
+  async function renderThumb(){
+    const { pos, href } = await resolvePosAndHref(m);
+
+    setAction(actMap,  href);
+    setAction(actMap2, href);
+
+    if (pos){
+      const w = Math.max(320, Math.floor((box.clientWidth || 640)));
+      const h = Math.round(w * 0.56);
+      // 2) 加上 cache-busting，避免舊圖
+      const img = `${osmStaticURL(pos, { zoom: 15, w, h })}&_=${Date.now()}`;
+
+      box.innerHTML = `
+        <button class="map-thumb" id="actMapThumb" aria-label="Open in Maps">
+          <img src="${img}" alt="Map preview" decoding="async" loading="lazy">
+        </button>
+      `;
+      const thumbBtn = document.getElementById('actMapThumb');
+      if (thumbBtn && href){
+        thumbBtn.addEventListener('click', ()=> window.open(href, '_blank'), { once:true });
+      }
+    }else{
+      // 3) 兩種都拿不到 → 顯示 placeholder 並關閉動作
+      box.innerHTML = `<div class="d-mapph">Map preview</div>`;
+      setAction(actMap,  null);
+      setAction(actMap2, null);
+    }
+  }
+  renderThumb();
+}
 
     // ===== Related =====
     const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
