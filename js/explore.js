@@ -196,6 +196,41 @@ function todayHoursText(m, ref=new Date()){
   return m.openHours || '—';
 }
 
+// —— 輕量 geocode（localStorage 快取；失敗回 null）——
+async function geocodeAddress(addr){
+  if (!addr) return null;
+  const key = 'geo:' + addr.trim().toLowerCase();
+  try {
+    const cached = localStorage.getItem(key);
+    if (cached) return JSON.parse(cached);
+
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(addr)}`;
+    const res = await fetch(url, { headers: { 'Accept':'application/json' } });
+    if (!res.ok) throw new Error('geocode http ' + res.status);
+    const arr = await res.json();
+    if (!Array.isArray(arr) || !arr.length) return null;
+
+    const { lat, lon } = arr[0];
+    const val = { lat: Number(lat), lng: Number(lon) };
+    localStorage.setItem(key, JSON.stringify(val));
+    return val;
+  } catch { return null; }
+}
+
+// —— 產生 OSM 靜態地圖 URL ——
+// zoom：14~16 皆可；size 依容器寬度（這裡先用 640×320）
+function osmStaticURL({lat, lng}, {zoom=15, w=640, h=320} = {}){
+  const base = 'https://staticmap.openstreetmap.de/staticmap.php';
+  const qs = new URLSearchParams({
+    center: `${lat},${lng}`,
+    zoom: String(zoom),
+    size: `${w}x${h}`,
+    // 標記樣式（支援 red/blue/green、…）
+    markers: `${lat},${lng},lightblue1`
+  });
+  return `${base}?${qs.toString()}`;
+}
+
 /* ---------- Supabase ---------- */
 async function loadCities(){
   try{
@@ -678,21 +713,51 @@ async function loadDetailPage(id){
       const text = `${m.name}`;
       try{ await navigator.share?.({ title: m.name, text, url }); }catch(_){}
     }, { once:true });
+    
 
-    /* ====== Map Embed（OSM） ====== */
-    const box = document.querySelector('.d-mapbox');
-    if (box){
-      if (m.lat && m.lng){
-        const src = `https://www.openstreetmap.org/export/embed.html?layer=mapnik&marker=${encodeURIComponent(m.lat)},${encodeURIComponent(m.lng)}`;
-        box.innerHTML = `<iframe class="map-embed" src="${src}" style="width:100%;height:220px;border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
-      }else{
-        // 沒座標 → 保留 placeholder（仍有 actMap2 連到地址）
-        box.innerHTML = `<div class="d-mapph">Map preview</div>`;
-      }
-      // 若沒有地址也沒有座標 → 整張地圖卡隱藏
-      if (!m.address && !(m.lat && m.lng)) mapCard && (mapCard.hidden = true);
-      else mapCard && (mapCard.hidden = false);
+    // ===== Map Preview（A 模式：靜態縮圖 + 點擊開啟）=====
+const box = document.querySelector('.d-mapbox');
+if (box){
+  // 目標連結（用經緯度優先，否則用地址）
+  const mapHref = (m.lat && m.lng)
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${m.lat},${m.lng}`)}`
+    : (m.address
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.address)}`
+        : null);
+
+  // 設定上方兩個 Map 連結
+  setAction(actMap,  mapHref);
+  setAction(actMap2, mapHref);
+
+  async function renderThumb(){
+    // 已有座標 → 直接畫縮圖
+    let pos = (m.lat && m.lng) ? {lat: m.lat, lng: m.lng} : null;
+
+    // 沒座標但有地址 → 前端 geocode 一次
+    if (!pos && m.address){
+      pos = await geocodeAddress(m.address);
     }
+
+    if (pos){
+      const img = osmStaticURL(pos, { zoom: 15, w: 640, h: 320 });
+      box.innerHTML = `
+        <button class="map-thumb" id="actMapThumb" aria-label="Open in Maps">
+          <img src="${img}" alt="Map preview" decoding="async" loading="lazy">
+        </button>
+      `;
+      // 點整張圖開 Google Maps
+      const thumbBtn = document.getElementById('actMapThumb');
+      if (thumbBtn && mapHref){
+        thumbBtn.addEventListener('click', ()=> window.open(mapHref, '_blank'), { once:true });
+      }
+    }else{
+      // 仍然沒有位置：保留 placeholder
+      box.innerHTML = `<div class="d-mapph">Map preview</div>`;
+    }
+  }
+
+  renderThumb();
+}
 
     /* ====== Hours（週表） ====== */
     const hasHours = !!getOpenStruct(m) || !!m.openHours;
