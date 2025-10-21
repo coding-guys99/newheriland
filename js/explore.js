@@ -684,21 +684,21 @@ async function loadDetailPage(id){
     }
 
     // ===== Map A：靜態縮圖 + 點擊開新分頁（以地址為準）=====
+// ===== Map Preview：優先靜態圖，失敗自動 fallback 內嵌 =====
 const box = document.querySelector('.d-mapbox');
 if (box){
-  // 1) 先用地址 geocode；失敗才退回 lat/lng
+  // 先以「地址」為準 geocode；失敗才退回 lat/lng
   async function resolvePosAndHref(m){
-    // 先試地址
-    if (m.address && m.address.trim()){
-      const pos = await geocodeAddress(m.address.trim());
+    const addr = (m.address||'').trim();
+    if (addr){
+      const pos = await geocodeAddress(addr).catch(()=>null);
       if (pos){
         return {
           pos,
-          href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.address.trim())}`
+          href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`
         };
       }
     }
-    // 沒地址或 geocode 失敗 → 用座標
     if (m.lat && m.lng){
       const q = `${m.lat},${m.lng}`;
       return {
@@ -709,34 +709,53 @@ if (box){
     return { pos:null, href:null };
   }
 
+  // OSM 靜態圖產生器（加上 cache-busting）
+  function osmStaticURL({lat,lng},{zoom=15,w=640,h=360}={}){
+    const base = 'https://staticmap.openstreetmap.de/staticmap.php';
+    const marker = `${lat},${lng},lightblue1`;
+    return `${base}?center=${lat},${lng}&zoom=${zoom}&size=${w}x${h}&markers=${marker}&_=${Date.now()}`;
+  }
+
+  // Fallback：改成 OSM 內嵌 iframe（免金鑰，成功率極高）
+  function renderIframe(pos){
+    const src = `https://www.openstreetmap.org/export/embed.html?layer=mapnik&marker=${pos.lat},${pos.lng}`;
+    box.innerHTML = `<iframe class="map-embed" src="${src}" style="width:100%;height:220px;border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+  }
+
   async function renderThumb(){
     const { pos, href } = await resolvePosAndHref(m);
 
+    // 同步兩顆連結
     setAction(actMap,  href);
     setAction(actMap2, href);
 
-    if (pos){
-      const w = Math.max(320, Math.floor((box.clientWidth || 640)));
-      const h = Math.round(w * 0.56);
-      // 2) 加上 cache-busting，避免舊圖
-      const img = `${osmStaticURL(pos, { zoom: 15, w, h })}&_=${Date.now()}`;
-
-      box.innerHTML = `
-        <button class="map-thumb" id="actMapThumb" aria-label="Open in Maps">
-          <img src="${img}" alt="Map preview" decoding="async" loading="lazy">
-        </button>
-      `;
-      const thumbBtn = document.getElementById('actMapThumb');
-      if (thumbBtn && href){
-        thumbBtn.addEventListener('click', ()=> window.open(href, '_blank'), { once:true });
-      }
-    }else{
-      // 3) 兩種都拿不到 → 顯示 placeholder 並關閉動作
+    if (!pos){
       box.innerHTML = `<div class="d-mapph">Map preview</div>`;
       setAction(actMap,  null);
       setAction(actMap2, null);
+      return;
     }
+
+    const w = Math.max(320, Math.floor(box.clientWidth || 640));
+    const h = Math.round(w * 0.56);
+    const imgURL = osmStaticURL(pos, { zoom: 15, w, h });
+
+    // 先放靜態圖；載入失敗就 fallback 內嵌
+    box.innerHTML = `
+      <button class="map-thumb" id="actMapThumb" aria-label="Open in Maps">
+        <img id="mapThumbImg" src="${imgURL}" alt="Map preview" decoding="async" loading="lazy">
+      </button>
+    `;
+    const thumbBtn = document.getElementById('actMapThumb');
+    const thumbImg = document.getElementById('mapThumbImg');
+
+    if (thumbBtn && href){
+      thumbBtn.addEventListener('click', ()=> window.open(href, '_blank'), { once:true });
+    }
+    // 這裡處理 staticmap 主機解析失敗的情況
+    thumbImg.onerror = ()=> renderIframe(pos);
   }
+
   renderThumb();
 }
 
