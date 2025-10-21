@@ -659,8 +659,10 @@ async function loadDetailPage(id){
     }, { once:true });
 
     // ===== Actions =====
-    const gq = (m.lat && m.lng) ? `${m.lat},${m.lng}` : (m.address || '');
-    setAction(actMap,   gq ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq)}` : null);
+    // 改為（只用 address）
+const mapHref = m.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.address)}` : null;
+setAction(actMap,  mapHref);
+setAction(actMap2, mapHref);
     setAction(actPhone, m.phone ? `tel:${m.phone.replace(/\s+/g,'')}` : null);
     setAction(actWeb,   m.website || null);
     actShare?.addEventListener('click', async ()=>{
@@ -687,77 +689,29 @@ async function loadDetailPage(id){
 // ===== Map Preview：優先靜態圖，失敗自動 fallback 內嵌 =====
 const box = document.querySelector('.d-mapbox');
 if (box){
-  // 先以「地址」為準 geocode；失敗才退回 lat/lng
-  async function resolvePosAndHref(m){
-    const addr = (m.address||'').trim();
-    if (addr){
-      const pos = await geocodeAddress(addr).catch(()=>null);
-      if (pos){
-        return {
-          pos,
-          href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`
-        };
-      }
-    }
-    if (m.lat && m.lng){
-      const q = `${m.lat},${m.lng}`;
-      return {
-        pos: { lat: m.lat, lng: m.lng },
-        href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`
-      };
-    }
-    return { pos:null, href:null };
-  }
-
-  // OSM 靜態圖產生器（加上 cache-busting）
-  function osmStaticURL({lat,lng},{zoom=15,w=640,h=360}={}){
-    const base = 'https://staticmap.openstreetmap.de/staticmap.php';
-    const marker = `${lat},${lng},lightblue1`;
-    return `${base}?center=${lat},${lng}&zoom=${zoom}&size=${w}x${h}&markers=${marker}&_=${Date.now()}`;
-  }
-
-  // Fallback：改成 OSM 內嵌 iframe（免金鑰，成功率極高）
-  function renderIframe(pos){
-    const src = `https://www.openstreetmap.org/export/embed.html?layer=mapnik&marker=${pos.lat},${pos.lng}`;
-    box.innerHTML = `<iframe class="map-embed" src="${src}" style="width:100%;height:220px;border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
-  }
+  setAction(actMap,  mapHref);
+  setAction(actMap2, mapHref);
 
   async function renderThumb(){
-    const { pos, href } = await resolvePosAndHref(m);
+    if (!m.address){ box.innerHTML = `<div class="d-mapph">Map preview</div>`; return; }
 
-    // 同步兩顆連結
-    setAction(actMap,  href);
-    setAction(actMap2, href);
-
-    if (!pos){
+    const pos = await geocodeAddress(m.address); // 只用地址換到座標（前端臨時）
+    if (pos){
+      const w = Math.max(320, Math.floor(box.clientWidth || 640));
+      const h = Math.round(w * 0.5);
+      const img = osmStaticURL(pos, { zoom: 15, w, h, cb: Date.now() }); // 有 cache-busting
+      box.innerHTML = `
+        <button class="map-thumb" id="actMapThumb" aria-label="Open in Maps">
+          <img src="${img}" alt="Map preview" decoding="async" loading="lazy">
+        </button>`;
+      document.getElementById('actMapThumb')?.addEventListener('click', ()=> window.open(mapHref, '_blank'), { once:true });
+    }else{
       box.innerHTML = `<div class="d-mapph">Map preview</div>`;
-      setAction(actMap,  null);
-      setAction(actMap2, null);
-      return;
     }
-
-    const w = Math.max(320, Math.floor(box.clientWidth || 640));
-    const h = Math.round(w * 0.56);
-    const imgURL = osmStaticURL(pos, { zoom: 15, w, h });
-
-    // 先放靜態圖；載入失敗就 fallback 內嵌
-    box.innerHTML = `
-      <button class="map-thumb" id="actMapThumb" aria-label="Open in Maps">
-        <img id="mapThumbImg" src="${imgURL}" alt="Map preview" decoding="async" loading="lazy">
-      </button>
-    `;
-    const thumbBtn = document.getElementById('actMapThumb');
-    const thumbImg = document.getElementById('mapThumbImg');
-
-    if (thumbBtn && href){
-      thumbBtn.addEventListener('click', ()=> window.open(href, '_blank'), { once:true });
-    }
-    // 這裡處理 staticmap 主機解析失敗的情況
-    thumbImg.onerror = ()=> renderIframe(pos);
   }
-
   renderThumb();
 }
+
 
     // ===== Related =====
     const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
