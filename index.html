@@ -194,6 +194,19 @@
       <p id="detailDesc" class="d-desc">—</p>
     </section>
 
+    <!-- Hours（Weekly table，可選） -->
+<section class="d-card" id="hoursCard">
+  <div class="d-head-row">
+    <h2 class="d-h2">Hours</h2>
+    <!-- 這顆會由 JS 動態改成 Open now / Closed / — -->
+    <span id="detailOpenChip" class="chip">—</span>
+  </div>
+  <div id="detailHoursList" class="oh-list">
+    <!-- JS 會把 Mon–Sun 逐行注入進來 -->
+  </div>
+</section>
+
+
     <!-- Hours / Meta -->
     <section class="d-card d-meta">
       <div class="d-meta-col">
@@ -589,6 +602,7 @@
   <script type="module" src="js/explore.js"></script>
 </body>
 </html>
+
 
 
 
