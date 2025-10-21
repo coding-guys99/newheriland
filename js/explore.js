@@ -138,7 +138,7 @@ async function loadCities(){
   try{
     const { data, error } = await supabase
       .from('cities')
-      .select('id,name,icon,count,sort_order')
+      .select('id,name,icon,sort_order')
       .order('sort_order',{ascending:true})
       .limit(12);
     if (error) throw error;
@@ -218,7 +218,6 @@ function renderWall(cities){
     <button class="citycell citycell--all" role="tab" data-id="all" aria-selected="true">
       <span class="ico">✨</span>
       <span class="name">All Sarawak</span>
-      <span class="count">—</span>
     </button>
   `;
   // 只取 12 個城市（不包含 ALL）
@@ -232,7 +231,6 @@ function renderWall(cities){
     btn.innerHTML = `
       <span class="ico">${c.icon || '🏙️'}</span>
       <span class="name">${c.name || c.id}</span>
-      <span class="count">${toNum(c.count) ?? 0}</span>
     `;
     wall.appendChild(btn);
   });
