@@ -133,6 +133,44 @@ function setAction(el, href){
   else { el.removeAttribute('href'); el.setAttribute('aria-disabled','true'); el.classList.add('is-disabled'); }
 }
 
+function getOpenStatusText(m, ref=new Date()){
+  const s = getOpenStruct(m);
+  if (!s) return '—'; // 沒有任何營業資料
+  const wd = ['sun','mon','tue','wed','thu','fri','sat'][ref.getDay()];
+  const day = s[wd];
+  if (!day) return '—';
+  if (day.closed) return 'Closed today';
+
+  // 找「下一個」時段的文案（現在開 or 幾點開）
+  const cur = ref.getHours()*60 + ref.getMinutes();
+  const toMin = hhmm => {
+    const [h,mi] = (hhmm||'').split(':').map(x=>parseInt(x,10));
+    return (h===24 && (mi||0)===0) ? 1440 : (h*60 + (mi||0));
+  };
+
+  let openNow = false;
+  let nextOpen = null;
+
+  (day.ranges||[]).forEach(r=>{
+    const o = toMin(r.open), c = toMin(r.close);
+    if (c>o){
+      if (cur>=o && cur<c) openNow = true;
+      if (cur<o) nextOpen = Math.min(nextOpen??o, o);
+    }else{ // 跨夜
+      if (cur>=o || cur<c) openNow = true;
+    }
+  });
+
+  if (openNow) return 'Open now';
+  if (nextOpen!=null){
+    const hh = String(Math.floor(nextOpen/60)).padStart(2,'0');
+    const mm = String(nextOpen%60).padStart(2,'0');
+    return `Opens ${hh}:${mm}`;
+  }
+  return 'Closed today';
+}
+
+
 /* ---------- Supabase ---------- */
 async function loadCities(){
   try{
@@ -249,8 +287,12 @@ function renderMerchants(items){
 
   list.innerHTML = items.map(m=>{
     const rating = (m.rating!=null) ? Number(m.rating).toFixed(1) : null;
-    const open = isOpenNow(m);
-    const badgeOpen = open ? `<span class="badge ok">Open now</span>` : `<span class="badge off">Closed</span>`;
+    const statusTxt = getOpenStruct(m) ? getOpenStatusText(m) : '—';
+    const badgeOpen =
+    statusTxt === 'Open now' ? `<span class="badge ok">Open now</span>` :
+    statusTxt === '—'        ? `<span class="badge">—</span>` :
+                              `<span class="badge off">${statusTxt}</span>`;
+
 
     const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
     const catStr = cats.slice(0,2).join(', ');
@@ -567,6 +609,21 @@ function humanHours(m){
   return m.openHours || '—';
 }
 
+function weeklyHoursLines(m){
+  const s = getOpenStruct(m);
+  if (!s) return null;
+  const ORDER = ['mon','tue','wed','thu','fri','sat','sun'];
+  const label = {mon:'Mon',tue:'Tue',wed:'Wed',thu:'Thu',fri:'Fri',sat:'Sat',sun:'Sun'};
+  return ORDER.map(d=>{
+    const day=s[d];
+    if (!day) return `<div class="oh-line"><span>${label[d]}</span><span>—</span></div>`;
+    if (day.closed) return `<div class="oh-line"><span>${label[d]}</span><span>Closed</span></div>`;
+    const txt = (day.ranges||[]).map(r=>`${r.open}–${r.close}`).join(', ');
+    return `<div class="oh-line"><span>${label[d]}</span><span>${txt||'—'}</span></div>`;
+  }).join('');
+}
+
+
 async function loadDetailPage(id){
   showPageDetail();
 
@@ -605,7 +662,7 @@ async function loadDetailPage(id){
       elBadges.innerHTML += m.tags.slice(0,5).map(t=>`<span class="badge tag">${t}</span>`).join('');
     }
     elRating.textContent = rating || '—';
-    elOpen.textContent   = open ? 'Open now' : 'Closed';
+    elOpen.textContent = getOpenStruct(m) ? getOpenStatusText(m) : '—';
     elPrice.textContent  = priceStr || '—';
 
     // actions
