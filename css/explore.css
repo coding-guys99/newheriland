@@ -273,3 +273,18 @@
 
 /* 回詳情時隱藏底部導航（若以 class 控制，可改成 body.detail-active .tabbar{…}） */
 .tabbar[style*="display: none"]{ /* 安全墊片，確保空白不被占高 */ height:0 !important; padding:0 !important; }
+
+/* Collapsible Hours */
+.oh summary { list-style:none; }
+.oh summary::-webkit-details-marker { display:none; }
+
+.oh-summary{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  cursor:pointer;
+}
+.oh-right{ display:flex; align-items:center; gap:10px; }
+.oh-today{ color:#374151; font-size:13px; }
+.oh-caret{ display:inline-block; transition:transform .18s ease; }
+.oh[open] .oh-caret{ transform:rotate(180deg); }
+
+/* Weekly lines 沿用你現有的 .oh-list/.oh-line 規則即可 */
