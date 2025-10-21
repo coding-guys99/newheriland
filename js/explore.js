@@ -6,14 +6,14 @@ const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
 /* ---------- Explore DOM ---------- */
-const wall  = $('#cityWall');
-const head  = $('#resultHead');
-const sk    = $('#skList');
-const list  = $('#merchantList');
-const empty = $('#emptyState');
-const errBx = $('#errorState');
-const btnRetry = $('#btnRetry');
-const tabbar = document.querySelector('.tabbar');
+const wall    = $('#cityWall');
+const head    = $('#resultHead');
+const sk      = $('#skList');
+const list    = $('#merchantList');
+const empty   = $('#emptyState');
+const errBx   = $('#errorState');
+const btnRetry= $('#btnRetry');
+const tabbar  = document.querySelector('.tabbar');
 
 /* ---------- Light filter bar ---------- */
 const filtersBox = $('#expFilters');
@@ -32,44 +32,52 @@ const afAttrs  = $('#afAttrs');
 const afMore   = $('#afMore');
 const afSort   = $('#afSort');
 
-/* ---------- Detail page (你的 HTML) ---------- */
+/* ---------- Detail page ---------- */
 const pageDetail    = document.querySelector('[data-page="detail"]');
 const btnDetailBack = $('#btnDetailBack');
 const elName   = $('#detailName');
-const elCat    = $('#detailCategory');
-const elAddr   = $('#detailAddress');
-const elDot    = $('#detailDot');
-const elBadges = $('#detailBadges');
-const elDesc   = $('#detailDesc');
-const elRating = $('#detailRating');
-const elOpen   = $('#detailOpen');
-const elPrice  = $('#detailPrice');
 const actMap   = $('#actMap');
 const actMap2  = $('#actMap2');
 const actPhone = $('#actPhone');
 const actWeb   = $('#actWeb');
 const actShare = $('#actShare');
 const recList  = $('#detailRecList');
+
+// 新增：輪播/徽章/標籤/地址/地圖/時段
 const elCarousel = $('#detailCarousel');
 const btnCPrev   = $('#cPrev');
 const btnCNext   = $('#cNext');
 const elCDots    = $('#cDots');
+const elMeta     = $('#detailMeta');           // ★ / Open / $$
+const elTags     = $('#detailTags');           // 標籤字串/小 chip
+const elAddrText = $('#detailAddressText');    // Address 文字
+const btnCopyAddr= $('#btnCopyAddr');          // Copy address
+const mapCard    = $('#mapCard');              // 整張地圖卡（可能不存在）
+
+// Stats（若你保留「Hours / Meta」之外那張 Stats 卡）
+const elRating = $('#detailRating');
+const elOpen   = $('#detailOpen');
+const elPrice  = $('#detailPrice');
+
+// Hours 週表
+const hoursCard = $('#hoursCard');
+const hoursList = $('#detailHoursList');
+const openChip  = $('#detailOpenChip');
 
 /* ---------- State ---------- */
 const state = {
   cats: new Set(),
   themes: new Set(),
   attrs: new Set(),
-  prices: new Set(),
+  prices: new Set(), // 1~4
   open: false,
   minRating: null,
-  sort: 'latest',
+  sort: 'latest',    // latest | hot | rating
 };
 let currentCity = null;
 let allMerchants = [];
 
 /* ---------- Helpers ---------- */
-const toNum = n => { const x = Number(n); return Number.isFinite(x) ? x : null; };
 const shortAddr = s => (s||'').split(',')[0];
 
 function priceLevelNum(m){
@@ -80,13 +88,20 @@ function priceLevelNum(m){
   return cnt || null;
 }
 
-// 優先 open_days，其次 open_hours(JSON)。舊字串在 isOpenNow 退回處理
+function setAction(el, href){
+  if (!el) return;
+  if (href){ el.href = href; el.removeAttribute('aria-disabled'); el.classList.remove('is-disabled'); }
+  else { el.removeAttribute('href'); el.setAttribute('aria-disabled','true'); el.classList.add('is-disabled'); }
+}
+
+// 營業時間物件（open_days 或新結構 open_hours）
 function getOpenStruct(m){
   const obj = m.open_days || m.open_hours;
   if (obj && typeof obj === 'object') return obj;
   return null;
 }
 
+/** 現在是否營業（支援 open_days/open_hours 結構與舊 openHours 字串） */
 function isOpenNow(m, ref = new Date()){
   const openObj = getOpenStruct(m);
   if (openObj){
@@ -112,7 +127,7 @@ function isOpenNow(m, ref = new Date()){
     });
   }
 
-  // 舊字串 "08:00 - 20:00"/"24H"
+  // 回退：舊字串 "08:00 - 20:00" / "24H"
   const t = (m.openHours || '').toLowerCase().trim();
   if (!t) return false;
   if (t.includes('24h')) return true;
@@ -124,16 +139,11 @@ function isOpenNow(m, ref = new Date()){
   return (end > start) ? (cur >= start && cur < end) : (cur >= start || cur < end);
 }
 
-function setAction(el, href){
-  if (!el) return;
-  if (href){ el.href = href; el.removeAttribute('aria-disabled'); el.classList.remove('is-disabled'); }
-  else { el.removeAttribute('href'); el.setAttribute('aria-disabled','true'); el.classList.add('is-disabled'); }
-}
-
+// 取得「Open now / Closed / —」文案
 function getOpenStatusText(m, ref=new Date()){
   const openObj = getOpenStruct(m);
   if (openObj){
-    const wd = ['sun','mon','tue','wed','thu','fri','sat'][ref.getDay()];
+    const wd  = ['sun','mon','tue','wed','thu','fri','sat'][ref.getDay()];
     const day = openObj[wd];
     if (!day || day.closed === true) return 'Closed';
     if (!Array.isArray(day.ranges) || day.ranges.length === 0) return 'Closed';
@@ -145,13 +155,16 @@ function getOpenStatusText(m, ref=new Date()){
   return isOpenNow(m, ref) ? 'Open now' : 'Closed';
 }
 
+// 產生週表（Mon…Sun）
 function weeklyHoursLines(m){
   const openObj = getOpenStruct(m);
-  if (!openObj && !m.openHours) return '';
+  if (!openObj && !m.openHours) return ''; // 什麼都沒有就空
+
   const days = [
     {k:'mon', n:'Mon'}, {k:'tue', n:'Tue'}, {k:'wed', n:'Wed'},
     {k:'thu', n:'Thu'}, {k:'fri', n:'Fri'}, {k:'sat', n:'Sat'}, {k:'sun', n:'Sun'}
   ];
+
   if (openObj){
     return days.map(d=>{
       const day = openObj[d.k];
@@ -159,10 +172,13 @@ function weeklyHoursLines(m){
       if (!day || day.closed === true) val = 'Closed';
       else if (Array.isArray(day.ranges) && day.ranges.length){
         val = day.ranges.map(r => `${r.open}–${r.close}`).join(', ');
-      } else { val = 'Closed'; }
+      }else{
+        val = 'Closed';
+      }
       return `<div class="oh-line"><span>${d.n}</span><span>${val}</span></div>`;
     }).join('');
   }
+  // 回退：只有單行 openHours（顯示 Daily）
   return `<div class="oh-line"><span>Daily</span><span>${m.openHours}</span></div>`;
 }
 
@@ -195,7 +211,9 @@ async function fetchMerchants(cityId, {limit=500} = {}){
       .eq('status','active')
       .order('updated_at',{ascending:false})
       .limit(limit);
+
     if (cityId && cityId !== 'all') q.eq('city_id', cityId);
+
     const { data, error } = await q;
     if (error) throw error;
     return { ok:true, data: data || [] };
@@ -229,7 +247,7 @@ async function fetchRelated({city_id, category, exceptId, limit=6}={}){
   if (!arr.length) arr = data || [];
 
   if (category){
-    const catLower = category.toLowerCase();
+    const catLower = (category||'').toLowerCase();
     const catMatch = arr.filter(r=>{
       const cats = Array.isArray(r.categories) ? r.categories : (r.category ? [r.category] : []);
       return cats.some(c => (c||'').toLowerCase() === catLower);
@@ -247,7 +265,7 @@ function renderWall(cities){
       <span class="name">All Sarawak</span>
     </button>
   `;
-  cities.slice(0,12).forEach((c)=>{
+  cities.slice(0,12).forEach(c=>{
     const btn = document.createElement('button');
     btn.className = 'citycell';
     btn.setAttribute('role','tab');
@@ -263,14 +281,9 @@ function renderWall(cities){
 
 function renderMerchants(items){
   if (!items.length){
-    list.hidden = true;
-    empty.hidden = false;
-    errBx.hidden = true;
-    return;
+    list.hidden = true; empty.hidden = false; errBx.hidden = true; return;
   }
-  empty.hidden = true;
-  errBx.hidden = true;
-  list.hidden = false;
+  empty.hidden = true; errBx.hidden = true; list.hidden = false;
 
   list.innerHTML = items.map(m=>{
     const rating = (m.rating!=null) ? Number(m.rating).toFixed(1) : null;
@@ -282,7 +295,6 @@ function renderMerchants(items){
 
     const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
     const catStr = cats.slice(0,2).join(', ');
-
     const addrShort = shortAddr(m.address);
     const price = priceLevelNum(m);
     const priceStr = price ? '💲'.repeat(Math.max(1, Math.min(4, price))) : '';
@@ -327,9 +339,7 @@ function applyFilters(){
     });
   }
 
-  if (state.open){
-    arr = arr.filter(m => isOpenNow(m));
-  }
+  if (state.open) arr = arr.filter(m => isOpenNow(m));
 
   if (state.minRating != null){
     arr = arr.filter(m => (Number(m.rating)||0) >= state.minRating);
@@ -404,7 +414,7 @@ function bindLightFilters(){
   });
 }
 
-/* ---------- Advanced drawer wiring ---------- */
+/* ---------- Advanced drawer ---------- */
 function openAF(){ if (!advFilter) return; advFilter.hidden = false; requestAnimationFrame(()=> advFilter.classList.add('active')); }
 function closeAF(){ if (!advFilter) return; advFilter.classList.remove('active'); setTimeout(()=>{ advFilter.hidden = true; }, 150); }
 btnOpenFilter?.addEventListener('click', openAF);
@@ -425,34 +435,29 @@ toggleMulti(afCats,   'data-cat',   state.cats);
 toggleMulti(afThemes, 'data-theme', state.themes);
 toggleMulti(afAttrs,  'data-attr',  state.attrs);
 
-// More：open 切換、rating 單選、price 多選
 afMore?.addEventListener('click', (e)=>{
   const btn = e.target.closest('.chip'); if (!btn) return;
 
   if (btn.hasAttribute('data-open')){
     const on = btn.classList.toggle('is-on');
     btn.setAttribute('aria-pressed', on ? 'true':'false');
-    state.open = on;
-    return;
+    state.open = on; return;
   }
   if (btn.hasAttribute('data-rating')){
     afMore.querySelectorAll('.chip[data-rating]').forEach(b=>{
       b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
     });
     btn.classList.add('is-on'); btn.setAttribute('aria-pressed','true');
-    state.minRating = Number(btn.getAttribute('data-rating'));
-    return;
+    state.minRating = Number(btn.getAttribute('data-rating')); return;
   }
   if (btn.hasAttribute('data-price')){
     const val = Number(btn.getAttribute('data-price'));
     const on  = btn.classList.toggle('is-on');
     btn.setAttribute('aria-pressed', on ? 'true':'false');
     if (on) state.prices.add(val); else state.prices.delete(val);
-    return;
   }
 });
 
-// Sort：單選
 afSort?.addEventListener('click', (e)=>{
   const btn = e.target.closest('.chip[data-sort]'); if (!btn) return;
   afSort.querySelectorAll('.chip[data-sort]').forEach(b=>{
@@ -462,7 +467,6 @@ afSort?.addEventListener('click', (e)=>{
   state.sort = btn.getAttribute('data-sort') || 'latest';
 });
 
-// 同步外層 chips 視覺
 function syncLightBarFromState(){
   $$('.chips--quick .chip[data-sort]').forEach(b=>{
     const on = (b.dataset.sort === state.sort);
@@ -482,25 +486,18 @@ function syncLightBarFromState(){
   });
 }
 
-// Apply / Reset
 btnAdvApply?.addEventListener('click', ()=>{
-  applyFilters();
-  syncLightBarFromState();
-  closeAF();
+  applyFilters(); syncLightBarFromState(); closeAF();
 });
 btnAdvReset?.addEventListener('click', ()=>{
   state.cats.clear(); state.themes.clear(); state.attrs.clear(); state.prices.clear();
   state.open = false; state.minRating = null; state.sort = 'latest';
-
   advFilter?.querySelectorAll('.chip.is-on').forEach(b=>{
     b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
   });
   const firstSort = afSort?.querySelector('.chip[data-sort="latest"]');
-  if (firstSort){
-    firstSort.classList.add('is-on'); firstSort.setAttribute('aria-pressed','true');
-  }
-  syncLightBarFromState();
-  applyFilters();
+  if (firstSort){ firstSort.classList.add('is-on'); firstSort.setAttribute('aria-pressed','true'); }
+  syncLightBarFromState(); applyFilters();
 });
 
 /* ---------- City switching ---------- */
@@ -513,15 +510,13 @@ function selectCity(id, cityObj){
   });
 
   head && (head.textContent = `${currentCity.name || id} — loading…`);
-  sk.hidden = false; list.hidden = true;
-  empty.hidden = true; errBx.hidden = true;
+  sk.hidden = false; list.hidden = true; empty.hidden = true; errBx.hidden = true;
 
   fetchMerchants(id).then(res=>{
     sk.hidden = true;
 
     if (!res.ok){
-      errBx.hidden = false;
-      list.hidden = true;
+      errBx.hidden = false; list.hidden = true;
       head && (head.textContent = `${currentCity.name || id}`);
       return;
     }
@@ -569,161 +564,139 @@ function restoreMainPage(){
   tabbar && (tabbar.style.display = '');
 }
 
-function humanHours(m){
-  const openObj = getOpenStruct(m);
-  if (openObj){
-    const wd   = ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
-    const day  = openObj[wd];
-    if (!day) return '—';
-    if (day.closed) return `${wd.toUpperCase()}: Closed`;
-    if (day.ranges?.length){
-      const s = day.ranges.map(r => `${r.open}–${r.close}`).join(', ');
-      return `${wd.toUpperCase()}: ${s}`;
-    }
-    return `${wd.toUpperCase()}: —`;
-  }
-  return m.openHours || '—';
-}
-
 async function loadDetailPage(id){
   showPageDetail();
 
-  // reset UI
+  // reset UI（依新結構）
   elName.textContent = 'Loading…';
-  elCat.textContent = ''; elAddr.textContent = ''; elDot.style.display = 'none';
-  elBadges.innerHTML = ''; elDesc.textContent = '';
-  elRating.textContent = '—'; elOpen.textContent = '—'; elPrice.textContent = '—';
+  elMeta.innerHTML = '';
+  elTags.innerHTML = '';
+  elAddrText.textContent = '—';
+  elRating && (elRating.textContent = '—');
+  elOpen   && (elOpen.textContent   = '—');
+  elPrice  && (elPrice.textContent  = '—');
+  hoursList && (hoursList.innerHTML = '');
+  openChip && (openChip.textContent = '—');
+  elCarousel.innerHTML = '';
+  elCDots.hidden = btnCPrev.hidden = btnCNext.hidden = true;
   recList.innerHTML = '';
-  // 重置輪播
-  if (elCarousel){
-    elCarousel.innerHTML = '';
-    if (btnCPrev) btnCPrev.hidden = true;
-    if (btnCNext) btnCNext.hidden = true;
-    if (elCDots)  elCDots.hidden  = true;
-  }
 
   try{
     const m = await fetchMerchantById(id);
 
-    // name / sub info
+    /* ====== 基本 ====== */
     elName.textContent = m.name || '';
-    const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
-    elCat.textContent  = cats.slice(0,2).join(', ');
-    elAddr.textContent = m.address || '';
-    elDot.style.display = (elCat.textContent && elAddr.textContent) ? '' : 'none';
-    elDesc.textContent  = m.description || '—';
 
-    // ===== Hero Carousel =====
-    if (elCarousel){
-      const imgs = Array.isArray(m.images) ? m.images.filter(Boolean) : [];
-      if (!imgs.length && m.cover) imgs.push(m.cover);
+    /* ====== Hero Carousel ====== */
+    const imgs = Array.isArray(m.images) ? m.images.filter(Boolean) : [];
+    if (!imgs.length && m.cover) imgs.push(m.cover);
 
-      elCarousel.innerHTML = imgs.map((src, i) =>
-        `<img src="${src}" alt="${m.name||''}" ${i>0?'loading="lazy"':''}
-              onerror="this.onerror=null;this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22><rect width=%221200%22 height=%22675%22 fill=%22%23eee%22/></svg>';">`
-      ).join('');
+    elCarousel.innerHTML = imgs.map((src, i) =>
+      `<img src="${src}" alt="${m.name||''}" ${i>0?'loading="lazy"':''}
+            onerror="this.onerror=null;this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22><rect width=%221200%22 height=%22675%22 fill=%22%23eee%22/></svg>';">`
+    ).join('');
 
-      const multi = imgs.length > 1;
-      if (btnCPrev) btnCPrev.hidden = !multi;
-      if (btnCNext) btnCNext.hidden = !multi;
-      if (elCDots)  elCDots.hidden  = !multi;
+    const multi = imgs.length > 1;
+    btnCPrev.hidden = btnCNext.hidden = elCDots.hidden = !multi;
 
-      if (multi && elCDots && btnCPrev && btnCNext){
-        elCDots.innerHTML = imgs.map((_,i)=>`<button type="button" aria-label="Go to slide ${i+1}" ${i===0?'aria-current="true"':''}></button>`).join('');
-
-        const updateDots = () => {
-          const w = elCarousel.clientWidth || 1;
-          const idx = Math.round(elCarousel.scrollLeft / w);
-          [...elCDots.children].forEach((b,i)=> b.setAttribute('aria-current', i===idx ? 'true':'false'));
-          btnCPrev.disabled = (idx===0);
-          btnCNext.disabled = (idx===imgs.length-1);
-        };
-
-        btnCPrev.onclick = () => elCarousel.scrollBy({ left: -elCarousel.clientWidth, behavior: 'smooth' });
-        btnCNext.onclick = () => elCarousel.scrollBy({ left:  elCarousel.clientWidth, behavior: 'smooth' });
-        elCarousel.addEventListener('scroll', () => { window.requestAnimationFrame(updateDots); });
-        elCDots.onclick = (e)=>{
-          const i = [...elCDots.children].indexOf(e.target.closest('button'));
-          if (i>=0){
-            elCarousel.scrollTo({ left: i * elCarousel.clientWidth, behavior: 'smooth' });
-          }
-        };
-        updateDots();
-      }
+    if (multi){
+      elCDots.innerHTML = imgs.map((_,i)=>`<button type="button" aria-label="Go to slide ${i+1}" ${i===0?'aria-current="true"':''}></button>`).join('');
+      const updateDots = () => {
+        const w = elCarousel.clientWidth || 1;
+        const idx = Math.round(elCarousel.scrollLeft / w);
+        [...elCDots.children].forEach((b,i)=> b.setAttribute('aria-current', i===idx ? 'true':'false'));
+        btnCPrev.disabled = (idx===0);
+        btnCNext.disabled = (idx===imgs.length-1);
+      };
+      btnCPrev.onclick = () => elCarousel.scrollBy({ left: -elCarousel.clientWidth, behavior: 'smooth' });
+      btnCNext.onclick = () => elCarousel.scrollBy({ left:  elCarousel.clientWidth, behavior: 'smooth' });
+      elCarousel.addEventListener('scroll', () => { window.requestAnimationFrame(updateDots); });
+      elCDots.onclick = (e)=>{
+        const i = [...elCDots.children].indexOf(e.target.closest('button'));
+        if (i>=0) elCarousel.scrollTo({ left: i * elCarousel.clientWidth, behavior: 'smooth' });
+      };
+      updateDots();
     }
 
-    // badges（含 tags）
-    const rating = (m.rating!=null) ? Number(m.rating).toFixed(1) : null;
-    const open   = isOpenNow(m);
-    const price  = priceLevelNum(m);
-    const priceStr = price ? '💲'.repeat(Math.max(1, Math.min(4, price))) : '';
-    elBadges.innerHTML = `
-      ${rating ? `<span class="badge">★ ${rating}</span>` : ''}
-      <span class="badge ${open ? 'ok':'off'}">${open ? 'Open now':'Closed'}</span>
+    /* ====== Meta 徽章 & 標籤 ====== */
+    const ratingTxt = (m.rating!=null) ? Number(m.rating).toFixed(1) : null;
+    const statusTxt = getOpenStatusText(m);
+    const priceNum  = priceLevelNum(m);
+    const priceStr  = priceNum ? '💲'.repeat(Math.max(1, Math.min(4, priceNum))) : '';
+
+    elMeta.innerHTML = `
+      ${ratingTxt ? `<span class="badge">★ ${ratingTxt}</span>` : ''}
+      ${statusTxt !== '—' ? `<span class="badge ${statusTxt==='Open now'?'ok':'off'}">${statusTxt}</span>` : ''}
       ${priceStr ? `<span class="badge">${priceStr}</span>` : ''}
     `;
-    if (Array.isArray(m.tags) && m.tags.length){
-      elBadges.innerHTML += m.tags.slice(0,5).map(t=>`<span class="badge tag">${t}</span>`).join('');
-    }
-    elRating.textContent = rating || '—';
-    elOpen.textContent   = getOpenStruct(m) ? getOpenStatusText(m) : '—';
-    elPrice.textContent  = priceStr || '—';
 
-    // actions
-    const gq = (m.lat && m.lng) ? `${m.lat},${m.lng}` : (m.address || '');
-    setAction(actMap,   gq ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq)}` : null);
+    if (Array.isArray(m.tags) && m.tags.length){
+      // 你可改成 chip 樣式；這裡用純文字分隔
+      elTags.textContent = m.tags.join(' · ');
+    }else{
+      elTags.textContent = '';
+    }
+
+    // Stats（若保留）
+    elRating && (elRating.textContent = ratingTxt || '—');
+    elOpen   && (elOpen.textContent   = statusTxt || '—');
+    elPrice  && (elPrice.textContent  = priceStr || '—');
+
+    /* ====== About ====== */
+    const elDesc = $('#detailDesc');
+    elDesc.textContent = m.description || '—';
+
+    /* ====== Address ====== */
+    elAddrText.textContent = m.address || '—';
+    btnCopyAddr?.addEventListener('click', ()=>{
+      if (!m.address) return;
+      navigator.clipboard?.writeText(m.address).catch(()=>{});
+    }, { once:true });
+
+    /* ====== Actions ====== */
+    const mapQuery = (m.lat && m.lng) ? `${m.lat},${m.lng}` : (m.address || '');
+    setAction(actMap,   mapQuery ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}` : null);
+    setAction(actMap2,  mapQuery ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}` : null);
     setAction(actPhone, m.phone ? `tel:${m.phone.replace(/\s+/g,'')}` : null);
     setAction(actWeb,   m.website || null);
     actShare?.addEventListener('click', async ()=>{
       const url = location.href;
-      const text = `${m.name} — ${cats.slice(0,1).join(', ')}`;
+      const text = `${m.name}`;
       try{ await navigator.share?.({ title: m.name, text, url }); }catch(_){}
     }, { once:true });
 
-    // ===== Map Preview（OSM 免金鑰）=====
+    /* ====== Map Embed（OSM） ====== */
     const box = document.querySelector('.d-mapbox');
     if (box){
       if (m.lat && m.lng){
-        const urlQuery = `${m.lat},${m.lng}`;
-        setAction(actMap,  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(urlQuery)}`);
-        setAction(actMap2, `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(urlQuery)}`);
         const src = `https://www.openstreetmap.org/export/embed.html?layer=mapnik&marker=${encodeURIComponent(m.lat)},${encodeURIComponent(m.lng)}`;
         box.innerHTML = `<iframe class="map-embed" src="${src}" style="width:100%;height:220px;border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
       }else{
-        if (m.address){
-          const q = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.address)}`;
-          setAction(actMap,  q);
-          setAction(actMap2, q);
-        }else{
-          setAction(actMap,  null);
-          setAction(actMap2, null);
-        }
-        // 恢復 placeholder
+        // 沒座標 → 保留 placeholder（仍有 actMap2 連到地址）
         box.innerHTML = `<div class="d-mapph">Map preview</div>`;
       }
+      // 若沒有地址也沒有座標 → 整張地圖卡隱藏
+      if (!m.address && !(m.lat && m.lng)) mapCard && (mapCard.hidden = true);
+      else mapCard && (mapCard.hidden = false);
     }
 
-    // ===== Hours（週表）=====
-    const hoursCard  = document.getElementById('hoursCard');
-    const hoursList  = document.getElementById('detailHoursList');
-    const openChip   = document.getElementById('detailOpenChip');
-
-    const statusText = getOpenStatusText(m);
-    elOpen.textContent = statusText || '—';
-
+    /* ====== Hours（週表） ====== */
+    const hasHours = !!getOpenStruct(m) || !!m.openHours;
     if (hoursCard && hoursList && openChip){
-      const hasStruct = !!getOpenStruct(m) || !!m.openHours;
-      if (hasStruct){
+      if (hasHours){
         hoursCard.hidden = false;
-        openChip.textContent = statusText || '—';
-        hoursList.innerHTML = weeklyHoursLines(m) || '';
+        openChip.textContent = statusTxt || '—';
+        hoursList.innerHTML  = weeklyHoursLines(m) || '';
       }else{
         hoursCard.hidden = true;
         hoursList.innerHTML = '';
       }
     }
+    // 同步今日狀態（如你保留 Stats 卡）
+    elOpen && (elOpen.textContent = statusTxt || '—');
 
-    // related
+    /* ====== Related ====== */
+    const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
     const related = await fetchRelated({ city_id: m.city_id, category: cats[0], exceptId: m.id, limit: 6 });
     recList.innerHTML = related.map(r => `
       <a class="rec" data-id="${r.id}" role="button" tabindex="0" aria-label="Open ${r.name}">
@@ -737,9 +710,9 @@ async function loadDetailPage(id){
     };
 
   }catch(err){
-    console.error('loadDetailPage failed:', err);
     elName.textContent = 'Failed to load';
-    elDesc.textContent = 'Please check your connection and try again.';
+    const elDesc = $('#detailDesc');
+    if (elDesc) elDesc.textContent = 'Please check your connection and try again.';
   }
 }
 
@@ -774,7 +747,6 @@ window.addEventListener('hashchange', handleHash);
   const cities = await loadCities();
   renderWall(cities);
 
-  // 城市牆事件
   wall.addEventListener('click', (e)=>{
     const btn = e.target.closest('.citycell');
     if (!btn) return;
@@ -788,7 +760,6 @@ window.addEventListener('hashchange', handleHash);
     if (e.key === 'ArrowLeft'){  e.preventDefault(); const p = cells[Math.max(cur-1, 0)];             p?.focus(); p?.click(); }
   });
 
-  // 預設選 ALL
   const first = wall.querySelector('.citycell[data-id="all"]') || wall.querySelector('.citycell');
   if (first){
     const id = first.dataset.id;
@@ -796,7 +767,6 @@ window.addEventListener('hashchange', handleHash);
     selectCity(id, { id, name });
   }
 
-  // 列表 → 進二級頁（hash 導向）
   list.addEventListener('click', (e)=>{
     const card = e.target.closest('.item'); if (!card) return;
     const id = card.dataset.id; if (!id) return;
@@ -809,9 +779,7 @@ window.addEventListener('hashchange', handleHash);
     location.hash = `#detail/${id}`;
   });
 
-  // 詳情返回
   btnDetailBack?.addEventListener('click', ()=>{ location.hash = '#explore'; });
 
-  // 初始路由
   handleHash();
 })();
