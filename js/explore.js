@@ -45,7 +45,7 @@ const elRating = $('#detailRating');
 const elOpen   = $('#detailOpen');
 const elPrice  = $('#detailPrice');
 const actMap   = $('#actMap');
-const actMap2   = $('#actMap2');
+const actMap2  = $('#actMap2');
 const actPhone = $('#actPhone');
 const actWeb   = $('#actWeb');
 const actShare = $('#actShare');
@@ -57,13 +57,13 @@ const elCDots    = $('#cDots');
 
 /* ---------- State ---------- */
 const state = {
-  cats: new Set(),      // 多選：分類
-  themes: new Set(),    // 多選：視為 tags
-  attrs: new Set(),     // 多選：視為 tags
-  prices: new Set(),    // 多選：1~4
-  open: false,          // 切換：只顯示營業中
-  minRating: null,      // 單選：4.5 / 4.0
-  sort: 'latest',       // latest | hot | rating
+  cats: new Set(),
+  themes: new Set(),
+  attrs: new Set(),
+  prices: new Set(),
+  open: false,
+  minRating: null,
+  sort: 'latest',
 };
 let currentCity = null;
 let allMerchants = [];
@@ -80,24 +80,19 @@ function priceLevelNum(m){
   return cnt || null;
 }
 
-// 放在 Helpers 區塊（shortAddr、priceLevelNum 之後）
+// 優先 open_days，其次 open_hours(JSON)。舊字串在 isOpenNow 退回處理
 function getOpenStruct(m){
-  // 優先用 open_days，其次 open_hours（若 open_hours 也是新結構亦可）
   const obj = m.open_days || m.open_hours;
   if (obj && typeof obj === 'object') return obj;
-  return null; // 讓 isOpenNow 回退到舊字串 openHours
+  return null;
 }
 
-/** 判斷是否「現在營業」：支援 open_days/open_hours(JSON) 與 openHours(字串) */
 function isOpenNow(m, ref = new Date()){
   const openObj = getOpenStruct(m);
   if (openObj){
     const wd = ['sun','mon','tue','wed','thu','fri','sat'][ref.getDay()];
     const day = openObj[wd];
-
-    // day 不存在或 day.closed === true → 關門
     if (!day || day.closed === true) return false;
-
     const ranges = Array.isArray(day.ranges) ? day.ranges : [];
     if (!ranges.length) return false;
 
@@ -106,21 +101,18 @@ function isOpenNow(m, ref = new Date()){
       const [h, mi] = (hhmm || '').split(':').map(x => parseInt(x, 10));
       if (!Number.isFinite(h)) return 0;
       const m = Number.isFinite(mi) ? mi : 0;
-      // 支援 "24:00"
       return (h === 24 && m === 0) ? 1440 : (h * 60 + m);
     };
 
     return ranges.some(r => {
       const o = toMin(r.open);
       const c = toMin(r.close);
-      // 正常時段（同日）
-      if (c > o) return (cur >= o && cur < c);
-      // 跨夜（e.g. 22:00–02:00），或 00:00–24:00
-      return (cur >= o || cur < c);
+      if (c > o) return (cur >= o && cur < c); // 同日
+      return (cur >= o || cur < c);            // 跨夜
     });
   }
 
-  // 回退：舊字串 "08:00 - 20:00" / "24H"
+  // 舊字串 "08:00 - 20:00"/"24H"
   const t = (m.openHours || '').toLowerCase().trim();
   if (!t) return false;
   if (t.includes('24h')) return true;
@@ -138,7 +130,6 @@ function setAction(el, href){
   else { el.removeAttribute('href'); el.setAttribute('aria-disabled','true'); el.classList.add('is-disabled'); }
 }
 
-// 取得「Open now / Closed」的字樣（統一用這個）
 function getOpenStatusText(m, ref=new Date()){
   const openObj = getOpenStruct(m);
   if (openObj){
@@ -148,23 +139,19 @@ function getOpenStatusText(m, ref=new Date()){
     if (!Array.isArray(day.ranges) || day.ranges.length === 0) return 'Closed';
     return isOpenNow(m, ref) ? 'Open now' : 'Closed';
   }
-  // 舊字串
   const t = (m.openHours||'').trim();
   if (!t) return '—';
   if (/24\s*H/i.test(t)) return 'Open now';
   return isOpenNow(m, ref) ? 'Open now' : 'Closed';
 }
 
-// 做出 Mon..Sun 每日時間的 HTML
 function weeklyHoursLines(m){
   const openObj = getOpenStruct(m);
-  if (!openObj && !m.openHours) return ''; // 什麼都沒有就空
-
+  if (!openObj && !m.openHours) return '';
   const days = [
     {k:'mon', n:'Mon'}, {k:'tue', n:'Tue'}, {k:'wed', n:'Wed'},
     {k:'thu', n:'Thu'}, {k:'fri', n:'Fri'}, {k:'sat', n:'Sat'}, {k:'sun', n:'Sun'}
   ];
-
   if (openObj){
     return days.map(d=>{
       const day = openObj[d.k];
@@ -172,18 +159,12 @@ function weeklyHoursLines(m){
       if (!day || day.closed === true) val = 'Closed';
       else if (Array.isArray(day.ranges) && day.ranges.length){
         val = day.ranges.map(r => `${r.open}–${r.close}`).join(', ');
-      }else{
-        val = 'Closed';
-      }
+      } else { val = 'Closed'; }
       return `<div class="oh-line"><span>${d.n}</span><span>${val}</span></div>`;
     }).join('');
   }
-
-  // 回退：只有單行 openHours（就顯示「Daily」）
   return `<div class="oh-line"><span>Daily</span><span>${m.openHours}</span></div>`;
 }
-
-
 
 /* ---------- Supabase ---------- */
 async function loadCities(){
@@ -214,10 +195,7 @@ async function fetchMerchants(cityId, {limit=500} = {}){
       .eq('status','active')
       .order('updated_at',{ascending:false})
       .limit(limit);
-
-    // cityId = 'all' 時抓全部，否則依城市
     if (cityId && cityId !== 'all') q.eq('city_id', cityId);
-
     const { data, error } = await q;
     if (error) throw error;
     return { ok:true, data: data || [] };
@@ -247,11 +225,9 @@ async function fetchRelated({city_id, category, exceptId, limit=6}={}){
     .limit(limit);
   if (error) throw error;
 
-  // 優先同城市
   let arr = (data||[]).filter(x => x.city_id === city_id);
   if (!arr.length) arr = data || [];
 
-  // 再優先同類別（支援 categories[] 或單一 category）
   if (category){
     const catLower = category.toLowerCase();
     const catMatch = arr.filter(r=>{
@@ -265,20 +241,17 @@ async function fetchRelated({city_id, category, exceptId, limit=6}={}){
 
 /* ---------- Render: wall & list ---------- */
 function renderWall(cities){
-  // 插入「ALL」長條（不佔格），放在最前
   wall.innerHTML = `
     <button class="citycell citycell--all" role="tab" data-id="all" aria-selected="true">
       <span class="ico">✨</span>
       <span class="name">All Sarawak</span>
     </button>
   `;
-  // 只取 12 個城市（不包含 ALL）
-  cities.slice(0,12).forEach((c,i)=>{
+  cities.slice(0,12).forEach((c)=>{
     const btn = document.createElement('button');
     btn.className = 'citycell';
     btn.setAttribute('role','tab');
     btn.dataset.id = c.id;
-    // 第一顆（ALL）已 aria-selected=true，城市從 false 開始
     btn.setAttribute('aria-selected', 'false');
     btn.innerHTML = `
       <span class="ico">${c.icon || '🏙️'}</span>
@@ -303,10 +276,9 @@ function renderMerchants(items){
     const rating = (m.rating!=null) ? Number(m.rating).toFixed(1) : null;
     const statusTxt = getOpenStruct(m) ? getOpenStatusText(m) : '—';
     const badgeOpen =
-    statusTxt === 'Open now' ? `<span class="badge ok">Open now</span>` :
-    statusTxt === '—'        ? `<span class="badge">—</span>` :
-                              `<span class="badge off">${statusTxt}</span>`;
-
+      statusTxt === 'Open now' ? `<span class="badge ok">Open now</span>` :
+      statusTxt === '—'        ? `<span class="badge">—</span>` :
+                                 `<span class="badge off">${statusTxt}</span>`;
 
     const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
     const catStr = cats.slice(0,2).join(', ');
@@ -338,7 +310,6 @@ function renderMerchants(items){
 function applyFilters(){
   let arr = [...allMerchants];
 
-  // 分類（多選 OR）— 支援 categories[] / category
   if (state.cats.size){
     const want = new Set([...state.cats].map(s => s.toLowerCase()));
     arr = arr.filter(m => {
@@ -347,7 +318,6 @@ function applyFilters(){
     });
   }
 
-  // Themes / Attrs（視為 tags[] 內容）
   if (state.themes.size || state.attrs.size){
     arr = arr.filter(m=>{
       const tags = Array.isArray(m.tags) ? m.tags.map(t=>t.toLowerCase()) : [];
@@ -357,17 +327,14 @@ function applyFilters(){
     });
   }
 
-  // Open now
   if (state.open){
     arr = arr.filter(m => isOpenNow(m));
   }
 
-  // Rating
   if (state.minRating != null){
     arr = arr.filter(m => (Number(m.rating)||0) >= state.minRating);
   }
 
-  // Price（多選 OR）
   if (state.prices.size){
     arr = arr.filter(m=>{
       const p = priceLevelNum(m);
@@ -375,7 +342,6 @@ function applyFilters(){
     });
   }
 
-  // 排序
   if (state.sort === 'hot'){
     arr.sort((a,b)=>{
       const ra = Number(a.rating)||0, rb = Number(b.rating)||0;
@@ -386,7 +352,7 @@ function applyFilters(){
     });
   }else if (state.sort === 'rating'){
     arr.sort((a,b)=> (Number(b.rating)||0) - (Number(a.rating)||0));
-  }else{ // latest
+  }else{
     arr.sort((a,b)=>{
       const ta = new Date(a.updated_at||0).getTime();
       const tb = new Date(b.updated_at||0).getTime();
@@ -401,7 +367,6 @@ function applyFilters(){
 function bindLightFilters(){
   if (!filtersBox) return;
 
-  // 類別：多選
   chipsCats.forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const cat = btn.dataset.cat;
@@ -412,7 +377,6 @@ function bindLightFilters(){
     });
   });
 
-  // 快速：latest/hot/rating 單選；open / rating(4.5+) 為切換
   chipsQuick.forEach(btn=>{
     if (!btn.hasAttribute('aria-pressed')) btn.setAttribute('aria-pressed','false');
     btn.addEventListener('click', ()=>{
@@ -565,7 +529,6 @@ function selectCity(id, cityObj){
     allMerchants = res.data || [];
     list.hidden = false;
 
-    // 重置排序為 latest（視覺也重置）
     state.sort = 'latest';
     $$('.chips--quick .chip[data-sort]', filtersBox).forEach(b=>{
       const on = (b.dataset.sort === 'latest');
@@ -582,12 +545,11 @@ function showPageDetail(){
   document.querySelectorAll('[data-page]').forEach(sec=>{
     sec.hidden = (sec.dataset.page !== 'detail');
   });
-  // 取消 tabbar 高亮（交給 app.js 在返回時處理）
   $$('.tabbar .tab').forEach(t=>{
     t.setAttribute('aria-selected','false');
     t.removeAttribute('aria-current');
   });
-  tabbar && (tabbar.style.display = 'none');  // 或者 document.body.classList.add('detail-active')
+  tabbar && (tabbar.style.display = 'none');
 }
 
 function restoreMainPage(){
@@ -596,7 +558,6 @@ function restoreMainPage(){
   document.querySelectorAll('[data-page]').forEach(sec=>{
     sec.hidden = (sec.dataset.page !== current);
   });
-  // 回 Explore 且尚未載入任何商家時，自動選第一個城市
   if (current === 'explore' && !allMerchants.length) {
     const first = wall?.querySelector('.citycell');
     if (first) {
@@ -605,7 +566,7 @@ function restoreMainPage(){
       selectCity(id, city);
     }
   }
-  tabbar && (tabbar.style.display = '');      // 或者 document.body.classList.remove('detail-active')
+  tabbar && (tabbar.style.display = '');
 }
 
 function humanHours(m){
@@ -621,7 +582,6 @@ function humanHours(m){
     }
     return `${wd.toUpperCase()}: —`;
   }
-  // 舊資料回退
   return m.openHours || '—';
 }
 
@@ -634,13 +594,18 @@ async function loadDetailPage(id){
   elBadges.innerHTML = ''; elDesc.textContent = '';
   elRating.textContent = '—'; elOpen.textContent = '—'; elPrice.textContent = '—';
   recList.innerHTML = '';
+  // 重置輪播
+  if (elCarousel){
+    elCarousel.innerHTML = '';
+    if (btnCPrev) btnCPrev.hidden = true;
+    if (btnCNext) btnCNext.hidden = true;
+    if (elCDots)  elCDots.hidden  = true;
+  }
 
   try{
     const m = await fetchMerchantById(id);
 
-    // hero/name/sub
-    const cover = m.cover || (m.images?.[0]) || '';
-    if (cover) elHero.style.backgroundImage = `url("${cover}")`;
+    // name / sub info
     elName.textContent = m.name || '';
     const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
     elCat.textContent  = cats.slice(0,2).join(', ');
@@ -649,47 +614,43 @@ async function loadDetailPage(id){
     elDesc.textContent  = m.description || '—';
 
     // ===== Hero Carousel =====
-const imgs = Array.isArray(m.images) ? m.images.filter(Boolean) : [];
-if (!imgs.length && m.cover) imgs.push(m.cover);
+    if (elCarousel){
+      const imgs = Array.isArray(m.images) ? m.images.filter(Boolean) : [];
+      if (!imgs.length && m.cover) imgs.push(m.cover);
 
-// 產生 slides
-elCarousel.innerHTML = imgs.map((src, i) =>
-  `<img src="${src}" alt="${m.name||''}" ${i>0?'loading="lazy"':''}
-        onerror="this.onerror=null;this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22><rect width=%221200%22 height=%22675%22 fill=%22%23eee%22/></svg>';">`
-).join('');
+      elCarousel.innerHTML = imgs.map((src, i) =>
+        `<img src="${src}" alt="${m.name||''}" ${i>0?'loading="lazy"':''}
+              onerror="this.onerror=null;this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22><rect width=%221200%22 height=%22675%22 fill=%22%23eee%22/></svg>';">`
+      ).join('');
 
-// 箭頭 / 點點顯示與事件
-const multi = imgs.length > 1;
-btnCPrev.hidden = btnCNext.hidden = elCDots.hidden = !multi;
+      const multi = imgs.length > 1;
+      if (btnCPrev) btnCPrev.hidden = !multi;
+      if (btnCNext) btnCNext.hidden = !multi;
+      if (elCDots)  elCDots.hidden  = !multi;
 
-if (multi){
-  elCDots.innerHTML = imgs.map((_,i)=>`<button type="button" aria-label="Go to slide ${i+1}" ${i===0?'aria-current="true"':''}></button>`).join('');
+      if (multi && elCDots && btnCPrev && btnCNext){
+        elCDots.innerHTML = imgs.map((_,i)=>`<button type="button" aria-label="Go to slide ${i+1}" ${i===0?'aria-current="true"':''}></button>`).join('');
 
-  const updateDots = () => {
-    const w = elCarousel.clientWidth || 1;
-    const idx = Math.round(elCarousel.scrollLeft / w);
-    [...elCDots.children].forEach((b,i)=> b.setAttribute('aria-current', i===idx ? 'true':'false'));
-    // 控制箭頭可用狀態（可選）
-    btnCPrev.disabled = (idx===0);
-    btnCNext.disabled = (idx===imgs.length-1);
-  };
+        const updateDots = () => {
+          const w = elCarousel.clientWidth || 1;
+          const idx = Math.round(elCarousel.scrollLeft / w);
+          [...elCDots.children].forEach((b,i)=> b.setAttribute('aria-current', i===idx ? 'true':'false'));
+          btnCPrev.disabled = (idx===0);
+          btnCNext.disabled = (idx===imgs.length-1);
+        };
 
-  btnCPrev.onclick = () => elCarousel.scrollBy({ left: -elCarousel.clientWidth, behavior: 'smooth' });
-  btnCNext.onclick = () => elCarousel.scrollBy({ left:  elCarousel.clientWidth, behavior: 'smooth' });
-  elCarousel.addEventListener('scroll', () => { window.requestAnimationFrame(updateDots); });
-
-  // 點點可點擊跳頁
-  elCDots.onclick = (e)=>{
-    const i = [...elCDots.children].indexOf(e.target.closest('button'));
-    if (i>=0){
-      elCarousel.scrollTo({ left: i * elCarousel.clientWidth, behavior: 'smooth' });
+        btnCPrev.onclick = () => elCarousel.scrollBy({ left: -elCarousel.clientWidth, behavior: 'smooth' });
+        btnCNext.onclick = () => elCarousel.scrollBy({ left:  elCarousel.clientWidth, behavior: 'smooth' });
+        elCarousel.addEventListener('scroll', () => { window.requestAnimationFrame(updateDots); });
+        elCDots.onclick = (e)=>{
+          const i = [...elCDots.children].indexOf(e.target.closest('button'));
+          if (i>=0){
+            elCarousel.scrollTo({ left: i * elCarousel.clientWidth, behavior: 'smooth' });
+          }
+        };
+        updateDots();
+      }
     }
-  };
-
-  // 初始狀態
-  updateDots();
-}
-
 
     // badges（含 tags）
     const rating = (m.rating!=null) ? Number(m.rating).toFixed(1) : null;
@@ -705,7 +666,7 @@ if (multi){
       elBadges.innerHTML += m.tags.slice(0,5).map(t=>`<span class="badge tag">${t}</span>`).join('');
     }
     elRating.textContent = rating || '—';
-    elOpen.textContent = getOpenStruct(m) ? getOpenStatusText(m) : '—';
+    elOpen.textContent   = getOpenStruct(m) ? getOpenStatusText(m) : '—';
     elPrice.textContent  = priceStr || '—';
 
     // actions
@@ -720,53 +681,47 @@ if (multi){
     }, { once:true });
 
     // ===== Map Preview（OSM 免金鑰）=====
-const box = document.querySelector('.d-mapbox');
-if (box){
-  if (m.lat && m.lng){
-    // 也更新「Open in Maps」兩顆按鈕（你已有）
-    const urlQuery = `${m.lat},${m.lng}`;
-    setAction(actMap,  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(urlQuery)}`);
-    setAction(actMap2, `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(urlQuery)}`);
-
-    // 內嵌地圖（OpenStreetMap）
-    const src = `https://www.openstreetmap.org/export/embed.html?layer=mapnik&marker=${encodeURIComponent(m.lat)},${encodeURIComponent(m.lng)}`;
-    box.innerHTML = `<iframe class="map-embed" src="${src}" style="width:100%;height:220px;border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
-  }else{
-    // 沒座標 → 維持 placeholder，並把 Map 連結用地址（若有）
-    if (m.address){
-      const q = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.address)}`;
-      setAction(actMap,  q);
-      setAction(actMap2, q);
-    }else{
-      setAction(actMap,  null);
-      setAction(actMap2, null);
+    const box = document.querySelector('.d-mapbox');
+    if (box){
+      if (m.lat && m.lng){
+        const urlQuery = `${m.lat},${m.lng}`;
+        setAction(actMap,  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(urlQuery)}`);
+        setAction(actMap2, `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(urlQuery)}`);
+        const src = `https://www.openstreetmap.org/export/embed.html?layer=mapnik&marker=${encodeURIComponent(m.lat)},${encodeURIComponent(m.lng)}`;
+        box.innerHTML = `<iframe class="map-embed" src="${src}" style="width:100%;height:220px;border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+      }else{
+        if (m.address){
+          const q = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.address)}`;
+          setAction(actMap,  q);
+          setAction(actMap2, q);
+        }else{
+          setAction(actMap,  null);
+          setAction(actMap2, null);
+        }
+        // 恢復 placeholder
+        box.innerHTML = `<div class="d-mapph">Map preview</div>`;
+      }
     }
-    // 留下原本的 .d-mapph
-  }
-}
 
     // ===== Hours（週表）=====
-const hoursCard  = document.getElementById('hoursCard');      // 可不存在
-const hoursList  = document.getElementById('detailHoursList'); // 可不存在
-const openChip   = document.getElementById('detailOpenChip');  // 可不存在
+    const hoursCard  = document.getElementById('hoursCard');
+    const hoursList  = document.getElementById('detailHoursList');
+    const openChip   = document.getElementById('detailOpenChip');
 
-// 今日狀態（原本寫在 elOpen 也保留）
-const statusText = getOpenStatusText(m);
-elOpen.textContent = statusText || '—';
+    const statusText = getOpenStatusText(m);
+    elOpen.textContent = statusText || '—';
 
-if (hoursCard && hoursList && openChip){
-  const hasStruct = !!getOpenStruct(m) || !!m.openHours;
-  if (hasStruct){
-    hoursCard.hidden = false;
-    openChip.textContent = statusText || '—';
-    hoursList.innerHTML = weeklyHoursLines(m) || '';
-  }else{
-    // 沒任何營業資料 → 整張卡藏起來
-    hoursCard.hidden = true;
-    hoursList.innerHTML = '';
-  }
-}
-
+    if (hoursCard && hoursList && openChip){
+      const hasStruct = !!getOpenStruct(m) || !!m.openHours;
+      if (hasStruct){
+        hoursCard.hidden = false;
+        openChip.textContent = statusText || '—';
+        hoursList.innerHTML = weeklyHoursLines(m) || '';
+      }else{
+        hoursCard.hidden = true;
+        hoursList.innerHTML = '';
+      }
+    }
 
     // related
     const related = await fetchRelated({ city_id: m.city_id, category: cats[0], exceptId: m.id, limit: 6 });
@@ -782,11 +737,10 @@ if (hoursCard && hoursList && openChip){
     };
 
   }catch(err){
+    console.error('loadDetailPage failed:', err);
     elName.textContent = 'Failed to load';
     elDesc.textContent = 'Please check your connection and try again.';
   }
-
-  
 }
 
 /* ---------- Router ---------- */
@@ -800,9 +754,7 @@ function handleHash(){
     }
     return;
   }
-  // 非 detail：恢復目前 tab 選中的主頁
   restoreMainPage();
-  // 回 Explore（或空 hash）時，立即套用篩選
   if (h === '#explore' || h === '') {
     if (allMerchants.length) applyFilters();
   }
