@@ -206,14 +206,19 @@
 
     <!-- Hours（Weekly table，可選） -->
 <section class="d-card" id="hoursCard">
-  <div class="d-head-row">
-    <h2 class="d-h2">Hours</h2>
-    <!-- 這顆會由 JS 動態改成 Open now / Closed / — -->
-    <span id="detailOpenChip" class="chip">—</span>
-  </div>
-  <div id="detailHoursList" class="oh-list">
-    <!-- JS 會把 Mon–Sun 逐行注入進來 -->
-  </div>
+  <details id="hoursToggle" class="oh">
+    <summary class="oh-summary">
+      <h2 class="d-h2">Hours</h2>
+      <div class="oh-right">
+        <span id="detailOpenChip" class="chip">—</span>
+        <span id="todayHours" class="oh-today">—</span>
+        <span class="oh-caret" aria-hidden="true">⌄</span>
+      </div>
+    </summary>
+    <div id="detailHoursList" class="oh-list">
+      <!-- JS 注入 Mon–Sun -->
+    </div>
+  </details>
 </section>
 
 
