@@ -133,42 +133,51 @@ function setAction(el, href){
   else { el.removeAttribute('href'); el.setAttribute('aria-disabled','true'); el.classList.add('is-disabled'); }
 }
 
+// 取得「Open now / Closed」的字樣（統一用這個）
 function getOpenStatusText(m, ref=new Date()){
-  const s = getOpenStruct(m);
-  if (!s) return '—'; // 沒有任何營業資料
-  const wd = ['sun','mon','tue','wed','thu','fri','sat'][ref.getDay()];
-  const day = s[wd];
-  if (!day) return '—';
-  if (day.closed) return 'Closed today';
-
-  // 找「下一個」時段的文案（現在開 or 幾點開）
-  const cur = ref.getHours()*60 + ref.getMinutes();
-  const toMin = hhmm => {
-    const [h,mi] = (hhmm||'').split(':').map(x=>parseInt(x,10));
-    return (h===24 && (mi||0)===0) ? 1440 : (h*60 + (mi||0));
-  };
-
-  let openNow = false;
-  let nextOpen = null;
-
-  (day.ranges||[]).forEach(r=>{
-    const o = toMin(r.open), c = toMin(r.close);
-    if (c>o){
-      if (cur>=o && cur<c) openNow = true;
-      if (cur<o) nextOpen = Math.min(nextOpen??o, o);
-    }else{ // 跨夜
-      if (cur>=o || cur<c) openNow = true;
-    }
-  });
-
-  if (openNow) return 'Open now';
-  if (nextOpen!=null){
-    const hh = String(Math.floor(nextOpen/60)).padStart(2,'0');
-    const mm = String(nextOpen%60).padStart(2,'0');
-    return `Opens ${hh}:${mm}`;
+  const openObj = getOpenStruct(m);
+  if (openObj){
+    const wd = ['sun','mon','tue','wed','thu','fri','sat'][ref.getDay()];
+    const day = openObj[wd];
+    if (!day || day.closed === true) return 'Closed';
+    if (!Array.isArray(day.ranges) || day.ranges.length === 0) return 'Closed';
+    return isOpenNow(m, ref) ? 'Open now' : 'Closed';
   }
-  return 'Closed today';
+  // 舊字串
+  const t = (m.openHours||'').trim();
+  if (!t) return '—';
+  if (/24\s*H/i.test(t)) return 'Open now';
+  return isOpenNow(m, ref) ? 'Open now' : 'Closed';
 }
+
+// 做出 Mon..Sun 每日時間的 HTML
+function weeklyHoursLines(m){
+  const openObj = getOpenStruct(m);
+  if (!openObj && !m.openHours) return ''; // 什麼都沒有就空
+
+  const days = [
+    {k:'mon', n:'Mon'}, {k:'tue', n:'Tue'}, {k:'wed', n:'Wed'},
+    {k:'thu', n:'Thu'}, {k:'fri', n:'Fri'}, {k:'sat', n:'Sat'}, {k:'sun', n:'Sun'}
+  ];
+
+  if (openObj){
+    return days.map(d=>{
+      const day = openObj[d.k];
+      let val = '—';
+      if (!day || day.closed === true) val = 'Closed';
+      else if (Array.isArray(day.ranges) && day.ranges.length){
+        val = day.ranges.map(r => `${r.open}–${r.close}`).join(', ');
+      }else{
+        val = 'Closed';
+      }
+      return `<div class="oh-line"><span>${d.n}</span><span>${val}</span></div>`;
+    }).join('');
+  }
+
+  // 回退：只有單行 openHours（就顯示「Daily」）
+  return `<div class="oh-line"><span>Daily</span><span>${m.openHours}</span></div>`;
+}
+
 
 
 /* ---------- Supabase ---------- */
@@ -676,6 +685,33 @@ async function loadDetailPage(id){
       try{ await navigator.share?.({ title: m.name, text, url }); }catch(_){}
     }, { once:true });
 
+    // ===== Map Preview（OSM 免金鑰）=====
+const box = document.querySelector('.d-mapbox');
+if (box){
+  if (m.lat && m.lng){
+    // 也更新「Open in Maps」兩顆按鈕（你已有）
+    const urlQuery = `${m.lat},${m.lng}`;
+    setAction(actMap,  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(urlQuery)}`);
+    setAction(actMap2, `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(urlQuery)}`);
+
+    // 內嵌地圖（OpenStreetMap）
+    const src = `https://www.openstreetmap.org/export/embed.html?layer=mapnik&marker=${encodeURIComponent(m.lat)},${encodeURIComponent(m.lng)}`;
+    box.innerHTML = `<iframe class="map-embed" src="${src}" style="width:100%;height:220px;border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+  }else{
+    // 沒座標 → 維持 placeholder，並把 Map 連結用地址（若有）
+    if (m.address){
+      const q = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.address)}`;
+      setAction(actMap,  q);
+      setAction(actMap2, q);
+    }else{
+      setAction(actMap,  null);
+      setAction(actMap2, null);
+    }
+    // 留下原本的 .d-mapph
+  }
+}
+
+
     // related
     const related = await fetchRelated({ city_id: m.city_id, category: cats[0], exceptId: m.id, limit: 6 });
     recList.innerHTML = related.map(r => `
@@ -693,6 +729,30 @@ async function loadDetailPage(id){
     elName.textContent = 'Failed to load';
     elDesc.textContent = 'Please check your connection and try again.';
   }
+
+// ===== Hours（週表）=====
+const hoursCard  = document.getElementById('hoursCard');      // 可不存在
+const hoursList  = document.getElementById('detailHoursList'); // 可不存在
+const openChip   = document.getElementById('detailOpenChip');  // 可不存在
+
+// 今日狀態（原本寫在 elOpen 也保留）
+const statusText = getOpenStatusText(m);
+elOpen.textContent = statusText || '—';
+
+if (hoursCard && hoursList && openChip){
+  const hasStruct = !!getOpenStruct(m) || !!m.openHours;
+  if (hasStruct){
+    hoursCard.hidden = false;
+    openChip.textContent = statusText || '—';
+    hoursList.innerHTML = weeklyHoursLines(m) || '';
+  }else{
+    // 沒任何營業資料 → 整張卡藏起來
+    hoursCard.hidden = true;
+    hoursList.innerHTML = '';
+  }
+}
+
+  
 }
 
 /* ---------- Router ---------- */
