@@ -182,6 +182,20 @@ function weeklyHoursLines(m){
   return `<div class="oh-line"><span>Daily</span><span>${m.openHours}</span></div>`;
 }
 
+function todayHoursText(m, ref=new Date()){
+  const s = getOpenStruct(m);
+  if (s){
+    const wd = ['sun','mon','tue','wed','thu','fri','sat'][ref.getDay()];
+    const day = s[wd];
+    if (!day || day.closed) return 'Closed today';
+    const ranges = Array.isArray(day.ranges) ? day.ranges : [];
+    if (!ranges.length) return '—';
+    return ranges.map(r=>`${r.open}–${r.close}`).join(', ');
+  }
+  // fallback 舊字串
+  return m.openHours || '—';
+}
+
 /* ---------- Supabase ---------- */
 async function loadCities(){
   try{
@@ -694,6 +708,15 @@ async function loadDetailPage(id){
     }
     // 同步今日狀態（如你保留 Stats 卡）
     elOpen && (elOpen.textContent = statusTxt || '—');
+
+const statusText = getOpenStatusText(m);
+elOpen.textContent = statusText || '—';
+
+const todayEl = document.getElementById('todayHours');
+if (todayEl) todayEl.textContent = todayHoursText(m);
+
+const hoursToggle = document.getElementById('hoursToggle');
+if (hoursToggle) hoursToggle.open = false; // 預設收合
 
     /* ====== Related ====== */
     const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
