@@ -697,26 +697,7 @@ if (box){
   }
 }
 
-
-    // related
-    const related = await fetchRelated({ city_id: m.city_id, category: cats[0], exceptId: m.id, limit: 6 });
-    recList.innerHTML = related.map(r => `
-      <a class="rec" data-id="${r.id}" role="button" tabindex="0" aria-label="Open ${r.name}">
-        <div class="rthumb" style="background-image:url('${r.cover||''}')"></div>
-        <div class="rname">${r.name}</div>
-      </a>
-    `).join('');
-    recList.onclick = (e)=>{
-      const a = e.target.closest('.rec'); if (!a) return;
-      location.hash = `#detail/${a.dataset.id}`;
-    };
-
-  }catch(err){
-    elName.textContent = 'Failed to load';
-    elDesc.textContent = 'Please check your connection and try again.';
-  }
-
-// ===== Hours（週表）=====
+    // ===== Hours（週表）=====
 const hoursCard  = document.getElementById('hoursCard');      // 可不存在
 const hoursList  = document.getElementById('detailHoursList'); // 可不存在
 const openChip   = document.getElementById('detailOpenChip');  // 可不存在
@@ -737,6 +718,25 @@ if (hoursCard && hoursList && openChip){
     hoursList.innerHTML = '';
   }
 }
+
+
+    // related
+    const related = await fetchRelated({ city_id: m.city_id, category: cats[0], exceptId: m.id, limit: 6 });
+    recList.innerHTML = related.map(r => `
+      <a class="rec" data-id="${r.id}" role="button" tabindex="0" aria-label="Open ${r.name}">
+        <div class="rthumb" style="background-image:url('${r.cover||''}')"></div>
+        <div class="rname">${r.name}</div>
+      </a>
+    `).join('');
+    recList.onclick = (e)=>{
+      const a = e.target.closest('.rec'); if (!a) return;
+      location.hash = `#detail/${a.dataset.id}`;
+    };
+
+  }catch(err){
+    elName.textContent = 'Failed to load';
+    elDesc.textContent = 'Please check your connection and try again.';
+  }
 
   
 }
