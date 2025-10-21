@@ -35,7 +35,6 @@ const afSort   = $('#afSort');
 /* ---------- Detail page (你的 HTML) ---------- */
 const pageDetail    = document.querySelector('[data-page="detail"]');
 const btnDetailBack = $('#btnDetailBack');
-const elHero   = $('#detailHero');
 const elName   = $('#detailName');
 const elCat    = $('#detailCategory');
 const elAddr   = $('#detailAddress');
@@ -51,6 +50,10 @@ const actPhone = $('#actPhone');
 const actWeb   = $('#actWeb');
 const actShare = $('#actShare');
 const recList  = $('#detailRecList');
+const elCarousel = $('#detailCarousel');
+const btnCPrev   = $('#cPrev');
+const btnCNext   = $('#cNext');
+const elCDots    = $('#cDots');
 
 /* ---------- State ---------- */
 const state = {
@@ -645,6 +648,49 @@ async function loadDetailPage(id){
     elAddr.textContent = m.address || '';
     elDot.style.display = (elCat.textContent && elAddr.textContent) ? '' : 'none';
     elDesc.textContent  = m.description || '—';
+
+    // ===== Hero Carousel =====
+const imgs = Array.isArray(m.images) ? m.images.filter(Boolean) : [];
+if (!imgs.length && m.cover) imgs.push(m.cover);
+
+// 產生 slides
+elCarousel.innerHTML = imgs.map((src, i) =>
+  `<img src="${src}" alt="${m.name||''}" ${i>0?'loading="lazy"':''}
+        onerror="this.onerror=null;this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22><rect width=%221200%22 height=%22675%22 fill=%22%23eee%22/></svg>';">`
+).join('');
+
+// 箭頭 / 點點顯示與事件
+const multi = imgs.length > 1;
+btnCPrev.hidden = btnCNext.hidden = elCDots.hidden = !multi;
+
+if (multi){
+  elCDots.innerHTML = imgs.map((_,i)=>`<button type="button" aria-label="Go to slide ${i+1}" ${i===0?'aria-current="true"':''}></button>`).join('');
+
+  const updateDots = () => {
+    const w = elCarousel.clientWidth || 1;
+    const idx = Math.round(elCarousel.scrollLeft / w);
+    [...elCDots.children].forEach((b,i)=> b.setAttribute('aria-current', i===idx ? 'true':'false'));
+    // 控制箭頭可用狀態（可選）
+    btnCPrev.disabled = (idx===0);
+    btnCNext.disabled = (idx===imgs.length-1);
+  };
+
+  btnCPrev.onclick = () => elCarousel.scrollBy({ left: -elCarousel.clientWidth, behavior: 'smooth' });
+  btnCNext.onclick = () => elCarousel.scrollBy({ left:  elCarousel.clientWidth, behavior: 'smooth' });
+  elCarousel.addEventListener('scroll', () => { window.requestAnimationFrame(updateDots); });
+
+  // 點點可點擊跳頁
+  elCDots.onclick = (e)=>{
+    const i = [...elCDots.children].indexOf(e.target.closest('button'));
+    if (i>=0){
+      elCarousel.scrollTo({ left: i * elCarousel.clientWidth, behavior: 'smooth' });
+    }
+  };
+
+  // 初始狀態
+  updateDots();
+}
+
 
     // badges（含 tags）
     const rating = (m.rating!=null) ? Number(m.rating).toFixed(1) : null;
