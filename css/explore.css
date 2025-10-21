@@ -151,3 +151,9 @@
 .citycell--all .ico{ font-size:18px }
 .citycell--all .name{ font-weight:800; font-size:13px }
 .citycell--all .count{ justify-self: end; font-size:12px; color:#6b7280 }
+
+.oh-list { display:grid; gap:.375rem; }
+.oh-list .oh-line { display:flex; justify-content:space-between; font-size:.95rem; }
+.oh-list .oh-line span:first-child { color:#666; width:64px; }
+.oh-list .oh-line span:last-child { color:#111; }
+#hoursCard .chip { padding:.25rem .5rem; border-radius:999px; background:#eee; font-size:.85rem; }
