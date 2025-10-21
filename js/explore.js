@@ -45,6 +45,7 @@ const elRating = $('#detailRating');
 const elOpen   = $('#detailOpen');
 const elPrice  = $('#detailPrice');
 const actMap   = $('#actMap');
+const actMap2   = $('#actMap2');
 const actPhone = $('#actPhone');
 const actWeb   = $('#actWeb');
 const actShare = $('#actShare');
@@ -617,21 +618,6 @@ function humanHours(m){
   // 舊資料回退
   return m.openHours || '—';
 }
-
-function weeklyHoursLines(m){
-  const s = getOpenStruct(m);
-  if (!s) return null;
-  const ORDER = ['mon','tue','wed','thu','fri','sat','sun'];
-  const label = {mon:'Mon',tue:'Tue',wed:'Wed',thu:'Thu',fri:'Fri',sat:'Sat',sun:'Sun'};
-  return ORDER.map(d=>{
-    const day=s[d];
-    if (!day) return `<div class="oh-line"><span>${label[d]}</span><span>—</span></div>`;
-    if (day.closed) return `<div class="oh-line"><span>${label[d]}</span><span>Closed</span></div>`;
-    const txt = (day.ranges||[]).map(r=>`${r.open}–${r.close}`).join(', ');
-    return `<div class="oh-line"><span>${label[d]}</span><span>${txt||'—'}</span></div>`;
-  }).join('');
-}
-
 
 async function loadDetailPage(id){
   showPageDetail();
