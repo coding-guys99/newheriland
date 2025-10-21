@@ -32,39 +32,56 @@ const afAttrs  = $('#afAttrs');
 const afMore   = $('#afMore');
 const afSort   = $('#afSort');
 
-/* ---------- Detail page (你的 HTML) ---------- */
+/* ---------- Detail page (依照你的最新 HTML) ---------- */
 const pageDetail    = document.querySelector('[data-page="detail"]');
 const btnDetailBack = $('#btnDetailBack');
 const elName   = $('#detailName');
-const elCat    = $('#detailCategory');
-const elAddr   = $('#detailAddress');
-const elDot    = $('#detailDot');
-const elBadges = $('#detailBadges');
 const elDesc   = $('#detailDesc');
-const elRating = $('#detailRating');
-const elOpen   = $('#detailOpen');
-const elPrice  = $('#detailPrice');
-const actMap   = $('#actMap');
-const actMap2  = $('#actMap2');
-const actPhone = $('#actPhone');
-const actWeb   = $('#actWeb');
-const actShare = $('#actShare');
-const recList  = $('#detailRecList');
-// Carousel
+
 const elCarousel = $('#detailCarousel');
 const btnCPrev   = $('#cPrev');
 const btnCNext   = $('#cNext');
 const elCDots    = $('#cDots');
 
+const elMeta   = $('#detailMeta');          // ★ / Open now / $$ 置於圖片下
+const elTags   = $('#detailTags');          // 標籤一行
+
+// Address card
+const addrCard   = $('#addressCard');
+const elAddrText = $('#detailAddressText');
+const btnCopyAddr= $('#btnCopyAddr');
+
+// Hours (collapsible)
+const hoursCard  = $('#hoursCard');
+const hoursToggle= $('#hoursToggle');
+const hoursList  = $('#detailHoursList');
+const openChip   = $('#detailOpenChip');
+const todayHours = $('#todayHours');
+
+// Meta card（仍保留）
+const elOpen   = $('#detailOpen');
+const elRating = $('#detailRating');
+const elPrice  = $('#detailPrice');
+
+// Actions
+const actMap   = $('#actMap');
+const actMap2  = $('#actMap2');
+const actPhone = $('#actPhone');
+const actWeb   = $('#actWeb');
+const actShare = $('#actShare');
+
+// Related
+const recList  = $('#detailRecList');
+
 /* ---------- State ---------- */
 const state = {
-  cats: new Set(),      // 多選：分類
-  themes: new Set(),    // 多選：視為 tags
-  attrs: new Set(),     // 多選：視為 tags
-  prices: new Set(),    // 多選：1~4
-  open: false,          // 切換：只顯示營業中
-  minRating: null,      // 單選：4.5 / 4.0
-  sort: 'latest',       // latest | hot | rating
+  cats: new Set(),
+  themes: new Set(),
+  attrs: new Set(),
+  prices: new Set(),
+  open: false,
+  minRating: null,
+  sort: 'latest',
 };
 let currentCity = null;
 let allMerchants = [];
@@ -81,22 +98,18 @@ function priceLevelNum(m){
   return cnt || null;
 }
 
-// 優先用 open_days，其次 open_hours（若 open_hours 也是新結構亦可）
+// Opening-hours helpers
 function getOpenStruct(m){
   const obj = m.open_days || m.open_hours;
   if (obj && typeof obj === 'object') return obj;
-  return null; // 讓 isOpenNow 回退到舊字串 openHours
+  return null;
 }
-
-/** 判斷是否「現在營業」：支援 open_days/open_hours(JSON) 與 openHours(字串) */
 function isOpenNow(m, ref = new Date()){
   const openObj = getOpenStruct(m);
   if (openObj){
     const wd = ['sun','mon','tue','wed','thu','fri','sat'][ref.getDay()];
     const day = openObj[wd];
-
     if (!day || day.closed === true) return false;
-
     const ranges = Array.isArray(day.ranges) ? day.ranges : [];
     if (!ranges.length) return false;
 
@@ -107,16 +120,13 @@ function isOpenNow(m, ref = new Date()){
       const m = Number.isFinite(mi) ? mi : 0;
       return (h === 24 && m === 0) ? 1440 : (h * 60 + m);
     };
-
     return ranges.some(r => {
       const o = toMin(r.open);
       const c = toMin(r.close);
-      if (c > o) return (cur >= o && cur < c);   // 同日
-      return (cur >= o || cur < c);              // 跨夜
+      if (c > o) return (cur >= o && cur < c);
+      return (cur >= o || cur < c);
     });
   }
-
-  // 回退：舊字串 "08:00 - 20:00" / "24H"
   const t = (m.openHours || '').toLowerCase().trim();
   if (!t) return false;
   if (t.includes('24h')) return true;
@@ -127,14 +137,6 @@ function isOpenNow(m, ref = new Date()){
   const cur = ref.getHours() * 60 + ref.getMinutes();
   return (end > start) ? (cur >= start && cur < end) : (cur >= start || cur < end);
 }
-
-function setAction(el, href){
-  if (!el) return;
-  if (href){ el.href = href; el.removeAttribute('aria-disabled'); el.classList.remove('is-disabled'); }
-  else { el.removeAttribute('href'); el.setAttribute('aria-disabled','true'); el.classList.add('is-disabled'); }
-}
-
-// 取得「Open now / Closed」的字樣（統一用這個）
 function getOpenStatusText(m, ref=new Date()){
   const openObj = getOpenStruct(m);
   if (openObj){
@@ -149,17 +151,13 @@ function getOpenStatusText(m, ref=new Date()){
   if (/24\s*H/i.test(t)) return 'Open now';
   return isOpenNow(m, ref) ? 'Open now' : 'Closed';
 }
-
-// 做出 Mon..Sun 每日時間的 HTML
 function weeklyHoursLines(m){
   const openObj = getOpenStruct(m);
-  if (!openObj && !m.openHours) return ''; // 沒資料就空
-
+  if (!openObj && !m.openHours) return '';
   const days = [
     {k:'mon', n:'Mon'}, {k:'tue', n:'Tue'}, {k:'wed', n:'Wed'},
     {k:'thu', n:'Thu'}, {k:'fri', n:'Fri'}, {k:'sat', n:'Sat'}, {k:'sun', n:'Sun'}
   ];
-
   if (openObj){
     return days.map(d=>{
       const day = openObj[d.k];
@@ -173,42 +171,42 @@ function weeklyHoursLines(m){
       return `<div class="oh-line"><span>${d.n}</span><span>${val}</span></div>`;
     }).join('');
   }
-  // 回退：只有單行 openHours（就顯示「Daily」）
   return `<div class="oh-line"><span>Daily</span><span>${m.openHours}</span></div>`;
 }
-
-/* ---------- Geocoding + Static Map Helpers（A 模式） ---------- */
-// 輕量 geocode（localStorage 快取；失敗回 null）
-async function geocodeAddress(addr){
-  if (!addr) return null;
-  const key = 'geo:' + addr.trim().toLowerCase();
-  try {
-    const cached = localStorage.getItem(key);
-    if (cached) return JSON.parse(cached);
-
-    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(addr)}`;
-    const res = await fetch(url, { headers: { 'Accept':'application/json' } });
-    if (!res.ok) throw new Error('geocode http ' + res.status);
-    const arr = await res.json();
-    if (!Array.isArray(arr) || !arr.length) return null;
-
-    const { lat, lon } = arr[0];
-    const val = { lat: Number(lat), lng: Number(lon) };
-    localStorage.setItem(key, JSON.stringify(val));
-    return val;
-  } catch { return null; }
+function todayHoursText(m){
+  const openObj = getOpenStruct(m);
+  if (openObj){
+    const wd   = ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
+    const day  = openObj[wd];
+    if (!day) return '—';
+    if (day.closed) return 'Closed';
+    if (day.ranges?.length) return day.ranges.map(r=>`${r.open}–${r.close}`).join(', ');
+    return '—';
+  }
+  return (m.openHours || '—');
 }
 
-// 產生 OSM 靜態地圖 URL
-function osmStaticURL({lat, lng}, {zoom=15, w=640, h=320} = {}){
+// Map helpers（A 模式）
+function osmStaticURL({lat,lng},{zoom=15,w=640,h=320}={}){
   const base = 'https://staticmap.openstreetmap.de/staticmap.php';
-  const qs = new URLSearchParams({
-    center: `${lat},${lng}`,
-    zoom: String(zoom),
-    size: `${w}x${h}`,
-    markers: `${lat},${lng},lightblue1`
-  });
-  return `${base}?${qs.toString()}`;
+  const marker = `${lat},${lng},lightblue1`;
+  return `${base}?center=${lat},${lng}&zoom=${zoom}&size=${w}x${h}&markers=${marker}`;
+}
+async function geocodeAddress(addr){
+  try{
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}`;
+    const res = await fetch(url, { headers: { 'Accept-Language':'en' }});
+    const js  = await res.json();
+    const hit = js?.[0];
+    if (hit) return { lat: Number(hit.lat), lng: Number(hit.lon) };
+  }catch(_){}
+  return null;
+}
+
+function setAction(el, href){
+  if (!el) return;
+  if (href){ el.href = href; el.removeAttribute('aria-disabled'); el.classList.remove('is-disabled'); }
+  else { el.removeAttribute('href'); el.setAttribute('aria-disabled','true'); el.classList.add('is-disabled'); }
 }
 
 /* ---------- Supabase ---------- */
@@ -231,7 +229,6 @@ async function loadCities(){
     ];
   }
 }
-
 async function fetchMerchants(cityId, {limit=500} = {}){
   try{
     const q = supabase
@@ -240,9 +237,7 @@ async function fetchMerchants(cityId, {limit=500} = {}){
       .eq('status','active')
       .order('updated_at',{ascending:false})
       .limit(limit);
-
     if (cityId && cityId !== 'all') q.eq('city_id', cityId);
-
     const { data, error } = await q;
     if (error) throw error;
     return { ok:true, data: data || [] };
@@ -251,7 +246,6 @@ async function fetchMerchants(cityId, {limit=500} = {}){
     return { ok:false, error: err };
   }
 }
-
 async function fetchMerchantById(id){
   const { data, error } = await supabase
     .from('merchants')
@@ -261,11 +255,10 @@ async function fetchMerchantById(id){
   if (error) throw error;
   return data;
 }
-
 async function fetchRelated({city_id, category, exceptId, limit=6}={}){
   const { data, error } = await supabase
     .from('merchants')
-    .select('id,name,category,categories,cover,updated_at')
+    .select('id,name,category,categories,cover,images,updated_at,city_id')
     .eq('status','active')
     .neq('id', exceptId)
     .order('updated_at',{ascending:false})
@@ -307,7 +300,6 @@ function renderWall(cities){
     wall.appendChild(btn);
   });
 }
-
 function renderMerchants(items){
   if (!items.length){
     list.hidden = true;
@@ -326,10 +318,8 @@ function renderMerchants(items){
       statusTxt === 'Open now' ? `<span class="badge ok">Open now</span>` :
       statusTxt === '—'        ? `<span class="badge">—</span>` :
                                  `<span class="badge off">${statusTxt}</span>`;
-
     const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
     const catStr = cats.slice(0,2).join(', ');
-
     const addrShort = shortAddr(m.address);
     const price = priceLevelNum(m);
     const priceStr = price ? '💲'.repeat(Math.max(1, Math.min(4, price))) : '';
@@ -353,7 +343,7 @@ function renderMerchants(items){
   }).join('');
 }
 
-/* ---------- Filters (client-side) ---------- */
+/* ---------- Filters ---------- */
 function applyFilters(){
   let arr = [...allMerchants];
 
@@ -364,7 +354,6 @@ function applyFilters(){
       return cats.some(c => want.has((c||'').toLowerCase()));
     });
   }
-
   if (state.themes.size || state.attrs.size){
     arr = arr.filter(m=>{
       const tags = Array.isArray(m.tags) ? m.tags.map(t=>t.toLowerCase()) : [];
@@ -373,22 +362,18 @@ function applyFilters(){
       return hasTheme && hasAttr;
     });
   }
-
   if (state.open){
     arr = arr.filter(m => isOpenNow(m));
   }
-
   if (state.minRating != null){
     arr = arr.filter(m => (Number(m.rating)||0) >= state.minRating);
   }
-
   if (state.prices.size){
     arr = arr.filter(m=>{
       const p = priceLevelNum(m);
       return p && state.prices.has(p);
     });
   }
-
   if (state.sort === 'hot'){
     arr.sort((a,b)=>{
       const ra = Number(a.rating)||0, rb = Number(b.rating)||0;
@@ -399,7 +384,7 @@ function applyFilters(){
     });
   }else if (state.sort === 'rating'){
     arr.sort((a,b)=> (Number(b.rating)||0) - (Number(a.rating)||0));
-  }else{ // latest
+  }else{
     arr.sort((a,b)=>{
       const ta = new Date(a.updated_at||0).getTime();
       const tb = new Date(b.updated_at||0).getTime();
@@ -410,10 +395,8 @@ function applyFilters(){
   renderMerchants(arr);
   if (head) head.textContent = `${currentCity?.name || currentCity?.id || 'City'} — ${arr.length} places`;
 }
-
 function bindLightFilters(){
   if (!filtersBox) return;
-
   chipsCats.forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const cat = btn.dataset.cat;
@@ -423,7 +406,6 @@ function bindLightFilters(){
       applyFilters();
     });
   });
-
   chipsQuick.forEach(btn=>{
     if (!btn.hasAttribute('aria-pressed')) btn.setAttribute('aria-pressed','false');
     btn.addEventListener('click', ()=>{
@@ -472,34 +454,29 @@ toggleMulti(afCats,   'data-cat',   state.cats);
 toggleMulti(afThemes, 'data-theme', state.themes);
 toggleMulti(afAttrs,  'data-attr',  state.attrs);
 
-// More：open 切換、rating 單選、price 多選
+// More
 afMore?.addEventListener('click', (e)=>{
   const btn = e.target.closest('.chip'); if (!btn) return;
-
   if (btn.hasAttribute('data-open')){
     const on = btn.classList.toggle('is-on');
     btn.setAttribute('aria-pressed', on ? 'true':'false');
-    state.open = on;
-    return;
+    state.open = on; return;
   }
   if (btn.hasAttribute('data-rating')){
     afMore.querySelectorAll('.chip[data-rating]').forEach(b=>{
       b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
     });
     btn.classList.add('is-on'); btn.setAttribute('aria-pressed','true');
-    state.minRating = Number(btn.getAttribute('data-rating'));
-    return;
+    state.minRating = Number(btn.getAttribute('data-rating')); return;
   }
   if (btn.hasAttribute('data-price')){
     const val = Number(btn.getAttribute('data-price'));
     const on  = btn.classList.toggle('is-on');
     btn.setAttribute('aria-pressed', on ? 'true':'false');
     if (on) state.prices.add(val); else state.prices.delete(val);
-    return;
   }
 });
-
-// Sort：單選
+// Sort
 afSort?.addEventListener('click', (e)=>{
   const btn = e.target.closest('.chip[data-sort]'); if (!btn) return;
   afSort.querySelectorAll('.chip[data-sort]').forEach(b=>{
@@ -508,8 +485,6 @@ afSort?.addEventListener('click', (e)=>{
   btn.classList.add('is-on'); btn.setAttribute('aria-pressed','true');
   state.sort = btn.getAttribute('data-sort') || 'latest';
 });
-
-// 同步外層 chips 視覺
 function syncLightBarFromState(){
   $$('.chips--quick .chip[data-sort]').forEach(b=>{
     const on = (b.dataset.sort === state.sort);
@@ -528,32 +503,23 @@ function syncLightBarFromState(){
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
 }
-
-// Apply / Reset
 btnAdvApply?.addEventListener('click', ()=>{
-  applyFilters();
-  syncLightBarFromState();
-  closeAF();
+  applyFilters(); syncLightBarFromState(); closeAF();
 });
 btnAdvReset?.addEventListener('click', ()=>{
   state.cats.clear(); state.themes.clear(); state.attrs.clear(); state.prices.clear();
   state.open = false; state.minRating = null; state.sort = 'latest';
-
   advFilter?.querySelectorAll('.chip.is-on').forEach(b=>{
     b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
   });
   const firstSort = afSort?.querySelector('.chip[data-sort="latest"]');
-  if (firstSort){
-    firstSort.classList.add('is-on'); firstSort.setAttribute('aria-pressed','true');
-  }
-  syncLightBarFromState();
-  applyFilters();
+  firstSort?.classList.add('is-on'); firstSort?.setAttribute('aria-pressed','true');
+  syncLightBarFromState(); applyFilters();
 });
 
 /* ---------- City switching ---------- */
 function selectCity(id, cityObj){
   currentCity = cityObj || { id };
-
   $$('.citycell', wall).forEach(b=>{
     const on = b.dataset.id === id;
     b.setAttribute('aria-selected', on ? 'true':'false');
@@ -565,14 +531,12 @@ function selectCity(id, cityObj){
 
   fetchMerchants(id).then(res=>{
     sk.hidden = true;
-
     if (!res.ok){
       errBx.hidden = false;
       list.hidden = true;
       head && (head.textContent = `${currentCity.name || id}`);
       return;
     }
-
     allMerchants = res.data || [];
     list.hidden = false;
 
@@ -592,14 +556,12 @@ function showPageDetail(){
   document.querySelectorAll('[data-page]').forEach(sec=>{
     sec.hidden = (sec.dataset.page !== 'detail');
   });
-  // 取消 tabbar 高亮
   $$('.tabbar .tab').forEach(t=>{
     t.setAttribute('aria-selected','false');
     t.removeAttribute('aria-current');
   });
   tabbar && (tabbar.style.display = 'none');
 }
-
 function restoreMainPage(){
   const current = document.querySelector('.tabbar .tab[aria-current="page"]')?.dataset.target
                || (location.hash||'').replace('#','') || 'home';
@@ -617,74 +579,39 @@ function restoreMainPage(){
   tabbar && (tabbar.style.display = '');
 }
 
-function humanHours(m){
-  const openObj = getOpenStruct(m);
-  if (openObj){
-    const wd   = ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
-    const day  = openObj[wd];
-    if (!day) return '—';
-    if (day.closed) return `${wd.toUpperCase()}: Closed`;
-    if (day.ranges?.length){
-      const s = day.ranges.map(r => `${r.open}–${r.close}`).join(', ');
-      return `${wd.toUpperCase()}: ${s}`;
-    }
-    return `${wd.toUpperCase()}: —`;
-  }
-  return m.openHours || '—';
-}
-
+/* ---------- Detail: load ---------- */
 async function loadDetailPage(id){
   showPageDetail();
 
-  // --- 就地 re-query 防呆（避免 null）
-  const nameEl   = elName   || document.getElementById('detailName');
-  const catEl    = elCat    || document.getElementById('detailCategory');
-  const addrEl   = elAddr   || document.getElementById('detailAddress');
-  const dotEl    = elDot    || document.getElementById('detailDot');
-  const badgesEl = elBadges || document.getElementById('detailBadges');
-  const descEl   = elDesc   || document.getElementById('detailDesc');
-  const ratingEl = elRating || document.getElementById('detailRating');
-  const openEl   = elOpen   || document.getElementById('detailOpen');
-  const priceEl  = elPrice  || document.getElementById('detailPrice');
-
-  if (!nameEl || !catEl || !addrEl || !dotEl || !badgesEl || !descEl || !ratingEl || !openEl || !priceEl) {
-    console.error('[detail] DOM not found, check ids & script timing.');
-    return;
-  }
-
   // reset UI
-  nameEl.textContent = 'Loading…';
-  catEl.textContent = ''; addrEl.textContent = ''; dotEl.style.display = 'none';
-  badgesEl.innerHTML = ''; descEl.textContent = '';
-  ratingEl.textContent = '—'; openEl.textContent = '—'; priceEl.textContent = '—';
+  elName.textContent = 'Loading…';
+  elDesc.textContent = '';
+  elMeta.innerHTML = '';
+  elTags.innerHTML = '';
+  elAddrText.textContent = '—';
+  elRating.textContent = '—'; elOpen.textContent = '—'; elPrice.textContent = '—';
   recList.innerHTML = '';
-  if (elCarousel){ elCarousel.innerHTML = ''; }
-  if (elCDots){ elCDots.innerHTML = ''; btnCPrev && (btnCPrev.hidden = true); btnCNext && (btnCNext.hidden = true); elCDots && (elCDots.hidden = true); }
+  if (elCarousel) elCarousel.innerHTML = '';
+  if (elCDots){ elCDots.innerHTML = ''; btnCPrev.hidden = btnCNext.hidden = elCDots.hidden = true; }
 
   try{
     const m = await fetchMerchantById(id);
 
-    // 名稱 & 類別 & 地址
-    nameEl.textContent = m.name || '';
-    const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
-    catEl.textContent  = cats.slice(0,2).join(', ');
-    addrEl.textContent = m.address || '';
-    dotEl.style.display = (catEl.textContent && addrEl.textContent) ? '' : 'none';
-    descEl.textContent  = m.description || '—';
+    // 名稱 / 描述
+    elName.textContent = m.name || '';
+    elDesc.textContent = m.description || '—';
 
     // ===== Hero Carousel =====
     const imgs = Array.isArray(m.images) ? m.images.filter(Boolean) : [];
     if (!imgs.length && m.cover) imgs.push(m.cover);
-
     if (elCarousel){
       elCarousel.innerHTML = imgs.map((src, i) =>
         `<img src="${src}" alt="${m.name||''}" ${i>0?'loading="lazy"':''}
               onerror="this.onerror=null;this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22><rect width=%221200%22 height=%22675%22 fill=%22%23eee%22/></svg>';">`
       ).join('');
     }
-
     const multi = imgs.length > 1;
-    if (btnCPrev && btnCNext && elCDots && elCarousel){
+    if (btnCPrev && btnCNext && elCDots){
       btnCPrev.hidden = btnCNext.hidden = elCDots.hidden = !multi;
       if (multi){
         elCDots.innerHTML = imgs.map((_,i)=>`<button type="button" aria-label="Go to slide ${i+1}" ${i===0?'aria-current="true"':''}></button>`).join('');
@@ -700,41 +627,63 @@ async function loadDetailPage(id){
         elCarousel.addEventListener('scroll', () => { window.requestAnimationFrame(updateDots); });
         elCDots.onclick = (e)=>{
           const i = [...elCDots.children].indexOf(e.target.closest('button'));
-          if (i>=0){ elCarousel.scrollTo({ left: i * elCarousel.clientWidth, behavior: 'smooth' }); }
+          if (i>=0) elCarousel.scrollTo({ left: i * elCarousel.clientWidth, behavior: 'smooth' });
         };
         updateDots();
       }
     }
 
-    // badges（含 tags）
+    // ===== 圖片下方 Meta（★ / Open / $$）與 Tags =====
     const rating = (m.rating!=null) ? Number(m.rating).toFixed(1) : null;
-    const open   = isOpenNow(m);
-    const price  = priceLevelNum(m);
-    const priceStr = price ? '💲'.repeat(Math.max(1, Math.min(4, price))) : '';
-    badgesEl.innerHTML = `
-      ${rating ? `<span class="badge">★ ${rating}</span>` : ''}
-      <span class="badge ${open ? 'ok':'off'}">${open ? 'Open now':'Closed'}</span>
-      ${priceStr ? `<span class="badge">${priceStr}</span>` : ''}
-    `;
-    if (Array.isArray(m.tags) && m.tags.length){
-      badgesEl.innerHTML += m.tags.slice(0,5).map(t=>`<span class="badge tag">${t}</span>`).join('');
-    }
-    ratingEl.textContent = rating || '—';
-    openEl.textContent   = getOpenStruct(m) ? getOpenStatusText(m) : '—';
-    priceEl.textContent  = priceStr || '—';
+    const openTxt = getOpenStruct(m) ? getOpenStatusText(m) : '—';
+    const price   = priceLevelNum(m);
+    const priceStr= price ? '💲'.repeat(Math.max(1, Math.min(4, price))) : '';
 
-    // actions（電話 / 網站 / 地圖）
+    elMeta.innerHTML = `
+      ${rating ? `<span class="chip">★ ${rating}</span>` : ''}
+      ${openTxt !== '—' ? `<span class="chip ${openTxt==='Open now'?'ok':'off'}">${openTxt}</span>` : ''}
+      ${priceStr ? `<span class="chip">${priceStr}</span>` : ''}
+    `;
+    const tags = Array.isArray(m.tags) ? m.tags.filter(Boolean) : [];
+    elTags.innerHTML = tags.length ? tags.map(t=>`<span class="tag">${t}</span>`).join('') : '';
+
+    // Meta card
+    elRating.textContent = rating || '—';
+    elOpen.textContent   = openTxt || '—';
+    elPrice.textContent  = priceStr || '—';
+
+    // ===== Address =====
+    elAddrText.textContent = m.address || '—';
+    btnCopyAddr?.addEventListener('click', async ()=>{
+      try{ await navigator.clipboard?.writeText(m.address||''); btnCopyAddr.textContent='Copied'; setTimeout(()=>btnCopyAddr.textContent='Copy',1000);}catch(_){}
+    }, { once:true });
+
+    // ===== Actions =====
     const gq = (m.lat && m.lng) ? `${m.lat},${m.lng}` : (m.address || '');
     setAction(actMap,   gq ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq)}` : null);
     setAction(actPhone, m.phone ? `tel:${m.phone.replace(/\s+/g,'')}` : null);
     setAction(actWeb,   m.website || null);
     actShare?.addEventListener('click', async ()=>{
       const url = location.href;
-      const text = `${m.name} — ${cats.slice(0,1).join(', ')}`;
-      try{ await navigator.share?.({ title: m.name, text, url }); }catch(_){} // 忽略取消
+      const text = `${m.name}${tags.length ? ' — '+tags.slice(0,2).join(', ') : ''}`;
+      try{ await navigator.share?.({ title: m.name, text, url }); }catch(_){}
     }, { once:true });
 
-    // ===== Map Preview（A 模式：靜態縮圖 + 點擊開啟）=====
+    // ===== Hours（summary + 展開明細）=====
+    const hasHours = !!getOpenStruct(m) || !!m.openHours;
+    if (hoursCard){
+      if (hasHours){
+        hoursCard.hidden = false;
+        openChip.textContent = openTxt || '—';
+        todayHours.textContent = todayHoursText(m) || '—';
+        hoursList.innerHTML = weeklyHoursLines(m) || '';
+      }else{
+        hoursCard.hidden = true;
+        hoursList.innerHTML = '';
+      }
+    }
+
+    // ===== Map A：靜態縮圖 + 點擊開新分頁 =====
     const box = document.querySelector('.d-mapbox');
     if (box){
       const mapHref = (m.lat && m.lng)
@@ -744,22 +693,21 @@ async function loadDetailPage(id){
       setAction(actMap2, mapHref);
 
       async function renderThumb(){
-        if (typeof geocodeAddress !== 'function' || typeof osmStaticURL !== 'function'){
-          box.innerHTML = `<div class="d-mapph">Map preview</div>`;
-          return;
-        }
         let pos = (m.lat && m.lng) ? {lat: m.lat, lng: m.lng} : null;
-        if (!pos && m.address){ pos = await geocodeAddress(m.address); }
+        if (!pos && m.address) pos = await geocodeAddress(m.address);
         if (pos){
-          const w = Math.max(320, Math.floor(box.clientWidth || 640));
-          const h = Math.round(w * 0.55);
+          const w = Math.max(320, Math.floor((box.clientWidth || 640)));
+          const h = Math.round(w * 0.56);
           const img = osmStaticURL(pos, { zoom: 15, w, h });
           box.innerHTML = `
             <button class="map-thumb" id="actMapThumb" aria-label="Open in Maps">
               <img src="${img}" alt="Map preview" decoding="async" loading="lazy">
-            </button>`;
-          const thumbBtn = document.getElementById('actMapThumb');
-          if (thumbBtn && mapHref){ thumbBtn.addEventListener('click', ()=> window.open(mapHref, '_blank'), { once:true }); }
+            </button>
+          `;
+          const thumbBtn = $('#actMapThumb');
+          if (thumbBtn && mapHref){
+            thumbBtn.addEventListener('click', ()=> window.open(mapHref, '_blank'), { once:true });
+          }
         }else{
           box.innerHTML = `<div class="d-mapph">Map preview</div>`;
         }
@@ -767,41 +715,27 @@ async function loadDetailPage(id){
       renderThumb();
     }
 
-    // ===== Hours（週表）=====
-    const hoursCard  = document.getElementById('hoursCard');
-    const hoursList  = document.getElementById('detailHoursList');
-    const openChip   = document.getElementById('detailOpenChip');
-    const statusText = getOpenStatusText(m);
-    openEl.textContent = statusText || '—';
-
-    if (hoursCard && hoursList && openChip){
-      const hasStruct = !!getOpenStruct(m) || !!m.openHours;
-      if (hasStruct){
-        hoursCard.hidden = false;
-        openChip.textContent = statusText || '—';
-        hoursList.innerHTML = weeklyHoursLines(m) || '';
-      }else{
-        hoursCard.hidden = true;
-        hoursList.innerHTML = '';
-      }
-    }
-
-    // related
+    // ===== Related =====
+    const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
     const related = await fetchRelated({ city_id: m.city_id, category: cats[0], exceptId: m.id, limit: 6 });
-    recList.innerHTML = related.map(r => `
-      <a class="rec" data-id="${r.id}" role="button" tabindex="0" aria-label="Open ${r.name}">
-        <div class="rthumb" style="background-image:url('${r.cover||''}')"></div>
-        <div class="rname">${r.name}</div>
-      </a>
-    `).join('');
+    recList.innerHTML = related.map(r => {
+      const cov = r.cover || (Array.isArray(r.images) ? r.images[0] : '') || '';
+      return `
+        <a class="rec" data-id="${r.id}" role="button" tabindex="0" aria-label="Open ${r.name}">
+          <div class="rthumb" style="background-image:url('${cov}')"></div>
+          <div class="rname">${r.name}</div>
+        </a>
+      `;
+    }).join('');
     recList.onclick = (e)=>{
       const a = e.target.closest('.rec'); if (!a) return;
       location.hash = `#detail/${a.dataset.id}`;
     };
 
   }catch(err){
-    nameEl.textContent = 'Failed to load';
-    descEl.textContent = 'Please check your connection and try again.';
+    console.warn('[detail] load failed:', err);
+    elName.textContent = 'Failed to load';
+    elDesc.textContent = 'Please check your connection and try again.';
   }
 }
 
@@ -816,7 +750,6 @@ function handleHash(){
     }
     return;
   }
-  // 非 detail：恢復目前 tab 選中的主頁
   restoreMainPage();
   if (h === '#explore' || h === '') {
     if (allMerchants.length) applyFilters();
@@ -859,7 +792,7 @@ window.addEventListener('hashchange', handleHash);
     selectCity(id, { id, name });
   }
 
-  // 列表 → 進二級頁（hash 導向）
+  // 列表 → 進二級頁
   list.addEventListener('click', (e)=>{
     const card = e.target.closest('.item'); if (!card) return;
     const id = card.dataset.id; if (!id) return;
