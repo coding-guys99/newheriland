@@ -636,25 +636,41 @@ function humanHours(m){
 async function loadDetailPage(id){
   showPageDetail();
 
+  // --- 就地 re-query 防呆（避免 null）
+  const nameEl   = elName   || document.getElementById('detailName');
+  const catEl    = elCat    || document.getElementById('detailCategory');
+  const addrEl   = elAddr   || document.getElementById('detailAddress');
+  const dotEl    = elDot    || document.getElementById('detailDot');
+  const badgesEl = elBadges || document.getElementById('detailBadges');
+  const descEl   = elDesc   || document.getElementById('detailDesc');
+  const ratingEl = elRating || document.getElementById('detailRating');
+  const openEl   = elOpen   || document.getElementById('detailOpen');
+  const priceEl  = elPrice  || document.getElementById('detailPrice');
+
+  if (!nameEl || !catEl || !addrEl || !dotEl || !badgesEl || !descEl || !ratingEl || !openEl || !priceEl) {
+    console.error('[detail] DOM not found, check ids & script timing.');
+    return;
+  }
+
   // reset UI
-  elName.textContent = 'Loading…';
-  elCat.textContent = ''; elAddr.textContent = ''; elDot.style.display = 'none';
-  elBadges.innerHTML = ''; elDesc.textContent = '';
-  elRating.textContent = '—'; elOpen.textContent = '—'; elPrice.textContent = '—';
+  nameEl.textContent = 'Loading…';
+  catEl.textContent = ''; addrEl.textContent = ''; dotEl.style.display = 'none';
+  badgesEl.innerHTML = ''; descEl.textContent = '';
+  ratingEl.textContent = '—'; openEl.textContent = '—'; priceEl.textContent = '—';
   recList.innerHTML = '';
   if (elCarousel){ elCarousel.innerHTML = ''; }
-  if (elCDots){ elCDots.innerHTML = ''; btnCPrev.hidden = btnCNext.hidden = elCDots.hidden = true; }
+  if (elCDots){ elCDots.innerHTML = ''; btnCPrev && (btnCPrev.hidden = true); btnCNext && (btnCNext.hidden = true); elCDots && (elCDots.hidden = true); }
 
   try{
     const m = await fetchMerchantById(id);
 
     // 名稱 & 類別 & 地址
-    elName.textContent = m.name || '';
+    nameEl.textContent = m.name || '';
     const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
-    elCat.textContent  = cats.slice(0,2).join(', ');
-    elAddr.textContent = m.address || '';
-    elDot.style.display = (elCat.textContent && elAddr.textContent) ? '' : 'none';
-    elDesc.textContent  = m.description || '—';
+    catEl.textContent  = cats.slice(0,2).join(', ');
+    addrEl.textContent = m.address || '';
+    dotEl.style.display = (catEl.textContent && addrEl.textContent) ? '' : 'none';
+    descEl.textContent  = m.description || '—';
 
     // ===== Hero Carousel =====
     const imgs = Array.isArray(m.images) ? m.images.filter(Boolean) : [];
@@ -668,11 +684,10 @@ async function loadDetailPage(id){
     }
 
     const multi = imgs.length > 1;
-    if (btnCPrev && btnCNext && elCDots){
+    if (btnCPrev && btnCNext && elCDots && elCarousel){
       btnCPrev.hidden = btnCNext.hidden = elCDots.hidden = !multi;
       if (multi){
         elCDots.innerHTML = imgs.map((_,i)=>`<button type="button" aria-label="Go to slide ${i+1}" ${i===0?'aria-current="true"':''}></button>`).join('');
-
         const updateDots = () => {
           const w = elCarousel.clientWidth || 1;
           const idx = Math.round(elCarousel.scrollLeft / w);
@@ -680,16 +695,12 @@ async function loadDetailPage(id){
           btnCPrev.disabled = (idx===0);
           btnCNext.disabled = (idx===imgs.length-1);
         };
-
         btnCPrev.onclick = () => elCarousel.scrollBy({ left: -elCarousel.clientWidth, behavior: 'smooth' });
         btnCNext.onclick = () => elCarousel.scrollBy({ left:  elCarousel.clientWidth, behavior: 'smooth' });
         elCarousel.addEventListener('scroll', () => { window.requestAnimationFrame(updateDots); });
-
         elCDots.onclick = (e)=>{
           const i = [...elCDots.children].indexOf(e.target.closest('button'));
-          if (i>=0){
-            elCarousel.scrollTo({ left: i * elCarousel.clientWidth, behavior: 'smooth' });
-          }
+          if (i>=0){ elCarousel.scrollTo({ left: i * elCarousel.clientWidth, behavior: 'smooth' }); }
         };
         updateDots();
       }
@@ -700,17 +711,17 @@ async function loadDetailPage(id){
     const open   = isOpenNow(m);
     const price  = priceLevelNum(m);
     const priceStr = price ? '💲'.repeat(Math.max(1, Math.min(4, price))) : '';
-    elBadges.innerHTML = `
+    badgesEl.innerHTML = `
       ${rating ? `<span class="badge">★ ${rating}</span>` : ''}
       <span class="badge ${open ? 'ok':'off'}">${open ? 'Open now':'Closed'}</span>
       ${priceStr ? `<span class="badge">${priceStr}</span>` : ''}
     `;
     if (Array.isArray(m.tags) && m.tags.length){
-      elBadges.innerHTML += m.tags.slice(0,5).map(t=>`<span class="badge tag">${t}</span>`).join('');
+      badgesEl.innerHTML += m.tags.slice(0,5).map(t=>`<span class="badge tag">${t}</span>`).join('');
     }
-    elRating.textContent = rating || '—';
-    elOpen.textContent = getOpenStruct(m) ? getOpenStatusText(m) : '—';
-    elPrice.textContent  = priceStr || '—';
+    ratingEl.textContent = rating || '—';
+    openEl.textContent   = getOpenStruct(m) ? getOpenStatusText(m) : '—';
+    priceEl.textContent  = priceStr || '—';
 
     // actions（電話 / 網站 / 地圖）
     const gq = (m.lat && m.lng) ? `${m.lat},${m.lng}` : (m.address || '');
@@ -720,7 +731,7 @@ async function loadDetailPage(id){
     actShare?.addEventListener('click', async ()=>{
       const url = location.href;
       const text = `${m.name} — ${cats.slice(0,1).join(', ')}`;
-      try{ await navigator.share?.({ title: m.name, text, url }); }catch(_){}
+      try{ await navigator.share?.({ title: m.name, text, url }); }catch(_){} // 忽略取消
     }, { once:true });
 
     // ===== Map Preview（A 模式：靜態縮圖 + 點擊開啟）=====
@@ -729,29 +740,26 @@ async function loadDetailPage(id){
       const mapHref = (m.lat && m.lng)
         ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${m.lat},${m.lng}`)}`
         : (m.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.address)}` : null);
-
       setAction(actMap,  mapHref);
       setAction(actMap2, mapHref);
 
       async function renderThumb(){
-        let pos = (m.lat && m.lng) ? {lat: m.lat, lng: m.lng} : null;
-        if (!pos && m.address){
-          pos = await geocodeAddress(m.address);
+        if (typeof geocodeAddress !== 'function' || typeof osmStaticURL !== 'function'){
+          box.innerHTML = `<div class="d-mapph">Map preview</div>`;
+          return;
         }
+        let pos = (m.lat && m.lng) ? {lat: m.lat, lng: m.lng} : null;
+        if (!pos && m.address){ pos = await geocodeAddress(m.address); }
         if (pos){
-          // 用容器寬度估大小，保守 fallback 640x320
-          const w = Math.max(320, Math.floor((box.clientWidth || 640)));
-          const h = Math.round(w * 0.5);
+          const w = Math.max(320, Math.floor(box.clientWidth || 640));
+          const h = Math.round(w * 0.55);
           const img = osmStaticURL(pos, { zoom: 15, w, h });
           box.innerHTML = `
             <button class="map-thumb" id="actMapThumb" aria-label="Open in Maps">
               <img src="${img}" alt="Map preview" decoding="async" loading="lazy">
-            </button>
-          `;
+            </button>`;
           const thumbBtn = document.getElementById('actMapThumb');
-          if (thumbBtn && mapHref){
-            thumbBtn.addEventListener('click', ()=> window.open(mapHref, '_blank'), { once:true });
-          }
+          if (thumbBtn && mapHref){ thumbBtn.addEventListener('click', ()=> window.open(mapHref, '_blank'), { once:true }); }
         }else{
           box.innerHTML = `<div class="d-mapph">Map preview</div>`;
         }
@@ -763,9 +771,8 @@ async function loadDetailPage(id){
     const hoursCard  = document.getElementById('hoursCard');
     const hoursList  = document.getElementById('detailHoursList');
     const openChip   = document.getElementById('detailOpenChip');
-
     const statusText = getOpenStatusText(m);
-    elOpen.textContent = statusText || '—';
+    openEl.textContent = statusText || '—';
 
     if (hoursCard && hoursList && openChip){
       const hasStruct = !!getOpenStruct(m) || !!m.openHours;
@@ -793,8 +800,8 @@ async function loadDetailPage(id){
     };
 
   }catch(err){
-    elName.textContent = 'Failed to load';
-    elDesc.textContent = 'Please check your connection and try again.';
+    nameEl.textContent = 'Failed to load';
+    descEl.textContent = 'Please check your connection and try again.';
   }
 }
 
