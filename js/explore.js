@@ -629,7 +629,6 @@ async function loadDetailPage(id){
   showPageDetail();
 
   // reset UI
-  elHero.style.backgroundImage = '';
   elName.textContent = 'Loading…';
   elCat.textContent = ''; elAddr.textContent = ''; elDot.style.display = 'none';
   elBadges.innerHTML = ''; elDesc.textContent = '';
