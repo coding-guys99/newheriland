@@ -168,7 +168,13 @@
   <div class="d-scroll">
     <!-- Hero Gallery（目前單張，之後可擴充多張橫滑） -->
     <section class="d-hero">
-      <div id="detailHero" class="d-hero-photo" aria-hidden="true"></div>
+      <!-- 走馬燈軌道 -->
+  <div class="c-wrap">
+    <button id="cPrev" class="c-arrow" aria-label="Previous" hidden>‹</button>
+    <div id="detailCarousel" class="c-track" aria-roledescription="carousel"></div>
+    <button id="cNext" class="c-arrow" aria-label="Next" hidden>›</button>
+    <div id="cDots" class="c-dots" hidden></div>
+  </div>
       <div class="d-hero-over">
         <div class="d-subrow">
           <span id="detailCategory" class="d-cat">—</span>
@@ -602,6 +608,7 @@
   <script type="module" src="js/explore.js"></script>
 </body>
 </html>
+
 
 
 
