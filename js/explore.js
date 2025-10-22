@@ -670,6 +670,85 @@ setAction(actMap2, mapHref);
       const text = `${m.name}${tags.length ? ' — '+tags.slice(0,2).join(', ') : ''}`;
       try{ await navigator.share?.({ title: m.name, text, url }); }catch(_){}
     }, { once:true });
+    
+    // ---- Maps preference helpers ----
+const MAPS_PREF_KEY = 'mapsPref'; // 'apple' | 'google' | 'ask'
+
+function getMapsPref(){
+  return localStorage.getItem(MAPS_PREF_KEY) || 'auto';
+}
+function setMapsPref(v){ localStorage.setItem(MAPS_PREF_KEY, v); }
+
+function isIOS(){
+  return /iP(hone|ad|od)|Macintosh/.test(navigator.userAgent) && 'ontouchend' in document;
+}
+function buildMapsLinks({ address, lat, lng }){
+  // 你現在只用地址也 OK
+  const q = encodeURIComponent(address || (lat && lng ? `${lat},${lng}` : ''));
+  return {
+    apple:  `maps://?q=${q}`,                         // iOS 原生 Apple Maps
+    appleWeb: `https://maps.apple.com/?q=${q}`,      // 桌機/備援
+    googleApp: `comgooglemaps://?q=${q}`,            // iOS Google Maps App（若安裝）
+    google: `https://www.google.com/maps/search/?api=1&query=${q}`, // 萬用
+    androidGeo: `geo:0,0?q=${q}`,                    // Android 原生 Intent
+  };
+}
+/** 依偏好挑連結（失敗會自動退到 Web Google） */
+function pickMapUrl(pref, links){
+  if (pref === 'apple'){
+    // iOS 優先原生，否則用 apple web
+    return isIOS() ? links.apple : links.appleWeb;
+  }
+  if (pref === 'google'){
+    // iOS 先嘗試 Google Maps App scheme，否則 Web
+    return isIOS() ? links.googleApp : links.google;
+  }
+  if (pref === 'auto'){
+    // 裝置導向：iOS→Apple，Android→geo，其餘→Google Web
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    if (isIOS()) return links.apple;
+    if (isAndroid) return links.androidGeo;
+    return links.google;
+  }
+  // ask 或未知 → 先回傳 Google Web（會被 ask 流程覆蓋）
+  return links.google;
+}
+
+// address 為主（你已決定不再用 lat/lng）
+const address = m.address || '';
+const links = buildMapsLinks({ address });
+
+function attachPrefOpen(el){
+  if (!el) return;
+  el.addEventListener('click', async (ev)=>{
+    ev.preventDefault();
+
+    let pref = getMapsPref(); // 'apple' | 'google' | 'auto'
+    if (pref === 'ask'){ // 預留：若你想在設定裡加「每次詢問」
+      const chosen = await askMapsPref();
+      pref = chosen || 'auto';
+    }
+    if (pref === 'auto'){ // 第一次沒選過 → 問一次
+      const chosen = await askMapsPref();
+      if (chosen) pref = chosen;
+      else pref = 'auto'; // 使用裝置預設
+    }
+
+    // 根據偏好選 URL
+    let url = pickMapUrl(pref, links);
+
+    // 在 iOS 上，comgooglemaps:// 若未安裝會失敗，給個 100ms fallback 到 Web
+    if (isIOS() && url.startsWith('comgooglemaps://')){
+      const t = setTimeout(()=> window.location.href = links.google, 120);
+      window.location.href = url;
+      setTimeout(()=> clearTimeout(t), 600);
+      return;
+    }
+    window.location.href = url;
+  });
+}
+attachPrefOpen(actMap);
+attachPrefOpen(actMap2);
 
     // ===== Hours（summary + 展開明細）=====
     const hasHours = !!getOpenStruct(m) || !!m.openHours;
@@ -809,3 +888,47 @@ window.addEventListener('hashchange', handleHash);
   // 初始路由
   handleHash();
 })();
+
+function askMapsPref(){
+  return new Promise(resolve=>{
+    // 建一個極簡面板
+    const wrap = document.createElement('div');
+    wrap.className = 'sheet-mask';
+    wrap.innerHTML = `
+      <div class="sheet">
+        <div class="sheet-title">Open in Maps</div>
+        <div class="sheet-actions">
+          <button class="btn" data-choose="apple">Apple Maps</button>
+          <button class="btn" data-choose="google">Google Maps</button>
+        </div>
+        <label class="remember">
+          <input type="checkbox" id="mapsRemember"/> Remember my choice
+        </label>
+        <button class="btn ghost" data-choose="cancel">Cancel</button>
+      </div>
+      <style>
+        .sheet-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);
+          display:grid;place-items:end center;z-index:9999}
+        .sheet{width:100%;max-width:480px;background:#fff;border-radius:12px 12px 0 0;
+          padding:16px 16px 12px;box-shadow:0 -10px 30px rgba(0,0,0,.15)}
+        .sheet-title{font-weight:600;margin-bottom:12px}
+        .sheet-actions{display:flex;gap:8px;margin-bottom:8px}
+        .btn{padding:10px 14px;border-radius:8px;border:1px solid #e5e7eb;background:#fff}
+        .btn.ghost{opacity:.8}
+        .remember{display:flex;gap:8px;align-items:center;color:#6b7280;font-size:13px;margin-bottom:8px}
+      </style>
+    `;
+    document.body.appendChild(wrap);
+
+    wrap.addEventListener('click', (e)=>{
+      const btn = e.target.closest('button[data-choose]');
+      if (!btn) return;
+      const val = btn.getAttribute('data-choose');
+      const remember = wrap.querySelector('#mapsRemember')?.checked;
+      if (val === 'cancel'){ document.body.removeChild(wrap); resolve(null); return; }
+      if (remember) setMapsPref(val);
+      document.body.removeChild(wrap);
+      resolve(val); // 'apple' or 'google'
+    }, { once:false });
+  });
+}
