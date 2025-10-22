@@ -685,31 +685,31 @@ setAction(actMap2, mapHref);
       }
     }
 
-    // ===== Map A：靜態縮圖 + 點擊開新分頁（以地址為準）=====
-// ===== Map Preview：優先靜態圖，失敗自動 fallback 內嵌 =====
+    // ===== Map Preview（B 模式：Google Embed，用地址即可）=====
 const box = document.querySelector('.d-mapbox');
 if (box){
-  setAction(actMap,  mapHref);
-  setAction(actMap2, mapHref);
+  if (m.address){
+    const encoded = encodeURIComponent(m.address);
+    const embed = `https://www.google.com/maps?q=${encoded}&output=embed`;
+    const mapLink = `https://www.google.com/maps/search/?api=1&query=${encoded}`;
 
-  async function renderThumb(){
-    if (!m.address){ box.innerHTML = `<div class="d-mapph">Map preview</div>`; return; }
+    box.innerHTML = `
+      <iframe
+        class="map-embed"
+        src="${embed}"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        style="width:100%;height:220px;border:0;">
+      </iframe>
+    `;
 
-    const pos = await geocodeAddress(m.address); // 只用地址換到座標（前端臨時）
-    if (pos){
-      const w = Math.max(320, Math.floor(box.clientWidth || 640));
-      const h = Math.round(w * 0.5);
-      const img = osmStaticURL(pos, { zoom: 15, w, h, cb: Date.now() }); // 有 cache-busting
-      box.innerHTML = `
-        <button class="map-thumb" id="actMapThumb" aria-label="Open in Maps">
-          <img src="${img}" alt="Map preview" decoding="async" loading="lazy">
-        </button>`;
-      document.getElementById('actMapThumb')?.addEventListener('click', ()=> window.open(mapHref, '_blank'), { once:true });
-    }else{
-      box.innerHTML = `<div class="d-mapph">Map preview</div>`;
-    }
+    setAction(actMap, mapLink);
+    setAction(actMap2, mapLink);
+  }else{
+    box.innerHTML = `<div class="d-mapph">Map preview</div>`;
+    setAction(actMap, null);
+    setAction(actMap2, null);
   }
-  renderThumb();
 }
 
 
