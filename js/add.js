@@ -22,6 +22,16 @@ function showToast(msg, kind='info'){
 
 const makeId = (cityId, name) => `${(cityId||'xx').toLowerCase()}-${slug(name)}-${Date.now().toString(36).slice(-5)}`;
 
+// 移除 null/undefined 的鍵，保留空陣列（給 JSONB）
+function compact(obj){
+  const out = {};
+  for (const [k,v] of Object.entries(obj)){
+    if (v === null || v === undefined) continue;
+    out[k] = v;
+  }
+  return out;
+}
+
 /* ========================= Cities ========================= */
 async function populateCitySelect(){
   const sel = $('#fCity');
@@ -62,7 +72,6 @@ function initTagInput(){
   function addTag(txt){
     const t = (txt||'').trim();
     if (!t) return;
-    // avoid duplicates (case-insensitive)
     const exists = $$('.tag', box).some(ch => (ch.dataset.tag||ch.textContent).toLowerCase() === t.toLowerCase());
     if (exists) return;
     const chip = document.createElement('button');
@@ -119,7 +128,6 @@ function initPhotos(){
       const del = document.createElement('button');
       del.type='button'; del.className='del'; del.textContent='×';
       del.addEventListener('click', ()=>{
-        // remove this file from input.files (rebuild DataTransfer)
         const dt = new DataTransfer();
         Array.from(input.files).forEach((f,i)=>{ if(i!==idx) dt.items.add(f); });
         input.files = dt.files;
@@ -191,9 +199,8 @@ function ohSetRowMode(row, mode){
     note.disabled = (mode!=='special');
     if (mode!=='special') note.value='';
   }else if(mode==='24h'){
-    // UI 用 23:59，序列化時轉回 24:00
     box.innerHTML='';
-    const c = ohMakeChip('00:00','23:59');
+    const c = ohMakeChip('00:00','23:59'); // UI 用 23:59，序列化時轉回 24:00
     c.querySelectorAll('input').forEach(i=> i.disabled=true);
     box.appendChild(c);
     note.disabled = true; note.value='';
@@ -264,8 +271,7 @@ function getOpenDaysJSON(root = $('#ohTable')){
     row.querySelectorAll('.oh-chip').forEach(c=>{
       const o = c.querySelector('.oh-open')?.value;
       let cl = c.querySelector('.oh-close')?.value;
-      // 若有人手動輸入 24:00，保護一下
-      if (cl === '24:00') cl = '23:59';
+      if (cl === '24:00') cl = '23:59'; // 保護 UI 值
       if (o && cl) ranges.push({open:o, close:cl});
     });
     out[day]={closed:false, ranges};
@@ -317,31 +323,34 @@ async function handleSubmit(e){
     console.warn('photo upload failed (continue):', err);
   }
 
-  // Build payload
-  const payload = {
+  // 讀 WhatsApp（如果你在 HTML 增加了 #fWhatsApp）
+  const whatsapp = $('#fWhatsApp')?.value?.trim() || null;
+
+  // Build payload（刪掉 featured，避免 400）
+  let payload = {
     id: makeId(city, name),
     name,
     city_id: city,
     category: category || null,
     tags,                             // JSONB (array of strings)
     address: addr,
-    // 不再存 lat/lng（你選擇僅以地址為主）
-    lat: null, lng: null,
+    // 你目前以「地址為主」→ 不送 lat/lng（避免 NOT NULL 錯誤）
     cover: cover || null,
     images,                           // JSONB
     open_days,                        // JSONB (new structure)
     rating: null,
-    price_level: null,                // 你的表單目前沒有價格欄位
+    // 目前沒有價格欄位，先不送；若你未來加價位再補
     phone: $('#fPhone')?.value?.trim() || '',
-    whatsapp: null,
+    whatsapp: whatsapp || undefined,  // 有填才送欄位
     website: $('#fWebsite')?.value?.trim() || '',
-    email: null,
     socials,                          // JSONB
     description: $('#fDesc')?.value?.trim() || '',
     status: 'pending',
-    featured: false,
     updated_at: new Date().toISOString()
   };
+
+  // 壓縮掉 null/undefined 欄位
+  payload = compact(payload);
 
   if (!supabase){
     const key = 'add_queue_merchants';
