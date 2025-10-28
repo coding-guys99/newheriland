@@ -69,7 +69,11 @@ function renderHero(){
        <img src="${h.img}" alt="">
        <div class="hero-txt">${h.title}</div>
      </a>`)).join('');
-  dots.innerHTML = HOME_DATA.hero.map((_,i)=>`<button ${i?'' :'aria-current="true"}></button>`).join('');
+  // --- renderHero() ---
+dots.innerHTML = HOME_DATA.hero.map((_, i) => {
+  const attr = (i === 0) ? ' aria-current="true"' : '';
+  return `<button${attr}></button>`;
+}).join('');
   track.addEventListener('scroll', ()=>{
     const w = track.clientWidth||1;
     const idx = Math.round(track.scrollLeft / (w+10)); // +gap
@@ -82,7 +86,11 @@ function renderCombo(){
   if(left){ left.innerHTML = HOME_DATA.comboLeft.map(s=>(
     `<a class="slide" href="${s.href}"><img src="${s.img}" alt=""></a>`
   )).join('');
-    cdots.innerHTML = HOME_DATA.comboLeft.map((_,i)=>`<button ${i?'' :'aria-current="true"}></button>`).join('');
+    // --- renderCombo() ---
+cdots.innerHTML = HOME_DATA.comboLeft.map((_, i) => {
+  const attr = (i === 0) ? ' aria-current="true"' : '';
+  return `<button${attr}></button>`;
+}).join('');
     left.addEventListener('scroll', ()=>{
       const w = left.clientWidth||1;
       const idx = Math.round(left.scrollLeft / w);
