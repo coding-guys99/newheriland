@@ -1,0 +1,140 @@
+/* ===== Tabbar (fixed, translucent, non-rounded outer, safe-area aware) ===== */
+:root{
+  --tabbar-h: 64px;                 /* 主要高度（不含底部安全區） */
+  --tabbar-bg: rgba(15,18,25,.58);  /* 半透明背景 */
+  --tabbar-blur: 14px;              /* 背景模糊 */
+  --tabbar-fg: #e8edf3;             /* 文字/圖示顏色 */
+  --tabbar-fg-dim: #b8c0cc;         /* 次要 */
+  --tabbar-accent: #84cc16;         /* 活動底線/主色 */
+  --tabbar-shadow: 0 -8px 24px rgba(0,0,0,.22);
+}
+
+@supports (color: color-mix(in oklab, white, black)) {
+  :root{ --tabbar-bg: color-mix(in oklab, #0b0e14 62%, transparent); }
+}
+
+/* 容器固定在底部；外框不做圓角 */
+.tabbar{
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 1000;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
+  display: grid;
+  place-items: stretch;
+  pointer-events: none;             /* 讓背景不攔截點擊 */
+}
+
+/* 半透明背景層（不遮內容、可帶模糊） */
+.tabbar .tabbar-bg{
+  position: absolute; inset: 0;
+  background: var(--tabbar-bg);
+  -webkit-backdrop-filter: saturate(140%) blur(var(--tabbar-blur));
+  backdrop-filter: saturate(140%) blur(var(--tabbar-blur));
+  box-shadow: var(--tabbar-shadow);
+  border-top: 1px solid rgba(255,255,255,.06);
+  pointer-events: none;
+}
+
+/* 內部導覽膠囊（可做輕微圓角，但外框保持直角） */
+.tabbar .capsule{
+  position: relative;
+  margin: 0 auto;
+  width: min(100%, 980px);
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: end;
+  padding: 8px 8px calc(env(safe-area-inset-bottom, 0px));
+  gap: 4px;
+  pointer-events: auto;             /* 可互動 */
+}
+
+/* 單顆 tab */
+.tabbar .tab{
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 8px 6px 10px;
+  min-width: 54px;
+  height: var(--tabbar-h);
+  color: var(--tabbar-fg-dim);
+  font: 500 12px/1.2 ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans TC", Arial;
+  letter-spacing: .2px;
+  display: grid;
+  justify-items: center;
+  align-content: end;
+  gap: 4px;
+  border-radius: 12px;              /* 內部按鈕可有微圓角 */
+  position: relative;
+  transition: color .18s ease, transform .18s ease, background .18s ease;
+  outline: none;
+}
+
+.tabbar .tab .ico{
+  font-size: 20px;
+  line-height: 1;
+  transform: translateY(1px);
+}
+.tabbar .tab .txt{
+  font-size: 11px;
+  opacity: .9;
+}
+
+/* hover/active（桌機觀感） */
+@media (hover:hover){
+  .tabbar .tab:hover{
+    background: rgba(255,255,255,.06);
+    color: var(--tabbar-fg);
+  }
+}
+
+/* 鍵盤可及性 */
+.tabbar .tab:focus-visible{
+  box-shadow: 0 0 0 2px rgba(180,220,255,.6) inset;
+  color: var(--tabbar-fg);
+}
+
+/* 當前頁：文字高亮、圖示放大一點 */
+.tabbar .tab.is-active{
+  color: var(--tabbar-fg);
+  transform: translateY(-2px);
+}
+
+/* 當前頁底線（不需要 JS，「每顆」自己畫底線） */
+.tabbar .tab::after{
+  content: "";
+  position: absolute;
+  left: 16%; right: 16%;
+  bottom: 6px;
+  height: 3px;
+  border-radius: 3px;
+  background: transparent;
+  transition: background .18s ease, transform .18s ease;
+}
+.tabbar .tab.is-active::after{
+  background: var(--tabbar-accent);
+  transform: translateY(-2px);
+}
+
+/* 小徽章（Saved 未讀點） */
+.tabbar .tab .badge{
+  position: absolute;
+  top: 6px; right: 18%;
+  width: 8px; height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(0,0,0,.25);
+}
+
+/* spacer：放在 nav 後，避免內容被蓋住 */
+.tabbar-spacer{
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
+}
+
+/* 深色模式（若全站有 .theme-dark，可微調對比） */
+.theme-dark .tabbar .tabbar-bg{
+  border-top-color: rgba(255,255,255,.08);
+}
+.theme-dark .tabbar .tab{
+  color: #c8d0dc;
+}
