@@ -582,7 +582,6 @@ function restoreMainPage(){
 /* ---------- Detail: load ---------- */
 async function loadDetailPage(id){
   showPageDetail();
-  wireDetailFavorite(m.id);
 
   // reset UI
   elName.textContent = 'Loading…';
@@ -597,6 +596,7 @@ async function loadDetailPage(id){
 
   try{
     const m = await fetchMerchantById(id);
+    wireDetailFavorite(m.id);
 
     // 名稱 / 描述
     elName.textContent = m.name || '';
@@ -611,6 +611,7 @@ async function loadDetailPage(id){
               onerror="this.onerror=null;this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22><rect width=%221200%22 height=%22675%22 fill=%22%23eee%22/></svg>';">`
       ).join('');
     }
+    
     const multi = imgs.length > 1;
     if (btnCPrev && btnCNext && elCDots){
       btnCPrev.hidden = btnCNext.hidden = elCDots.hidden = !multi;
