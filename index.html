@@ -27,11 +27,80 @@
     <!-- ====== 主頁們（單頁多分頁） ====== -->
 
     <!-- Home -->
-    <section data-page="home" aria-labelledby="h-home" class="section">
-      <h1 id="h-home" data-focusable-heading>Home</h1>
-      <p>這裡放首頁內容（hero / chips / rows）。</p>
-      <div class="card">一些卡片內容…</div>
-    </section>
+    <section data-page="home" aria-labelledby="h-home" class="section home">
+  <h1 id="h-home" class="sr-only" data-focusable-heading>Home</h1>
+
+  <!-- 搜尋列 -->
+  <div class="home-search">
+    <button class="search-btn" id="homeSearchBtn">🔍 <span>Search cities, experiences, places</span></button>
+  </div>
+
+  <!-- 功能入口 chips（橫滑） -->
+  <div class="home-features" id="homeFeatures" role="group" aria-label="Quick features"></div>
+
+  <!-- Hero 輪播（全寬） -->
+  <section class="home-hero">
+    <div class="hero-track" id="heroTrack" aria-roledescription="carousel"></div>
+    <div class="hero-dots" id="heroDots"></div>
+  </section>
+
+  <!-- 主推組合牆：左輪播 + 右四格 -->
+  <section class="home-combo">
+    <div class="combo-left">
+      <div class="combo-swiper" id="comboLeft"></div>
+      <div class="combo-dots" id="comboDots"></div>
+    </div>
+    <div class="combo-right" id="comboRight"></div>
+  </section>
+
+  <!-- 城市主題（橫滑卡） -->
+  <section class="home-row">
+    <div class="row-head">
+      <h2>City Highlights</h2>
+      <a class="row-more" id="cityMore" href="#explore">See all</a>
+    </div>
+    <div class="card-row" id="cityRow" aria-label="Cities"></div>
+  </section>
+
+  <!-- AD slot（單圖） -->
+  <a class="home-ad" id="adSlot" href="#" target="_blank" rel="noopener" aria-label="Advertisement">
+    <img alt="Ad banner"/>
+  </a>
+
+  <!-- 主題精選（橫滑） -->
+  <section class="home-row">
+    <div class="row-head">
+      <h2>Collections</h2>
+      <a class="row-more" id="colMore" href="#explore">See all</a>
+    </div>
+    <div class="tag-row" id="colRow" aria-label="Collections"></div>
+  </section>
+
+  <!-- 多人推薦（橫滑） -->
+  <section class="home-row">
+    <div class="row-head">
+      <h2>For Groups</h2>
+    </div>
+    <div class="card-row" id="groupRow" aria-label="Group picks"></div>
+  </section>
+
+  <!-- Spotlight（創作者） -->
+  <section class="home-row">
+    <div class="row-head">
+      <h2>Creator Spotlight</h2>
+    </div>
+    <div class="avatar-row" id="spotlightRow" aria-label="Creators"></div>
+  </section>
+
+  <!-- 熱門好物（4格商品卡，橫滑） -->
+  <section class="home-row">
+    <div class="row-head">
+      <h2>Popular Picks</h2>
+    </div>
+    <div class="goods-row" id="goodsRow" aria-label="Goods"></div>
+  </section>
+
+</section>
 
     <!-- Explore -->
 <section data-page="explore" aria-labelledby="h-explore" class="section" hidden>
