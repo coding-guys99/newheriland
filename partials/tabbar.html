@@ -1,19 +1,77 @@
-<nav class="tabbar" aria-label="主要導覽">
+<!-- Tab Bar (fixed, translucent, non-skeuomorphic icons) -->
+<nav class="tabbar" data-behavior="overlay" aria-label="主要導覽">
+  <!-- 半透明背景層（陰影 / 模糊可在 CSS 處理） -->
+  <div class="tabbar-bg" aria-hidden="true"></div>
+
+  <!-- 內層容器：可做 capsule 視覺，但整體外框不圓角 -->
   <div class="capsule" role="tablist">
-    <button class="tab" role="tab" data-target="home" aria-selected="true" aria-current="page">
-      <span class="ico">🏠</span><span class="txt">Home</span>
+    <!-- Home -->
+    <button
+      class="tab is-active"
+      role="tab"
+      data-target="home"
+      data-hash="#home"
+      aria-selected="true"
+      aria-controls="h-home"
+      aria-current="page">
+      <span class="ico" aria-hidden="true">⌂</span>
+      <span class="txt">Home</span>
     </button>
-    <button class="tab" role="tab" data-target="explore" aria-selected="false">
-      <span class="ico">🧭</span><span class="txt">Explore</span>
+
+    <!-- Explore -->
+    <button
+      class="tab"
+      role="tab"
+      data-target="explore"
+      data-hash="#explore"
+      aria-selected="false"
+      aria-controls="h-explore">
+      <span class="ico" aria-hidden="true">⟲</span>
+      <span class="txt">Explore</span>
     </button>
-    <button class="tab" role="tab" data-target="map" aria-selected="false">
-      <span class="ico">🗺️</span><span class="txt">Map</span>
+
+    <!-- Map -->
+    <button
+      class="tab"
+      role="tab"
+      data-target="map"
+      data-hash="#map"
+      aria-selected="false"
+      aria-controls="h-map">
+      <span class="ico" aria-hidden="true">▣</span>
+      <span class="txt">Map</span>
     </button>
-    <button class="tab" role="tab" data-target="saved" aria-selected="false">
-      <span class="ico">⭐</span><span class="txt">Saved</span>
+
+    <!-- Saved -->
+    <button
+      class="tab"
+      role="tab"
+      data-target="saved"
+      data-hash="#saved"
+      aria-selected="false"
+      aria-controls="h-saved">
+      <span class="ico" aria-hidden="true">★</span>
+      <span class="txt">Saved</span>
+      <!-- 可選的小紅點/提醒徽章 -->
+      <span class="badge" aria-hidden="true" hidden>•</span>
     </button>
-    <button class="tab" role="tab" data-target="add" aria-selected="false">
-      <span class="ico">➕</span><span class="txt">Add</span>
+
+    <!-- Add -->
+    <button
+      class="tab"
+      role="tab"
+      data-target="add"
+      data-hash="#add"
+      aria-selected="false"
+      aria-controls="h-add">
+      <span class="ico" aria-hidden="true">＋</span>
+      <span class="txt">Add</span>
     </button>
+
+    <!-- 活動指示器（底線/墨滴效果，純裝飾） -->
+    <span class="ink" aria-hidden="true"></span>
   </div>
 </nav>
+
+<!-- Spacer：避免內容被 tabbar 蓋住（高度與 tabbar 一致；含 safe-area） -->
+<div class="tabbar-spacer" aria-hidden="true"></div>
