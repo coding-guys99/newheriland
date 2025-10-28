@@ -582,6 +582,7 @@ function restoreMainPage(){
 /* ---------- Detail: load ---------- */
 async function loadDetailPage(id){
   showPageDetail();
+  wireDetailFavorite(m.id);
 
   // reset UI
   elName.textContent = 'Loading…';
