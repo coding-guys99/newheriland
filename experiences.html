@@ -1,83 +1,67 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>體驗行程｜HeriLand</title>
-
-  <!-- 你的全站樣式 -->
-  <link rel="stylesheet" href="css/app.css">
-  <!-- 體驗行程專屬樣式 -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>體驗行程 | HeriLand</title>
+  <link rel="stylesheet" href="css/detail.css">
   <link rel="stylesheet" href="css/experiences.css">
-    <link rel="stylesheet" href="css/detail.css">
 </head>
 <body>
 
-  <!-- 頂部列 -->
-  <header class="header">
-    <div class="inner">
-      <button id="btnBackHome" class="icon-btn" aria-label="返回首頁">←</button>
-      <div class="brand">Experiences</div>
-      <button id="btnOpenSettings" class="icon-btn" aria-label="設定">⚙️</button>
-    </div>
+  <!-- 🔹 AppBar -->
+  <header class="subappbar">
+    <button class="icon-btn back" onclick="history.back()">←</button>
+    <h1 class="settings-title">Experiences</h1>
+    <button class="icon-btn setting" aria-label="Setting">⚙️</button>
   </header>
 
-  <main id="xpMain" aria-live="polite">
-    <!-- 篩選列（主題 + 城市） -->
-    <div class="filters">
-      <div class="chips" role="tablist" aria-label="狀態">
-        <button class="chip chip--primary is-on" data-filter="all" aria-selected="true">全部</button>
-        <button class="chip" data-filter="featured">精選</button>
-      </div>
-
-      <div class="chips" aria-label="主題">
-        <button class="chip is-on" data-tag="culture" aria-pressed="true">文化</button>
-        <button class="chip is-on" data-tag="food" aria-pressed="true">美食</button>
-        <button class="chip is-on" data-tag="outdoor" aria-pressed="true">戶外</button>
-        <button class="chip is-on" data-tag="handcraft" aria-pressed="true">手作</button>
-        <button class="chip is-on" data-tag="family" aria-pressed="true">親子</button>
-        <button class="chip is-on" data-tag="weekend" aria-pressed="true">週末</button>
-      </div>
-
-      <div class="chips" aria-label="城市">
-        <button class="chip is-on" data-city="kuching" aria-pressed="true">Kuching</button>
-        <button class="chip is-on" data-city="sibu" aria-pressed="true">Sibu</button>
-        <button class="chip is-on" data-city="miri" aria-pressed="true">Miri</button>
-        <button class="chip is-on" data-city="mukah" aria-pressed="true">Mukah</button>
-      </div>
+  <!-- 🔹 篩選 Chips -->
+  <section id="xpMain" class="xp-filters">
+    <div class="xp-chip-row tags">
+      <button data-tag="culture" class="chip is-on">文化</button>
+      <button data-tag="food" class="chip is-on">美食</button>
+      <button data-tag="outdoor" class="chip is-on">戶外</button>
+      <button data-tag="handcraft" class="chip is-on">手作</button>
+      <button data-tag="family" class="chip is-on">親子</button>
+      <button data-tag="weekend" class="chip is-on">週末</button>
     </div>
-
-    <!-- 清單 -->
-    <section id="xpList" class="xp-list" aria-busy="false"></section>
-
-    <!-- 空狀態 -->
-    <section id="xpEmpty" class="empty-state" hidden>
-      <div class="empty-emoji">🔍</div>
-      <div class="empty-title">找不到符合條件的體驗</div>
-      <div class="empty-sub">試試取消一些篩選看看？</div>
-      <button id="btnXpRetry" class="err-retry" type="button">重新整理</button>
-    </section>
-  </main>
-
-  <!-- 詳情 Overlay（玻璃風） -->
-  <section id="xpDetail" class="overlay-page" hidden aria-labelledby="xpTitle">
-    <header class="subappbar deal-head">
-      <button id="btnCloseXp" class="icon-btn back" aria-label="關閉">←</button>
-      <h1 id="xpTitle" class="settings-title" tabindex="-1">體驗詳情</h1>
-    </header>
-    <div id="xpContent" class="xp-content" role="dialog" aria-modal="true"></div>
+    <div class="xp-chip-row cities">
+      <button data-city="kuching" class="chip is-on">Kuching</button>
+      <button data-city="sibu" class="chip is-on">Sibu</button>
+      <button data-city="miri" class="chip is-on">Miri</button>
+      <button data-city="mukah" class="chip is-on">Mukah</button>
+    </div>
   </section>
 
-  <!-- 設定覆蓋層（沿用你現有的結構，可保留） -->
-  <!-- 如果此頁需要打開設定，app.js 會處理 -->
-  <!-- 建議把 HTML partial 直接 include 進頁面 -->
-<include src="partials/detail-template.html"></include>
+  <!-- 🔹 體驗卡片列表 -->
+  <main id="xpList" class="xp-grid" aria-busy="false"></main>
+  <div id="xpEmpty" hidden class="xp-empty">查無結果</div>
 
-  <!-- JS -->
-  <script type="module" src="js/app.js"></script>
+  <!-- 🔹 通用詳情模板 -->
+  <section id="detailOverlay" class="overlay-page" hidden aria-labelledby="detailTitle">
+    <header class="subappbar">
+      <button id="btnDetailClose" class="icon-btn back">←</button>
+      <h1 id="detailTitle">體驗介紹</h1>
+    </header>
+
+    <div id="detailCard" class="detail-card">
+      <div id="detailHero" class="detail-hero"></div>
+      <div class="detail-body">
+        <h2 id="detailH2" class="detail-h2"></h2>
+        <div id="detailMeta" class="detail-meta"></div>
+        <p id="detailSummary" class="detail-summary"></p>
+        <div id="detailSteps" class="detail-steps"></div>
+        <div class="detail-actions">
+          <button id="detailSecondary" class="btn">收藏</button>
+          <a id="detailPrimary" class="btn primary" href="#">前往</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <script type="module" src="js/experiences.js"></script>
-  <!-- 放在底部 scripts 區，且在使用此模板前 -->
-<script type="module" src="js/detail.js"></script>
-  
+  <script type="module" src="js/detail.js"></script>
+
 </body>
 </html>
