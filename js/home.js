@@ -5,7 +5,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 // 可被 window.HOME_DATA 覆蓋（運營可改）
 const HOME_DATA = Object.assign({
   features: [
-    { ico:'🎁', label:'優惠活動', href:'#explore?tab=events' },
+    { ico:'🎁', label:'優惠活動', href:'deals.html' },
     { ico:'📍', label:'城市館',   href:'#explore' },
     { ico:'👥', label:'多人推薦', href:'#explore?theme=group' },
     { ico:'🛍️', label:'精選店家', href:'#explore?sort=hot' },
