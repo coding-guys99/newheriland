@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(!xp) return;
     // 原本：openDetailTemplate({...})
 if (act === 'detail' && id) {
-  location.href = `xp-detail.html?id=${encodeURIComponent(id)}`;
+  location.href = `./partial/xp-detail.html?id=${encodeURIComponent(id)}`;
 }
     }
     if(act==='share'){
