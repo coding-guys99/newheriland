@@ -180,13 +180,14 @@ function bindFilterChips(){
   });
 }
 
-     // CTA 前往 → 打開詳情（避免誤觸，整卡不做事）
+// 只讓 CTA 觸發詳情、卡片本身不做事
+function bindListActions(){
+  // CTA 前往 → 打開詳情（避免誤觸，整卡不做事）
   $('#dealList')?.addEventListener('click', (e)=>{
     const btn = e.target.closest('.deal-cta'); if (!btn) return;
-     e.stopPropagation();
-     const id = btn.dataset.id;
-     if (id) openDetail(id);
-
+    e.stopPropagation();
+    const id = btn.dataset.id;
+    if (id) openDetail(id);
   });
 
   // 詳情關閉
@@ -198,7 +199,6 @@ function bindFilterChips(){
 
   // 返回首頁
   $('#btnBackHome')?.addEventListener('click', ()=>{
-    // 你可改成 window.history.back()；此處回首頁 hash
     location.href = 'index.html#home';
   });
 }
