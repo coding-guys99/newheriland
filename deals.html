@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>優惠活動｜HeriLand</title>
+
+  <!-- 共用樣式（你的 app.css / tabbar.css） -->
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/tabbar.css">
+  <!-- 之後我會給 deals.css；先留位 -->
+  <link rel="stylesheet" href="css/deals.css">
+</head>
+<body data-page="deals">
+
+  <!-- 頂部：標題列 -->
+  <header class="header" role="banner" aria-label="頁面標題列">
+    <div class="inner">
+      <button class="icon-btn" id="btnBackHome" aria-label="返回首頁">←</button>
+      <h1 class="brand" id="h-deals" data-focusable-heading tabindex="-1">優惠活動</h1>
+      <!-- 右側預留：篩選或說明 -->
+      <button class="icon-btn" id="btnOpenDealFilter" aria-label="篩選">⚙️</button>
+    </div>
+  </header>
+
+  <main id="dealsMain" aria-labelledby="h-deals">
+    <!-- 置頂篩選列（可選） -->
+    <section class="filters" aria-label="活動篩選">
+      <div class="chips" role="tablist" aria-label="狀態">
+        <button class="chip is-on" role="tab" aria-selected="true" data-filter="ongoing">進行中</button>
+        <button class="chip" role="tab" aria-selected="false" data-filter="upcoming">即將開跑</button>
+        <button class="chip" role="tab" aria-selected="false" data-filter="ended">已結束</button>
+      </div>
+      <div class="chips" aria-label="主題">
+        <button class="chip" data-tag="food">美食</button>
+        <button class="chip" data-tag="travel">旅遊</button>
+        <button class="chip" data-tag="family">親子</button>
+        <button class="chip" data-tag="couple">情侶</button>
+        <button class="chip" data-tag="group">多人/團體</button>
+      </div>
+    </section>
+
+    <!-- 活動清單：列表容器 -->
+    <section id="dealList" class="deal-list" aria-live="polite" aria-busy="true">
+      <!-- 初載骨架（JS 會替換） -->
+      <div class="skeleton-list">
+        <div class="sk-row" style="height:90px"></div>
+        <div class="sk-row" style="height:90px"></div>
+        <div class="sk-row" style="height:90px"></div>
+      </div>
+    </section>
+
+    <!-- 空狀態（沒有符合條件的活動） -->
+    <section id="dealEmpty" class="empty-state" hidden>
+      <div class="empty-emoji">🗓️</div>
+      <div class="empty-title">目前沒有可顯示的活動</div>
+      <div class="empty-sub">試試更改篩選條件，或稍後再來看看。</div>
+      <button class="err-retry" id="btnDealRetry">重新整理</button>
+    </section>
+
+    <!-- 錯誤狀態 -->
+    <section id="dealError" class="error-state" hidden>
+      <div class="err-emoji">⚠️</div>
+      <div class="err-title">載入失敗</div>
+      <div class="err-sub">網路不穩定或伺服器忙碌，請稍後重試。</div>
+      <button class="err-retry" id="btnDealRetry2">再試一次</button>
+    </section>
+
+    <!-- 清單結尾提示 -->
+    <div id="dealEndHint" class="result-head" hidden>已顯示全部活動</div>
+  </main>
+
+  <!-- 活動詳情 Overlay（之後用 JS 注入內容） -->
+  <section id="dealDetail" class="overlay-page" hidden aria-labelledby="dealTitle">
+    <header class="subappbar">
+      <button class="icon-btn back" id="btnCloseDeal" aria-label="關閉">←</button>
+      <h2 id="dealTitle" class="settings-title" tabindex="-1">活動詳情</h2>
+    </header>
+    <article class="settings-panel" id="dealContent">
+      <!-- JS 會把選中的活動內容插入到這裡 -->
+    </article>
+  </section>
+
+  <!-- （可選）底部導覽：若你希望此頁也保留 tabbar，就 include -->
+  <!-- <div data-include="partials/tabbar.html"></div> -->
+
+  <noscript>本頁需要 JavaScript 以顯示活動內容。</noscript>
+
+  <!-- Scripts：共用工具 + 專屬邏輯（等你準備好我再給 deals.js） -->
+  <script src="js/include.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+  <!-- <script type="module" src="js/tabbar.js"></script>  若本頁也要顯示 tabbar -->
+  <!-- 之後我會提供： -->
+  <script type="module" src="js/deals.js"></script>
+</body>
+</html>
