@@ -1,0 +1,117 @@
+/* experiences.css — HeriLand Experiences page */
+:root{
+  --xp-radius: 14px;
+  --xp-line: rgba(0,0,0,.08);
+}
+
+/* 清單：首行可做大卡（featured），其餘為雙欄卡 */
+.xp-list{
+  display: grid;
+  gap: 10px;
+  padding: 8px 10px 18px;
+}
+
+/* Featured 大卡（寬幅） */
+.xp-card.featured{
+  display: grid;
+  grid-template-columns: 1fr;
+  background: #fff;
+  border: 1px solid var(--xp-line);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(0,0,0,.10);
+}
+.xp-card.featured .xp-cover{
+  height: 200px;
+  background: #e5e7eb center/cover no-repeat;
+}
+.xp-card.featured .xp-body{
+  padding: 12px;
+  display: grid; gap: 6px;
+}
+.xp-title{ margin: 0; font-weight: 900; font-size: 18px; color: #111; }
+.xp-meta{ display:flex; flex-wrap:wrap; gap:8px; color:#475569; font-size:12px; }
+.xp-tags{ display:flex; flex-wrap:wrap; gap:6px; }
+.xp-tag{ padding: 2px 8px; border-radius: 999px; background:#f3f4f6; font-size:12px; font-weight:700; color:#111; }
+.xp-sum{ color:#6b7280; font-size: 13px; }
+
+.xp-foot{
+  display:flex; gap:10px; margin-top: 6px;
+}
+.xp-btn{
+  appearance:none; border:1px solid var(--xp-line); cursor:pointer; font-weight:800;
+  padding:8px 12px; border-radius:10px; background: #fff;
+}
+.xp-btn.primary{ color:#fff; background:#2E5E4E; border-color:#2E5E4E; }
+
+/* 普通卡（雙欄） */
+.xp-card{
+  display:grid; grid-template-columns: 112px 1fr; gap:12px;
+  background:#fff; border:1px solid var(--xp-line); border-radius: var(--xp-radius);
+  box-shadow: 0 8px 22px rgba(0,0,0,.08); overflow:hidden;
+}
+.xp-cover{ width:112px; background:#e5e7eb center/cover no-repeat; }
+.xp-body{ padding: 10px 12px; display:grid; grid-template-rows:auto 1fr auto; gap:6px; }
+
+/* 空狀態沿用 app.css */
+
+@media (prefers-color-scheme: dark){
+  .xp-card, .xp-card.featured{ background: color-mix(in srgb, #0b0f12 78%, transparent); border-color: rgba(255,255,255,.08); box-shadow: 0 10px 28px rgba(0,0,0,.5); }
+  .xp-title{ color:#f5f7fa; }
+  .xp-meta, .xp-sum{ color:#cbd5e1; }
+  .xp-btn{ background: color-mix(in srgb, #0b0f12 76%, transparent); border-color: rgba(255,255,255,.12); color:#eef2f6; }
+  .xp-card .xp-cover, .xp-card.featured .xp-cover{ background-color: #1f2937; }
+}
+
+/* ===== 詳情 Overlay（玻璃風） ===== */
+#xpDetail.overlay-page{
+  display:grid; grid-template-rows:auto 1fr;
+  background: color-mix(in srgb, rgba(10,12,16,.42) 100%, transparent);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  backdrop-filter: blur(8px) saturate(120%);
+}
+.deal-head{
+  position: sticky; top: 0; z-index: 2;
+  background: color-mix(in srgb, #ffffff 92%, transparent);
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+.xp-content{
+  margin: 72px 12px 14px;
+  padding: 12px 12px calc(14px + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, #ffffff 82%, transparent);
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 16px;
+  box-shadow: 0 18px 50px rgba(0,0,0,.28);
+  overflow: auto; max-height: calc(100dvh - 110px);
+  overscroll-behavior: contain;
+}
+
+.xp-hero{
+  position: relative;
+  height: 220px;
+  border-radius: 16px; overflow: hidden;
+  background-size: cover; background-position: center;
+  box-shadow: 0 12px 30px rgba(0,0,0,.16);
+}
+.xp-hero::after{
+  content:""; position:absolute; inset:auto 0 0 0; height: 48%;
+  background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.28));
+  pointer-events:none;
+}
+
+.xp-detail-title{ margin:10px 2px 2px; font-size:20px; font-weight:800; }
+.xp-detail-meta{ display:flex; flex-wrap:wrap; gap:10px 12px; color:#475569; margin:6px 2px 8px; }
+.xp-detail-copy{ color:#334155; line-height: 1.55; }
+
+.xp-detail-actions{
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px;
+}
+
+@media (prefers-color-scheme: dark){
+  #xpDetail .deal-head{ background: color-mix(in srgb, #0b0f12 76%, transparent); border-bottom-color: rgba(255,255,255,.08); }
+  .xp-content{ background: color-mix(in srgb, #0b0f12 74%, transparent); border-color: rgba(255,255,255,.18); box-shadow: 0 20px 60px rgba(0,0,0,.6); color:#e5e7eb; }
+  .xp-detail-copy{ color:#e5e7eb; }
+}
+
+/* 禁止背景滾動（body 加上 .no-scroll 時） */
+body.no-scroll{ height:100vh; overflow:hidden !important; touch-action:none; }
