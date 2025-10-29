@@ -115,3 +115,52 @@
 
 /* 禁止背景滾動（body 加上 .no-scroll 時） */
 body.no-scroll{ height:100vh; overflow:hidden !important; touch-action:none; }
+
+/* featured 大卡橫跨全寬 */
+.xp-card.featured {
+  grid-column: span 2;
+}
+
+/* 清單兩欄 */
+.xp-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  padding: 10px;
+}
+
+/* 卡片調整 */
+.xp-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 8px 18px rgba(0,0,0,.08);
+}
+.xp-cover {
+  aspect-ratio: 4/3;
+  background: #eee center/cover no-repeat;
+}
+.xp-body {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.xp-title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #111;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.xp-meta {
+  font-size: 11px;
+  color: #6b7280;
+}
