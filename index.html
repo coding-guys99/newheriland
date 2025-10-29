@@ -29,79 +29,75 @@
     <!-- ====== 主頁們（單頁多分頁） ====== -->
 
     <!-- Home -->
-    <section data-page="home" aria-labelledby="h-home" class="section home">
-  <h1 id="h-home" class="sr-only" data-focusable-heading>Home</h1>
+    <!-- ===================== Home (Landing / 導流首頁) ===================== -->
+<section data-page="home" hidden aria-labelledby="h-home">
+  <!-- App Bar -->
+  <header class="home-appbar">
+    <div class="brand">HeriLand</div>
+    <button class="search-btn" id="homeSearchBtn" aria-label="Open search">🔎 Search places</button>
+    <a class="gear" id="btnOpenSettings" aria-label="Open settings">⚙️</a>
+  </header>
 
-  <!-- 搜尋列 -->
-  <div class="home-search">
-    <button class="search-btn" id="homeSearchBtn">🔍 <span>Search cities, experiences, places</span></button>
+  <div class="home-wrap">
+    <!-- Hero Carousel -->
+    <section class="home-hero" aria-label="Highlights">
+      <div class="hero-track" id="heroTrack" tabindex="0" role="list"></div>
+      <div class="hero-dots" id="heroDots" role="tablist" aria-label="Hero slides"></div>
+    </section>
+
+    <!-- 功能捷徑 2×4 -->
+    <section class="home-features" aria-label="Quick actions">
+      <div class="feat-row" id="homeFeatures"></div>
+    </section>
+
+    <!-- Combo：左滑軌 × 右四格 -->
+    <section class="home-combo" aria-label="Campaigns">
+      <div class="combo-left">
+        <div class="combo-track" id="comboLeft" role="list"></div>
+        <div class="combo-dots" id="comboDots" role="tablist" aria-label="Campaign slider"></div>
+      </div>
+      <div class="combo-right" id="comboRight"></div>
+    </section>
+
+    <!-- 城市推薦（精簡入口） -->
+    <section class="home-cities" aria-label="Cities">
+      <h2 class="sec-ttl">城市推薦</h2>
+      <div class="city-row" id="cityRow"></div>
+    </section>
+
+    <!-- Mid Ad -->
+    <section class="home-ad" aria-label="Featured partner">
+      <a id="adSlot" class="ad-card" href="#" aria-label="Sponsored">
+        <img alt="Sponsored" loading="lazy" />
+      </a>
+    </section>
+
+    <!-- Collections（話題集合） -->
+    <section class="home-collections" aria-label="Collections">
+      <h2 class="sec-ttl">主題集合</h2>
+      <div class="col-row" id="colRow"></div>
+    </section>
+
+    <!-- 多人主題 -->
+    <section class="home-groups" aria-label="Group themes">
+      <h2 class="sec-ttl">多人主題</h2>
+      <div class="group-row" id="groupRow"></div>
+    </section>
+
+    <!-- 在地 Spotlight -->
+    <section class="home-spotlight" aria-label="Spotlight">
+      <h2 class="sec-ttl">在地策展</h2>
+      <div class="spotlight-row" id="spotlightRow"></div>
+    </section>
+
+    <!-- 輕量在地小物（可關閉此段） -->
+    <section class="home-goods" aria-label="Local picks">
+      <h2 class="sec-ttl">在地小物</h2>
+      <div class="goods-row" id="goodsRow"></div>
+    </section>
+
+    <div class="home-safe-bottom" aria-hidden="true"></div>
   </div>
-
-  <!-- 功能入口 chips（橫滑） -->
-  <div class="home-features" id="homeFeatures" role="group" aria-label="Quick features"></div>
-
-  <!-- Hero 輪播（全寬） -->
-  <section class="home-hero">
-    <div class="hero-track" id="heroTrack" aria-roledescription="carousel"></div>
-    <div class="hero-dots" id="heroDots"></div>
-  </section>
-
-  <!-- 主推組合牆：左輪播 + 右四格 -->
-  <section class="home-combo">
-    <div class="combo-left">
-      <div class="combo-swiper" id="comboLeft"></div>
-      <div class="combo-dots" id="comboDots"></div>
-    </div>
-    <div class="combo-right" id="comboRight"></div>
-  </section>
-
-  <!-- 城市主題（橫滑卡） -->
-  <section class="home-row">
-    <div class="row-head">
-      <h2>City Highlights</h2>
-      <a class="row-more" id="cityMore" href="#explore">See all</a>
-    </div>
-    <div class="card-row" id="cityRow" aria-label="Cities"></div>
-  </section>
-
-  <!-- AD slot（單圖） -->
-  <a class="home-ad" id="adSlot" href="#" target="_blank" rel="noopener" aria-label="Advertisement">
-    <img alt="Ad banner"/>
-  </a>
-
-  <!-- 主題精選（橫滑） -->
-  <section class="home-row">
-    <div class="row-head">
-      <h2>Collections</h2>
-      <a class="row-more" id="colMore" href="#explore">See all</a>
-    </div>
-    <div class="tag-row" id="colRow" aria-label="Collections"></div>
-  </section>
-
-  <!-- 多人推薦（橫滑） -->
-  <section class="home-row">
-    <div class="row-head">
-      <h2>For Groups</h2>
-    </div>
-    <div class="card-row" id="groupRow" aria-label="Group picks"></div>
-  </section>
-
-  <!-- Spotlight（創作者） -->
-  <section class="home-row">
-    <div class="row-head">
-      <h2>Creator Spotlight</h2>
-    </div>
-    <div class="avatar-row" id="spotlightRow" aria-label="Creators"></div>
-  </section>
-
-  <!-- 熱門好物（4格商品卡，橫滑） -->
-  <section class="home-row">
-    <div class="row-head">
-      <h2>Popular Picks</h2>
-    </div>
-    <div class="goods-row" id="goodsRow" aria-label="Goods"></div>
-  </section>
-
 </section>
 
     <!-- Explore -->
