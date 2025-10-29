@@ -1,21 +1,22 @@
-/* deals.css — HeriLand Deals page */
+/* deals.css — HeriLand Deals (Glass + Typography Clean) */
+/* ----------------------------------------------------- */
 :root{
   --deal-radius: 14px;
   --deal-line: rgba(0,0,0,.08);
 }
 
-/* 置頂篩選列：沿用 app.css 的 .filters 外觀，微調間距 */
+/* ========== Filters (沿用 app.css，僅微調) ========== */
 #dealsMain .filters{ margin: 8px 10px; }
 #dealsMain .filters .chips{ padding: 4px 6px; }
 
-/* 活動清單 */
+/* ========== List ========== */
 .deal-list{
   display: grid;
   gap: 10px;
   padding: 8px 10px 18px;
 }
 
-/* 活動卡 */
+/* Card */
 .deal-card{
   display: grid;
   grid-template-columns: 112px 1fr;
@@ -34,22 +35,24 @@
   display: grid; grid-template-rows: auto 1fr auto;
   padding: 10px 12px;
 }
+
+/* Typography (list) */
 .deal-title{
   margin: 0 0 4px;
   font-weight: 800; line-height: 1.25;
-  color: #111; font-size: 16px;
+  color: #1f2937; font-size: 16px; letter-spacing: .2px;
 }
 .deal-meta{
-  display: flex; flex-wrap: wrap; gap: 6px;
+  display: flex; flex-wrap: wrap; gap: 6px 10px;
   font-size: 12px; color: #475569;
 }
 .badge{
   display:inline-block; padding:2px 8px; border-radius:999px;
-  background:#f3f4f6; color:#111; font-weight:600; font-size:12px;
+  background:#f3f4f6; color:#111; font-weight:700; font-size:12px; letter-spacing:.3px;
 }
-.badge.ok{ background:#dcfce7; color:#166534; }
-.badge.soon{ background:#fff7ed; color:#9a3412; }
-.badge.end{ background:#f3f4f6; color:#64748b; text-decoration: line-through; }
+.badge.ok{ background:#DCFCE7; color:#166534; }
+.badge.soon{ background:#FEF9C3; color:#92400E; }
+.badge.end{ background:#FEE2E2; color:#991B1B; text-decoration: line-through; }
 
 .deal-foot{
   display:flex; justify-content: space-between; align-items:center; gap:10px;
@@ -60,160 +63,69 @@
   appearance:none; border:1px solid var(--deal-line);
   background: linear-gradient(180deg,#fff,#fafafa);
   border-radius: 999px;
-  padding: 6px 10px; font-weight: 800; cursor: pointer;
+  padding: 6px 10px; font-weight: 800; letter-spacing:.3px; cursor: pointer;
 }
 .deal-cta:active{ transform: translateY(1px); }
 
-/* 骨架（沿用 app.css 的 .skeleton-list / .sk-row） */
+/* Skeleton in list */
 .deal-list .skeleton-list .sk-row{ height: 96px; border-radius: var(--deal-radius); }
 
-/* 詳情 overlay 內的版面 */
-#dealContent{
-  display: grid; gap: 10px;
-}
-.deal-hero{
-  width: 100%; aspect-ratio: 16/9;
-  background: #e5e7eb center/cover no-repeat;
-  border-radius: 12px;
-}
-.detail-meta{
-  display:flex; flex-wrap:wrap; gap:8px; align-items:center;
-  color:#475569; font-size:14px;
-}
-.detail-actions{
-  display:flex; gap:10px; margin-top: 6px;
-}
-.detail-actions .btn{
-  appearance:none; border:1px solid var(--deal-line);
-  background:#fff; border-radius:10px; padding:8px 12px; font-weight:800; cursor:pointer;
-}
-.detail-actions .btn.primary{ background:#2E5E4E; color:#fff; border-color:#2E5E4E; }
-
-/* 暗色保護 */
-@media (prefers-color-scheme: dark){
-  .deal-card{ background: color-mix(in srgb, #0b0f12 78%, transparent); border-color: rgba(255,255,255,.08); box-shadow: 0 10px 28px rgba(0,0,0,.5); }
-  .deal-title{ color:#f5f7fa; }
-  .deal-meta, .deal-foot{ color:#cbd5e1; }
-  .deal-cta{ background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); color:#eef2f6; border-color: rgba(255,255,255,.12); }
-  .deal-thumb, .deal-hero{ background-color: #1f2937; }
-}
-
-/* ===== Deals — Detail overlay polish ===== */
+/* ========== Detail Overlay (單層玻璃 + 玻璃卡) ========== */
 #dealDetail.overlay-page{
   display:grid;
-  grid-template-rows:auto 1fr;                 /* header / content */
-  background: color-mix(in srgb, rgba(0,0,0,.45) 100%, transparent);
-  -webkit-backdrop-filter: blur(10px) saturate(120%);
-  backdrop-filter: blur(10px) saturate(120%);
-  overscroll-behavior: contain;                /* 阻斷外層彈性滾動 */
-}
-#dealDetail .subappbar{
-  position:sticky; top:0; z-index:3;
-  background: color-mix(in srgb, #ffffff 86%, transparent);
-  border-bottom:1px solid rgba(0,0,0,.06);
-}
-#dealContent{
-  overflow:auto;                                /* 僅內容可滾動 */
-  padding:12px 12px calc(16px + env(safe-area-inset-bottom));
-}
-
-/* Hero 圖 */
-.deal-hero{
-  width:100%; aspect-ratio:16/9; border-radius:16px;
-  background-size:cover; background-position:center;
-  box-shadow:0 12px 30px rgba(0,0,0,.16); overflow:hidden;
-}
-.deal-hero::after{
-  content:""; position:absolute; inset:auto 0 0 0; height:38%;
-  background:linear-gradient(180deg, transparent, rgba(0,0,0,.28));
-}
-
-/* 文案與標籤 */
-#dealContent h3{ margin:10px 2px 2px; font-size:20px; font-weight:800; }
-.detail-meta{ display:flex; flex-wrap:wrap; gap:8px; margin:6px 2px 10px; color:#475569; }
-.badge{ display:inline-block; padding:4px 8px; border-radius:999px; font-weight:700; font-size:12px; }
-.badge.ok{ background:#DCFCE7; color:#166534; }
-.badge.soon{ background:#FEF9C3; color:#854D0E; }
-.badge.end{ background:#FEE2E2; color:#991B1B; }
-
-/* 底部按鈕 */
-.detail-actions{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
-.detail-actions .btn{
-  appearance:none; border:1px solid rgba(0,0,0,.1);
-  background:#fff; border-radius:12px; padding:10px 12px; font-weight:800; cursor:pointer;
-}
-.detail-actions .btn.primary{ background:#2E5E4E; color:#fff; border-color:#2E5E4E; }
-
-/* 深色 */
-@media (prefers-color-scheme: dark){
-  #dealDetail .subappbar{ background: color-mix(in srgb, #0b0f12 72%, transparent); border-bottom-color: rgba(255,255,255,.08); }
-  #dealContent{ color:#e5e7eb; }
-  .detail-actions .btn{ background: color-mix(in srgb, #0b0f12 76%, transparent); border-color: rgba(255,255,255,.12); color:#eef2f6; }
-}
-
-/* 鎖背景滾動：加在 <body> 上時生效 */
-body.no-scroll{
-  height:100vh;
-  overflow:hidden !important;
-  touch-action:none;                            /* iOS 防回彈 */
-}
-
-/* === Overlay 層：單層玻璃 === */
-#dealDetail.overlay-page{
+  grid-template-rows:auto 1fr; /* header / content */
   background: color-mix(in srgb, rgba(10,12,16,.42) 100%, transparent);
   -webkit-backdrop-filter: blur(8px) saturate(120%);
   backdrop-filter: blur(8px) saturate(120%);
+  overscroll-behavior: contain; /* 阻斷外層回彈 */
+}
+#dealDetail .subappbar{
+  position: sticky; top: 0; z-index: 3;
+  background: color-mix(in srgb, #ffffff 92%, transparent);
+  border-bottom: 1px solid rgba(0,0,0,.06);
 }
 
 /* 內容容器（玻璃卡） */
 #dealContent{
-  inset: auto 12px 12px;
-  margin: 72px 12px 14px;            /* 頂部讓出標題列 */
+  margin: 72px 12px 14px;                 /* 頂部讓出標題列 */
   padding: 12px 12px calc(14px + env(safe-area-inset-bottom));
-  background: color-mix(in srgb, #ffffff 82%, transparent);  /* 半透明淺底 */
-  border: 1px solid rgba(255,255,255,.35);                   /* 玻璃邊框 */
+  background: color-mix(in srgb, #ffffff 82%, transparent);
+  border: 1px solid rgba(255,255,255,.35);
   border-radius: 16px;
   box-shadow: 0 18px 50px rgba(0,0,0,.28);
-  overflow: auto;
-  max-height: calc(100dvh - 110px);
+  overflow: auto; max-height: calc(100dvh - 110px);
   overscroll-behavior: contain;
+  display: grid; gap: 10px;
 }
 
-/* Header 用實色，穩住層次 */
-.deal-head{
-  position: sticky; top: 0; z-index: 2;
-  background: color-mix(in srgb, #ffffff 92%, transparent);
-  -webkit-backdrop-filter: blur(6px) saturate(120%);
-  backdrop-filter: blur(6px) saturate(120%);
-  border-bottom: 1px solid rgba(0,0,0,.06);
-}
-
-/* Hero 只自己加漸層，避免罩全場 */
+/* Hero 圖（只自己加漸層） */
 .deal-hero{
   position: relative;
   height: 220px;
   border-radius: 16px;
   overflow: hidden;
-  background-size: cover; background-position: center;
+  background: #e5e7eb center/cover no-repeat;
+  box-shadow: 0 12px 30px rgba(0,0,0,.16);
 }
 .deal-hero::after{
-  content:"";
+  content:""; pointer-events:none;
   position:absolute; inset:auto 0 0 0; height: 48%;
   background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.18) 60%, rgba(0,0,0,.28) 100%);
-  pointer-events:none;
 }
 
-/* Meta 行 */
+/* Typography (detail) */
+#dealContent h3{
+  margin:10px 2px 2px;
+  font-size:20px; font-weight:800; letter-spacing:.2px; color:#1f2937;
+}
 .detail-meta{
-  display:flex; flex-wrap:wrap; gap:10px 12px;
-  align-items:center; margin:10px 2px 8px;
+  display:flex; flex-wrap:wrap; gap:10px 12px; align-items:center;
+  margin:10px 2px 8px; color:#475569; font-size:14px; line-height:1.4;
 }
-
-/* Badge（延續你原本色系） */
-.badge{ display:inline-block; padding:4px 10px; border-radius:999px; font-weight:800; font-size:12px; }
-.badge.ok{ background:#DCFCE7; color:#166534; }
-.badge.soon{ background:#FEF9C3; color:#92400E; }
-.badge.end{ background:#FEE2E2; color:#991B1B; }
+#dealContent p{
+  margin:.5rem 2px 0; color:rgba(0,0,0,.7);
+  font-size:15px; line-height:1.7; text-wrap: pretty;
+}
 
 /* CTA 列：一深一淺 */
 .detail-actions{
@@ -223,7 +135,7 @@ body.no-scroll{
 .btn{
   appearance:none; padding:12px 14px; border-radius:12px; font-weight:800; cursor:pointer;
   border:1px solid rgba(0,0,0,.08);
-  background: color-mix(in srgb, #ffffff 86%, transparent);  /* 淺玻璃 */
+  background: color-mix(in srgb, #ffffff 86%, transparent);
   -webkit-backdrop-filter: blur(6px) saturate(120%);
   backdrop-filter: blur(6px) saturate(120%);
 }
@@ -233,16 +145,40 @@ body.no-scroll{
   box-shadow: 0 8px 22px rgba(46,94,78,.35);
 }
 
-/* 暗色模式優化 */
+/* ========== Scroll Lock（配合 JS 切換 body.no-scroll） ========== */
+body.no-scroll{
+  height:100vh;
+  overflow:hidden !important;
+  touch-action:none; /* iOS 防回彈 */
+}
+
+/* ========== Dark mode ========== */
 @media (prefers-color-scheme: dark){
+  .deal-card{
+    background: color-mix(in srgb, #0b0f12 78%, transparent);
+    border-color: rgba(255,255,255,.08);
+    box-shadow: 0 10px 28px rgba(0,0,0,.5);
+  }
+  .deal-title{ color:#f5f7fa; }
+  .deal-meta, .deal-foot{ color:#cbd5e1; }
+  .deal-cta{
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    color:#eef2f6; border-color: rgba(255,255,255,.12);
+  }
+
+  #dealDetail .subappbar{
+    background: color-mix(in srgb, #0b0f12 76%, transparent);
+    border-bottom-color: rgba(255,255,255,.08);
+  }
   #dealContent{
     background: color-mix(in srgb, #0b0f12 74%, transparent);
     border-color: rgba(255,255,255,.18);
     box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    color:#e5e7eb;
   }
-  .deal-head{
-    background: color-mix(in srgb, #0b0f12 76%, transparent);
-    border-bottom-color: rgba(255,255,255,.08);
+  .btn{
+    background: color-mix(in srgb, #0b0f12 70%, transparent);
+    border-color: rgba(255,255,255,.12);
+    color:#eef2f6;
   }
-  .btn{ background: color-mix(in srgb, #0b0f12 70%, transparent); border-color: rgba(255,255,255,.12); color:#eef2f6; }
 }
