@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>精選商家｜HeriLand</title>
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/tabbar.css">
+  <link rel="stylesheet" href="css/featured.css">
+</head>
+<body>
+
+  <!-- 頂部 -->
+  <header class="header">
+    <div class="inner">
+      <button class="icon-btn" id="btnBackHome" aria-label="Back">←</button>
+      <div class="brand">精選商家</div>
+      <button id="btnOpenSettings" class="icon-btn" aria-label="Settings">⚙️</button>
+    </div>
+  </header>
+
+  <main id="p-featured" data-page="featured" aria-labelledby="h-featured">
+    <h1 id="h-featured" class="visually-hidden" data-focusable-heading tabindex="-1">精選商家</h1>
+
+    <!-- 導語 + 膠囊 -->
+    <section class="lead">
+      <p class="lead-copy">本週編輯嚴選，快速找到「一定不踩雷」的店。</p>
+      <div class="chips" id="featChips" role="tablist" aria-label="Quick filters">
+        <button class="chip is-on" data-q="weekly" role="tab" aria-selected="true">本週嚴選</button>
+        <button class="chip" data-q="top" role="tab">高評分</button>
+        <button class="chip" data-q="new" role="tab">新上架</button>
+        <button class="chip" data-q="value" role="tab">CP 值</button>
+        <button class="chip" data-q="date" role="tab">約會</button>
+        <button class="chip" data-q="family" role="tab">親子</button>
+        <button class="chip" data-q="group" role="tab">團體</button>
+      </div>
+    </section>
+
+    <!-- Hero 精選 -->
+    <section class="hero-wrap" aria-labelledby="sec-hero">
+      <h2 id="sec-hero" class="sec-title">本週 Spotlight</h2>
+      <div class="hero-track" id="heroTrack" aria-live="polite"></div>
+      <div class="hero-dots" id="heroDots" aria-hidden="true"></div>
+    </section>
+
+    <!-- 區塊 A：本週嚴選 -->
+    <section class="blk" id="blk-weekly" aria-labelledby="h-weekly">
+      <div class="blk-head">
+        <h2 id="h-weekly">本週嚴選</h2>
+        <a class="more" href="index.html#explore?featured=weekly">看全部 ›</a>
+      </div>
+      <div class="row cards" id="row-weekly" data-lazy="weekly">
+        <div class="skeleton-list">
+          <div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 區塊 B：話題最高 -->
+    <section class="blk" id="blk-top" aria-labelledby="h-top">
+      <div class="blk-head">
+        <h2 id="h-top">話題最高</h2>
+        <a class="more" href="index.html#explore?sort=hot">看全部 ›</a>
+      </div>
+      <div class="row list" id="row-top" data-lazy="top">
+        <div class="skeleton-list">
+          <div class="sk-line"></div><div class="sk-line"></div><div class="sk-line"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 區塊 C：新上架值得試 -->
+    <section class="blk" id="blk-new" aria-labelledby="h-new">
+      <div class="blk-head">
+        <h2 id="h-new">新上架值得試</h2>
+        <a class="more" href="index.html#explore?sort=latest&editor_pick=1">看全部 ›</a>
+      </div>
+      <div class="row cards" id="row-new" data-lazy="new">
+        <div class="skeleton-list">
+          <div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 區塊 D：城市小合集（水平滑） -->
+    <section class="blk" id="blk-city" aria-labelledby="h-city">
+      <div class="blk-head">
+        <h2 id="h-city">城市小合集</h2>
+        <a class="more" href="index.html#explore">去城市館 ›</a>
+      </div>
+      <div class="row scroller" id="row-city" data-lazy="city">
+        <div class="skeleton-list scroller">
+          <div class="sk-mini"></div><div class="sk-mini"></div><div class="sk-mini"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 空狀態（全部無資料時顯示） -->
+    <div id="featEmpty" class="empty-state" hidden>
+      <div class="empty-emoji">🗂️</div>
+      <div class="empty-title">暫無精選</div>
+      <div class="empty-sub">稍後再回來看看，或前往城市館探索更多。</div>
+    </div>
+  </main>
+
+  <!-- 設定 Overlay（沿用你現有結構） -->
+  <!-- 放你之前貼的 Settings 區塊即可，這裡不重貼 -->
+
+  <!-- Tabbar（與主站一致） -->
+  <div data-include="partials/tabbar.html"></div>
+
+  <script src="js/include.js"></script>
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/tabbar.js"></script>
+  <script type="module" src="js/featured.js"></script>
+</body>
+</html>
