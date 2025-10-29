@@ -149,6 +149,9 @@
   border:1px solid var(--line); border-radius:14px; padding:10px; background:#fff;
   box-shadow: 0 8px 20px rgba(0,0,0,.08);
 }
+[data-page="home"] .avatar span{
+  font-size:10px;
+}
 [data-page="home"] .avatar img{ width:64px; height:64px; border-radius:999px; object-fit:cover; }
 
 /* Goods（選配） */
