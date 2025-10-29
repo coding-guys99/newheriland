@@ -242,3 +242,78 @@
 
 /* 想要第一張「精選」橫跨兩欄 → 卡上有 .featured 就 span 2 欄 */
 .xp-card.featured{ grid-column: span 2; }
+
+/* 容器：兩欄排列 */
+#xpList{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 12px;
+  padding: 12px;
+}
+
+/* 卡片本體 */
+.xp-card{
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.08);
+  overflow: hidden;
+  transition: transform .15s ease;
+}
+.xp-card:active{ transform: scale(.98); }
+
+/* 縮圖 */
+.xp-thumb{
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #e5e7eb center/cover no-repeat;
+}
+
+/* 文字內容 */
+.xp-body{
+  padding: 8px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.xp-title{
+  font-weight: 800;
+  font-size: 15px;
+  margin: 0;
+  line-height: 1.25;
+}
+.xp-sub{
+  color:#475569;
+  font-size: 13px;
+  margin: 0;
+}
+.xp-meta{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color:#64748b;
+  font-size: 12px;
+}
+
+/* CTA */
+.xp-btn{
+  appearance:none;
+  border:none;
+  border-radius: 8px;
+  background:#f1f5f9;
+  color:#2563eb;
+  font-weight:700;
+  font-size:13px;
+  margin-top:6px;
+  padding:6px 0;
+}
+.xp-btn:active{ background:#e2e8f0; }
+
+/* 暗色模式 */
+@media (prefers-color-scheme: dark){
+  .xp-card{ background: color-mix(in srgb, #0b0f12 78%, transparent); box-shadow: 0 8px 20px rgba(0,0,0,.5); }
+  .xp-title{ color:#f5f7fa; }
+  .xp-sub, .xp-meta{ color:#cbd5e1; }
+  .xp-btn{ background: color-mix(in srgb, #0b0f12 70%, transparent); color:#60a5fa; }
+}
