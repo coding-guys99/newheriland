@@ -1,0 +1,53 @@
+<!-- Search Overlay (fullscreen) -->
+<div id="searchOverlay" class="search-ovl" role="dialog" aria-modal="true" hidden>
+  <div class="search-shell">
+    <!-- Top bar -->
+    <div class="s-top">
+      <button class="s-close" id="sBtnClose" aria-label="Close">✕</button>
+      <div class="s-input">
+        <i class="s-ico">🔎</i>
+        <input id="sQuery" type="search" placeholder="Search cities, experiences, places" enterkeyhint="search" autocomplete="off" />
+        <button id="sBtnClear" class="s-clear" aria-label="Clear" hidden>⌫</button>
+      </div>
+      <!-- 預留語音/掃碼位：可視需要啟用 -->
+      <!-- <button class="s-aux" aria-label="Voice">🎤</button> -->
+    </div>
+
+    <!-- Content -->
+    <div class="s-body" id="sBody" tabindex="-1">
+      <!-- Suggestions (when typing) -->
+      <div id="sSuggest" class="s-section" hidden>
+        <div class="s-title">Suggestions</div>
+        <ul id="sSuggestList" class="s-list"></ul>
+      </div>
+
+      <!-- Recent -->
+      <div id="sRecent" class="s-section">
+        <div class="s-title">
+          <span>Recent</span>
+          <button id="sBtnClearRecent" class="s-mini">Clear all</button>
+        </div>
+        <div id="sRecentChips" class="chips"></div>
+      </div>
+
+      <!-- Hot / Popular -->
+      <div id="sHot" class="s-section">
+        <div class="s-title">Popular</div>
+        <div id="sHotChips" class="chips"></div>
+      </div>
+
+      <!-- Quick filters -->
+      <div id="sQuick" class="s-section">
+        <div class="s-title">Quick filters</div>
+        <div class="chips" id="sQuickChips">
+          <button class="chip" data-city="kuching">Kuching</button>
+          <button class="chip" data-city="sibu">Sibu</button>
+          <button class="chip" data-city="miri">Miri</button>
+          <button class="chip" data-cat="Experience">Experience</button>
+          <button class="chip" data-cat="Local">Local</button>
+          <button class="chip" data-cat="Taste">Taste</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
