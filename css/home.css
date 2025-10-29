@@ -82,7 +82,7 @@
 [data-page="home"] .combo-left .combo-dots button[aria-current="true"]{ background:#111; opacity:.95; }
 
 [data-page="home"] .combo-right{
-  display:grid; grid-template-columns: 1fr 1fr; gap:8px;
+  display:grid; grid-template-columns: 1fr 1fr; gap:0;
 }
 [data-page="home"] .combo-right a{
   text-decoration:none; color:inherit; border:1px solid var(--line);
