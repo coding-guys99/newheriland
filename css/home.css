@@ -86,7 +86,7 @@
 }
 [data-page="home"] .combo-right a{
   text-decoration:none; color:inherit; border:1px solid var(--line);
-  background:#fff; border-radius:12px; padding:10px;
+  background:#fff; border-radius:0; padding:10px;
   box-shadow: 0 6px 16px rgba(0,0,0,.08);
 }
 [data-page="home"] .combo-right .sub{ color: var(--muted); font-size:12px }
