@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>體驗行程｜HeriLand</title>
+
+  <!-- 你的全站樣式 -->
+  <link rel="stylesheet" href="css/app.css">
+  <!-- 體驗行程專屬樣式 -->
+  <link rel="stylesheet" href="css/experiences.css">
+</head>
+<body>
+
+  <!-- 頂部列 -->
+  <header class="header">
+    <div class="inner">
+      <button id="btnBackHome" class="icon-btn" aria-label="返回首頁">←</button>
+      <div class="brand">Experiences</div>
+      <button id="btnOpenSettings" class="icon-btn" aria-label="設定">⚙️</button>
+    </div>
+  </header>
+
+  <main id="xpMain" aria-live="polite">
+    <!-- 篩選列（主題 + 城市） -->
+    <div class="filters">
+      <div class="chips" role="tablist" aria-label="狀態">
+        <button class="chip chip--primary is-on" data-filter="all" aria-selected="true">全部</button>
+        <button class="chip" data-filter="featured">精選</button>
+      </div>
+
+      <div class="chips" aria-label="主題">
+        <button class="chip is-on" data-tag="culture" aria-pressed="true">文化</button>
+        <button class="chip is-on" data-tag="food" aria-pressed="true">美食</button>
+        <button class="chip is-on" data-tag="outdoor" aria-pressed="true">戶外</button>
+        <button class="chip is-on" data-tag="handcraft" aria-pressed="true">手作</button>
+        <button class="chip is-on" data-tag="family" aria-pressed="true">親子</button>
+        <button class="chip is-on" data-tag="weekend" aria-pressed="true">週末</button>
+      </div>
+
+      <div class="chips" aria-label="城市">
+        <button class="chip is-on" data-city="kuching" aria-pressed="true">Kuching</button>
+        <button class="chip is-on" data-city="sibu" aria-pressed="true">Sibu</button>
+        <button class="chip is-on" data-city="miri" aria-pressed="true">Miri</button>
+        <button class="chip is-on" data-city="mukah" aria-pressed="true">Mukah</button>
+      </div>
+    </div>
+
+    <!-- 清單 -->
+    <section id="xpList" class="xp-list" aria-busy="false"></section>
+
+    <!-- 空狀態 -->
+    <section id="xpEmpty" class="empty-state" hidden>
+      <div class="empty-emoji">🔍</div>
+      <div class="empty-title">找不到符合條件的體驗</div>
+      <div class="empty-sub">試試取消一些篩選看看？</div>
+      <button id="btnXpRetry" class="err-retry" type="button">重新整理</button>
+    </section>
+  </main>
+
+  <!-- 詳情 Overlay（玻璃風） -->
+  <section id="xpDetail" class="overlay-page" hidden aria-labelledby="xpTitle">
+    <header class="subappbar deal-head">
+      <button id="btnCloseXp" class="icon-btn back" aria-label="關閉">←</button>
+      <h1 id="xpTitle" class="settings-title" tabindex="-1">體驗詳情</h1>
+    </header>
+    <div id="xpContent" class="xp-content" role="dialog" aria-modal="true"></div>
+  </section>
+
+  <!-- 設定覆蓋層（沿用你現有的結構，可保留） -->
+  <!-- 如果此頁需要打開設定，app.js 會處理 -->
+
+  <!-- JS -->
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/experiences.js"></script>
+</body>
+</html>
