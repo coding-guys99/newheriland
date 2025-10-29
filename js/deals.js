@@ -144,6 +144,14 @@ function openDetail(id){
       <a class="btn primary" href="${d.url}">前往專區</a>
     </div>
   `;
+  if (d.details?.length){
+  cont.innerHTML += `
+    <section class="deal-section">
+      <h4>活動內容</h4>
+      <ul>${d.details.map(t=>`<li>${t}</li>`).join('')}</ul>
+    </section>
+  `;
+}
   panel.hidden = false;
   panel.classList.add('active');
   document.body.classList.add('no-scroll');
