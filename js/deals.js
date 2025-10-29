@@ -141,6 +141,7 @@ function openDetail(id){
   `;
   panel.hidden = false;
   panel.classList.add('active');
+  document.body.classList.add('no-scroll');
   cont.querySelector('[data-share]')?.addEventListener('click', async ()=>{
     try{
       await navigator.share?.({ title: d.title, text: d.summary, url: location.href });
@@ -153,6 +154,7 @@ function closeDetail(){
   if (!panel) return;
   panel.classList.remove('active');
   panel.setAttribute('hidden','');
+  document.body.classList.remove('no-scroll'); 
 }
 
 // ---- 綁定 UI ----
