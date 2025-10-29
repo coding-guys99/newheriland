@@ -18,6 +18,9 @@ const HOME_DATA = Object.assign({
     { img:'https://picsum.photos/1200/600?1', title:'Mid-Autumn Specials', href:'#explore?collection=mid-autumn' },
     { img:'https://picsum.photos/1200/600?2', title:'Sarawak Food Week',   href:'#explore?collection=food' },
     { img:'https://picsum.photos/1200/600?3', title:'Hidden Gems',          href:'#explore?tag=Instagram' },
+    { img:'https://picsum.photos/1200/600?1', title:'Mid-Autumn Specials', href:'#explore?collection=mid-autumn' },
+    { img:'https://picsum.photos/1200/600?2', title:'Sarawak Food Week',   href:'#explore?collection=food' },
+    { img:'https://picsum.photos/1200/600?3', title:'Hidden Gems',          href:'#explore?tag=Instagram' },
   ],
   comboLeft: [
     { img:'https://picsum.photos/1200/600?4', title:'Emirates 商務艙抽獎', href:'#explore?event=emirates' },
