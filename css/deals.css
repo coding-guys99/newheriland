@@ -236,3 +236,16 @@ body.no-scroll{
   #dealContent .detail-meta{ color:#b8c0cc; }
   #dealContent .detail-meta > span:not(:first-child)::before{ opacity:.4; }
 }
+
+.deal-section{
+  margin-top: 12px; padding-top: 10px;
+  border-top: 1px solid rgba(0,0,0,.06);
+}
+.deal-section h4{
+  margin: 0 0 6px; font-weight:800; font-size:15px;
+  color:#1f2937;
+}
+.deal-section ul{
+  margin:0; padding-left: 1.2em; color:#444; line-height:1.55;
+}
+.deal-section li+li{ margin-top:4px; }
