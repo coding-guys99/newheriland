@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="css/explore.css"/>
   <link rel="stylesheet" href="css/add.css"/>
   <link rel="stylesheet" href="css/home.css"/>
+  <link rel="stylesheet" href="css/search-overlay.css">
 </head>
 <body>
 
@@ -35,7 +36,7 @@
   <header class="home-appbar">
     <div class="brand">HeriLand</div>
     <button class="search-btn" id="homeSearchBtn" aria-label="Open search">🔎 Search places</button>
-    <a class="gear" id="btnOpenSettings" aria-label="Open settings">⚙️</a>
+    <a class="search-pill" id="openSearch" aria-label="Open settings">⚙️</a>
   </header>
 
   <div class="home-wrap">
@@ -678,6 +679,7 @@
 
   <!-- 底部導覽：由 partial 注入 -->
   <div data-include="partials/tabbar.html"></div>
+  <include src="partials/search-overlay.html"></include>
 
   <!-- scripts：先載入 include，再載入 app（確保綁到已注入的 tab） -->
   <script src="js/include.js" defer></script>
@@ -687,6 +689,7 @@
   <script type="module" src="js/saved.js"></script>
   <script type="module" src="js/add.js"></script>
   <script type="module" src="js/explore.js"></script>
+  <script type="module" src="js/search-overlay.js"></script>
 </body>
 </html>
 
