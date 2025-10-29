@@ -91,6 +91,8 @@ function cardHTML(x){
   const city = (x.city_id||'').toUpperCase();
   const tags = (x.tags||[]).map(t=>`<span class="xp-tag">#${t}</span>`).join('');
   const sum  = x.summary || '';
+  const rating = (x.rating || 4.5).toFixed(1);
+  const sub = x.summary.split('，')[0] || '';
 
   if (featured){
     return `
