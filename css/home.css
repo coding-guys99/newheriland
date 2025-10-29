@@ -72,7 +72,7 @@
   display:block; scroll-snap-align:center; border-radius:12px; overflow:hidden;
   border:1px solid var(--line); background:#ddd;
 }
-[data-page="home"] .combo-left .slide img{ width:100%; height:120px; object-fit:cover; display:block; }
+[data-page="home"] .combo-left .slide img{ width:100%; height:100%; object-fit:cover; display:block; }
 [data-page="home"] .combo-left .combo-dots{
   display:flex; justify-content:center; gap:6px; padding:6px 0 0;
 }
