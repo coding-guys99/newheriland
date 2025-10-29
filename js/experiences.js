@@ -1,25 +1,10 @@
-// experiences.js — list + filters + glassy detail overlay
+// experiences.js — 兩欄卡片樣式對應版（結構微調，邏輯不變）
 
 // helpers
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-// ---- 假資料（Supabase 對應欄位已規劃）----
-/*
-  Supabase 表建議：experiences
-  - id (text/uuid)
-  - title (text)
-  - cover (text)
-  - images (jsonb)        // 可選
-  - city_id (text)        // 'kuching' | 'sibu' | ...
-  - tags (jsonb)          // ["culture","family"]
-  - summary (text)
-  - description (text)    // 可 markdown
-  - status (text)         // 'active' | 'draft'
-  - featured_rank (int)   // 1 最上面
-  - created_at (timestamp)
-*/
-
+// ---- 假資料（之後可換成 Supabase / API）----
 const EXPERIENCES = [
   {
     id: 'xp-sarawak-museum',
@@ -73,30 +58,26 @@ const EXPERIENCES = [
 
 // ---- 狀態（篩選）----
 const state = {
-  filter: 'all',             // 'all' | 'featured'
-  tags: new Set(['culture','food','outdoor','handcraft','family','weekend']), // 預設全開
-  cities: new Set(['kuching','sibu','miri','mukah'])                          // 預設全開
+  filter: 'all', // 'all' | 'featured'
+  tags: new Set(['culture','food','outdoor','handcraft','family','weekend']),
+  cities: new Set(['kuching','sibu','miri','mukah'])
 };
 
 // ---- 篩選 ----
 function applyFilter(list){
   const base = list.filter(x => x.status === 'active');
 
-  // featured
   const byFeat = (state.filter === 'featured')
     ? base.filter(x => Number.isFinite(x.featured_rank))
     : base;
 
-  // tag 交集（至少命中一個）
   const byTag = byFeat.filter(x => {
     if (!x.tags?.length) return false;
     return x.tags.some(t => state.tags.has(t));
   });
 
-  // 城市
   const byCity = byTag.filter(x => state.cities.has(x.city_id));
 
-  // featured 排序優先
   return byCity.sort((a,b)=>{
     const af = Number.isFinite(a.featured_rank) ? a.featured_rank : 9999;
     const bf = Number.isFinite(b.featured_rank) ? b.featured_rank : 9999;
@@ -104,37 +85,43 @@ function applyFilter(list){
   });
 }
 
-// ---- Render：卡片 ----
+// ---- Render：卡片（兩欄結構對應）----
 function cardHTML(x){
-  const tagHTML = (x.tags||[]).map(t=>`<span class="xp-tag">#${t}</span>`).join('');
-  return Number.isFinite(x.featured_rank)
-    ? `
-      <article class="xp-card featured" data-id="${x.id}" aria-label="${x.title}">
-        <div class="xp-cover" style="background-image:url('${x.cover}')"></div>
-        <div class="xp-body">
-          <h3 class="xp-title">${x.title}</h3>
-          <div class="xp-meta">📍 ${x.city_id.toUpperCase()}</div>
-          <div class="xp-tags">${tagHTML}</div>
-          <p class="xp-sum">${x.summary||''}</p>
-          <div class="xp-foot">
-            <button class="xp-btn" data-id="${x.id}" data-act="share">分享</button>
-            <button class="xp-btn primary" data-id="${x.id}" data-act="detail">看介紹</button>
-          </div>
+  const featured = Number.isFinite(x.featured_rank);
+  const city = (x.city_id||'').toUpperCase();
+  const tags = (x.tags||[]).map(t=>`<span class="xp-tag">#${t}</span>`).join('');
+  const sum  = x.summary || '';
+
+  if (featured){
+    return `
+    <article class="xp-card featured" data-id="${x.id}" aria-label="${x.title}">
+      <div class="xp-cover" style="background-image:url('${x.cover}')"></div>
+      <div class="xp-body">
+        <h3 class="xp-title">${x.title}</h3>
+        <div class="xp-meta">📍 ${city}</div>
+        <div class="xp-tags">${tags}</div>
+        <p class="xp-desc">${sum}</p>
+        <div class="xp-foot">
+          <button class="xp-cta" data-id="${x.id}" data-act="share">分享</button>
+          <button class="xp-cta primary" data-id="${x.id}" data-act="detail">看介紹</button>
         </div>
-      </article>`
-    : `
-      <article class="xp-card" data-id="${x.id}" aria-label="${x.title}">
-        <div class="xp-cover" style="background-image:url('${x.cover}')"></div>
-        <div class="xp-body">
-          <h3 class="xp-title">${x.title}</h3>
-          <div class="xp-meta">📍 ${x.city_id.toUpperCase()}</div>
-          <p class="xp-sum">${x.summary||''}</p>
-          <div class="xp-foot">
-            <button class="xp-btn" data-id="${x.id}" data-act="share">分享</button>
-            <button class="xp-btn primary" data-id="${x.id}" data-act="detail">看介紹</button>
-          </div>
-        </div>
-      </article>`;
+      </div>
+    </article>`;
+  }
+
+  return `
+  <article class="xp-card" data-id="${x.id}" aria-label="${x.title}">
+    <div class="xp-cover" style="background-image:url('${x.cover}')"></div>
+    <div class="xp-body">
+      <h3 class="xp-title">${x.title}</h3>
+      <div class="xp-meta">📍 ${city}</div>
+      <p class="xp-desc">${sum}</p>
+      <div class="xp-foot">
+        <button class="xp-cta" data-id="${x.id}" data-act="share">分享</button>
+        <button class="xp-cta primary" data-id="${x.id}" data-act="detail">看介紹</button>
+      </div>
+    </div>
+  </article>`;
 }
 
 function renderList(){
@@ -155,7 +142,7 @@ function renderList(){
   box.removeAttribute('aria-busy');
 }
 
-// ---- 詳情 Overlay ----
+// ---- 詳情 Overlay（玻璃款）----
 function openDetail(id){
   const x = EXPERIENCES.find(y => y.id === id);
   if (!x) return;
@@ -164,14 +151,13 @@ function openDetail(id){
   const cont  = $('#xpContent');
   $('#xpTitle').textContent = '體驗介紹';
 
-  const moreImages = Array.isArray(x.images) && x.images.length > 0;
   const hero = `<div class="xp-hero" style="background-image:url('${x.cover}')"></div>`;
 
   cont.innerHTML = `
     ${hero}
     <h3 class="xp-detail-title">${x.title}</h3>
     <div class="xp-detail-meta">
-      <span>📍 ${x.city_id.toUpperCase()}</span>
+      <span>📍 ${(x.city_id||'').toUpperCase()}</span>
       ${(x.tags||[]).map(t=>`<span class="xp-tag">#${t}</span>`).join('')}
     </div>
     <p class="xp-detail-copy">${x.description || x.summary || ''}</p>
@@ -202,7 +188,7 @@ function closeDetail(){
 
 // ---- 綁定 ----
 function bindFilters(){
-  // 狀態：全部 / 精選
+  // 全部 / 精選
   $$('#xpMain [data-filter]').forEach(chip=>{
     chip.addEventListener('click', ()=>{
       $$('#xpMain [data-filter]').forEach(c=>{
@@ -215,7 +201,7 @@ function bindFilters(){
     });
   });
 
-  // 主題：多選開關
+  // Tag 多選
   $$('#xpMain [data-tag]').forEach(chip=>{
     chip.addEventListener('click', ()=>{
       const tag = chip.dataset.tag;
@@ -226,7 +212,7 @@ function bindFilters(){
     });
   });
 
-  // 城市：多選開關
+  // 城市多選
   $$('#xpMain [data-city]').forEach(chip=>{
     chip.addEventListener('click', ()=>{
       const c = chip.dataset.city;
@@ -239,11 +225,11 @@ function bindFilters(){
 }
 
 function bindListActions(){
-  // 僅按鈕觸發（避免誤觸整卡）
+  // 僅按鈕觸發，避免誤觸整卡
   $('#xpList')?.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.xp-btn'); if (!btn) return;
-    const id = btn.dataset.id;
-    const act = btn.dataset.act;
+    const btn = e.target.closest('.xp-cta,.xp-btn'); if (!btn) return;
+    const id  = btn.dataset.id;
+    const act = btn.dataset.act || (btn.hasAttribute('data-share') ? 'share' : '');
     if (act === 'detail' && id) openDetail(id);
     if (act === 'share'  && id){
       const x = EXPERIENCES.find(y => y.id === id);
