@@ -157,3 +157,92 @@ body.no-scroll{
   overflow:hidden !important;
   touch-action:none;                            /* iOS 防回彈 */
 }
+
+/* === Overlay 層：單層玻璃 === */
+#dealDetail.overlay-page{
+  background: color-mix(in srgb, rgba(10,12,16,.42) 100%, transparent);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  backdrop-filter: blur(8px) saturate(120%);
+}
+
+/* 內容容器（玻璃卡） */
+#dealContent{
+  inset: auto 12px 12px;
+  margin: 72px 12px 14px;            /* 頂部讓出標題列 */
+  padding: 12px 12px calc(14px + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, #ffffff 82%, transparent);  /* 半透明淺底 */
+  border: 1px solid rgba(255,255,255,.35);                   /* 玻璃邊框 */
+  border-radius: 16px;
+  box-shadow: 0 18px 50px rgba(0,0,0,.28);
+  overflow: auto;
+  max-height: calc(100dvh - 110px);
+  overscroll-behavior: contain;
+}
+
+/* Header 用實色，穩住層次 */
+.deal-head{
+  position: sticky; top: 0; z-index: 2;
+  background: color-mix(in srgb, #ffffff 92%, transparent);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  backdrop-filter: blur(6px) saturate(120%);
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+
+/* Hero 只自己加漸層，避免罩全場 */
+.deal-hero{
+  position: relative;
+  height: 220px;
+  border-radius: 16px;
+  overflow: hidden;
+  background-size: cover; background-position: center;
+}
+.deal-hero::after{
+  content:"";
+  position:absolute; inset:auto 0 0 0; height: 48%;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.18) 60%, rgba(0,0,0,.28) 100%);
+  pointer-events:none;
+}
+
+/* Meta 行 */
+.detail-meta{
+  display:flex; flex-wrap:wrap; gap:10px 12px;
+  align-items:center; margin:10px 2px 8px;
+}
+
+/* Badge（延續你原本色系） */
+.badge{ display:inline-block; padding:4px 10px; border-radius:999px; font-weight:800; font-size:12px; }
+.badge.ok{ background:#DCFCE7; color:#166534; }
+.badge.soon{ background:#FEF9C3; color:#92400E; }
+.badge.end{ background:#FEE2E2; color:#991B1B; }
+
+/* CTA 列：一深一淺 */
+.detail-actions{
+  display:grid; grid-template-columns: 1fr 1fr; gap:10px;
+  margin-top: 12px;
+}
+.btn{
+  appearance:none; padding:12px 14px; border-radius:12px; font-weight:800; cursor:pointer;
+  border:1px solid rgba(0,0,0,.08);
+  background: color-mix(in srgb, #ffffff 86%, transparent);  /* 淺玻璃 */
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  backdrop-filter: blur(6px) saturate(120%);
+}
+.btn.primary{
+  color:#fff; border-color: #2E5E4E;
+  background: linear-gradient(180deg, #2E5E4E, #244a3e);
+  box-shadow: 0 8px 22px rgba(46,94,78,.35);
+}
+
+/* 暗色模式優化 */
+@media (prefers-color-scheme: dark){
+  #dealContent{
+    background: color-mix(in srgb, #0b0f12 74%, transparent);
+    border-color: rgba(255,255,255,.18);
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  }
+  .deal-head{
+    background: color-mix(in srgb, #0b0f12 76%, transparent);
+    border-bottom-color: rgba(255,255,255,.08);
+  }
+  .btn{ background: color-mix(in srgb, #0b0f12 70%, transparent); border-color: rgba(255,255,255,.12); color:#eef2f6; }
+}
