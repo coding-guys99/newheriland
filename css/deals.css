@@ -182,3 +182,57 @@ body.no-scroll{
     color:#eef2f6;
   }
 }
+
+/* ===== Deals — Typos polish (only text) ===== */
+#dealContent{
+  --t-title: clamp(20px, 5.2vw, 24px);
+  --t-meta : clamp(12px, 3.6vw, 14px);
+  --t-body : clamp(13px, 3.8vw, 15px);
+}
+
+/* 標題：更粗、更緊、智慧換行 */
+#dealContent .dtitle{
+  margin: 10px 2px 2px;
+  font-size: var(--t-title);
+  font-weight: 900;
+  letter-spacing: .2px;
+  line-height: 1.25;
+  text-wrap: balance;          /* iOS/Chromium 讓中文更平均分行 */
+}
+
+/* 摘要：略放大、加行距與微字距 */
+#dealContent .dsum{
+  margin: 6px 2px 0;
+  font-size: var(--t-body);
+  line-height: 1.7;
+  letter-spacing: .2px;
+  color: #3b4350;
+}
+
+/* Meta 列：同高對齊、柔和分隔點（不改你的 HTML） */
+#dealContent .detail-meta{
+  font-size: var(--t-meta);
+  color: #5b6572;
+  gap: 10px 12px;
+  align-items: center;
+}
+#dealContent .detail-meta > span{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;                    /* 與圖示/文字保持一致間距 */
+}
+#dealContent .detail-meta > span:not(:first-child)::before{
+  content: "·";                /* 分隔點 */
+  margin: 0 6px 0 2px;
+  opacity: .35;
+}
+
+/* badge 與文字基線齊一點 */
+#dealContent .badge{ transform: translateY(-.5px); }
+
+/* 深色微調 */
+@media (prefers-color-scheme: dark){
+  #dealContent .dsum{ color: #d7dee5; }
+  #dealContent .detail-meta{ color:#b8c0cc; }
+  #dealContent .detail-meta > span:not(:first-child)::before{ opacity:.4; }
+}
