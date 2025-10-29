@@ -7,16 +7,21 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 // ---- 假資料（之後可換成 Supabase / API）----
 const DEALS = [
   {
-    id: 'mid-autumn',
-    title: '中秋城市聯動｜餐飲 85 折',
-    cover: 'https://picsum.photos/640/360?mid',
-    status: 'ongoing',        // ongoing | upcoming | ended
-    tags: ['food','travel'],
-    city: 'Kuching',
-    dateRange: '10/01 – 10/15',
-    summary: '指定商家餐飲 85 折，滿 50 再送在地小禮。',
-    url: '#explore?collection=mid-autumn'
-  },
+  id: 'mid-autumn',
+  title: '中秋城市聯動｜餐飲 85 折',
+  cover: 'https://picsum.photos/640/360?mid',
+  status: 'ongoing',
+  tags: ['food','travel'],
+  city: 'Kuching',
+  dateRange: '10/01 – 10/15',
+  summary: '指定商家餐飲 85 折，滿 50 再送在地小禮。',
+  details: [
+    '活動期間內於合作餐廳消費滿 RM50 即享 15% 折扣，並可獲贈「在地限定月餅」乙份。',
+    '參與商家包含：The Local Kitchen、Taste Garden、Urban Brew 等超過 30 間店家。',
+    '活動僅限 Kuching 地區，部分餐廳需提前預約，敬請留意公告。'
+  ],
+  url: '#explore?collection=mid-autumn'
+},
   {
     id: 'dyson-week',
     title: 'Dyson 聯名週｜最高送 14%',
