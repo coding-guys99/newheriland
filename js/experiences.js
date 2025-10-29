@@ -94,19 +94,18 @@ function cardHTML(x){
 
   if (featured){
     return `
-    <article class="xp-card featured" data-id="${x.id}" aria-label="${x.title}">
-      <div class="xp-cover" style="background-image:url('${x.cover}')"></div>
-      <div class="xp-body">
-        <h3 class="xp-title">${x.title}</h3>
-        <div class="xp-meta">📍 ${city}</div>
-        <div class="xp-tags">${tags}</div>
-        <p class="xp-desc">${sum}</p>
-        <div class="xp-foot">
-          <button class="xp-cta" data-id="${x.id}" data-act="share">分享</button>
-          <button class="xp-cta primary" data-id="${x.id}" data-act="detail">看介紹</button>
-        </div>
+    <article class="xp-card" data-id="${x.id}">
+    <div class="xp-thumb" style="background-image:url('${x.cover}')"></div>
+    <div class="xp-body">
+      <h3 class="xp-title">${x.title}</h3>
+      <p class="xp-sub">${sub}</p>
+      <div class="xp-meta">
+        <span>⭐ ${rating}</span>
+        <span>📍 ${x.city_id.toUpperCase()}</span>
       </div>
-    </article>`;
+      <button class="xp-btn" data-id="${x.id}" data-act="detail">查看詳情</button>
+    </div>
+  </article>`;
   }
 
   return `
