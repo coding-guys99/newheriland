@@ -1,28 +1,31 @@
-<!-- Detail Overlay (通用) -->
-<section id="detailOverlay" class="overlay-page" hidden aria-labelledby="detailTitle">
-  <header class="subappbar deal-head">
-    <button class="icon-btn back" id="btnDetailClose" aria-label="Back">←</button>
-    <h1 id="detailTitle" class="settings-title">詳情</h1>
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>體驗介紹 | HeriLand</title>
+  <link rel="stylesheet" href="css/detail.css">
+  <style>
+    body{margin:0;background:#f6f6f6;}
+    .subappbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:8px;
+      padding:10px 14px;background:#fff;border-bottom:1px solid rgba(0,0,0,.06);}
+    .subappbar h1{margin:0;font-size:18px;font-weight:800}
+    .page{padding:12px}
+    /* 讓卡片置中、和 overlay 同版型 */
+    .detail-card{max-width:720px;margin:10px auto}
+  </style>
+</head>
+<body>
+  <header class="subappbar">
+    <button class="icon-btn back" onclick="history.back()">←</button>
+    <h1>體驗介紹</h1>
+    <span style="margin-left:auto"></span>
   </header>
 
-  <!-- 玻璃卡容器 -->
-  <div id="detailCard" class="detail-card" role="dialog" aria-modal="true">
-    <div class="detail-hero" id="detailHero"></div>
+  <main class="page">
+    <div id="detailRoot"></div>
+  </main>
 
-    <div class="detail-body">
-      <h2 class="detail-h2" id="detailH2"></h2>
-
-      <div class="detail-meta" id="detailMeta"></div>
-
-      <p class="detail-summary" id="detailSummary"></p>
-
-      <!-- Steps / 亮點 / 條列內容 -->
-      <div class="detail-steps" id="detailSteps"></div>
-
-      <div class="detail-actions">
-        <button class="btn" id="detailSecondary">收藏</button>
-        <a class="btn primary" id="detailPrimary" href="#" target="_self">前往</a>
-      </div>
-    </div>
-  </div>
-</section>
+  <script type="module" src="js/xp-detail.js"></script>
+</body>
+</html>
