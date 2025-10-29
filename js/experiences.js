@@ -102,17 +102,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     const id=btn.dataset.id; const act=btn.dataset.act;
     const xp=EXPERIENCES.find(x=>x.id===id);
     if(!xp) return;
-    if(act==='detail'){
-      openDetailTemplate({
-        headerTitle:'體驗介紹',
-        title:xp.title,
-        hero:xp.cover,
-        summary:xp.summary,
-        meta:[`📍 ${xp.city}`,`#${xp.tags.join(' #')}`],
-        steps:xp.steps,
-        primary:{text:'去城市館',href:`explore.html#city=${xp.city.toLowerCase()}`},
-        onSecondary:()=>alert('已收藏')
-      });
+    // 原本：openDetailTemplate({...})
+if (act === 'detail' && id) {
+  location.href = `xp-detail.html?id=${encodeURIComponent(id)}`;
+}
     }
     if(act==='share'){
       navigator.share?.({title:xp.title,text:xp.summary,url:location.href});
