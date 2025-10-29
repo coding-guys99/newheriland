@@ -77,7 +77,7 @@ function cardHTML(d){
               : d.status==='upcoming' ? `<span class="badge soon">即將開跑</span>`
               : `<span class="badge end">已結束</span>`;
   return `
-  <article class="deal-card" data-id="${d.id}" tabindex="0" role="button" aria-label="查看 ${d.title}">
+  <article class="deal-card" data-id="${d.id}" aria-label="${d.title}">
     <div class="deal-thumb" style="background-image:url('${d.cover}')"></div>
     <div class="deal-body">
       <h3 class="deal-title">${d.title}</h3>
@@ -88,7 +88,7 @@ function cardHTML(d){
       </div>
       <div class="deal-foot">
         <span>${d.summary}</span>
-        <button class="deal-cta" data-go="${d.url}">前往</button>
+        <button class="deal-cta" type="button" data-id="${d.id}">前往</button>
       </div>
     </div>
   </article>`;
@@ -180,24 +180,13 @@ function bindFilterChips(){
   });
 }
 
-function bindListActions(){
-  // 開詳情
-  $('#dealList')?.addEventListener('click', (e)=>{
-    const card = e.target.closest('.deal-card'); if (!card) return;
-    if (e.target.matches('.deal-cta')) return; // 交給 CTA
-    openDetail(card.dataset.id);
-  });
-  $('#dealList')?.addEventListener('keydown', (e)=>{
-    if (e.key === 'Enter'){
-      const card = e.target.closest('.deal-card'); if (!card) return;
-      openDetail(card.dataset.id);
-    }
-  });
-
-  // CTA 前往
+     // CTA 前往 → 打開詳情（避免誤觸，整卡不做事）
   $('#dealList')?.addEventListener('click', (e)=>{
     const btn = e.target.closest('.deal-cta'); if (!btn) return;
-    location.hash = btn.dataset.go || '#';
+     e.stopPropagation();
+     const id = btn.dataset.id;
+     if (id) openDetail(id);
+
   });
 
   // 詳情關閉
