@@ -1,22 +1,22 @@
-// js/newly.js — 新上架（使用共用 detail overlay）
+// js/newly.js — 新上架頁面
 
-// DOM helpers
+// 小工具
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-// 假資料（之後換 Supabase）
+// 假資料（之後可換 Supabase）
 const NEWLY = [
-  {id:'n1',name:'椰香小館',city:'Kuching',type:'餐飲',daysAgo:1,thumb:'https://picsum.photos/300/200?food'},
-  {id:'n2',name:'Sibu Heritage Walk',city:'Sibu',type:'體驗',daysAgo:2,thumb:'https://picsum.photos/300/200?heritage'},
-  {id:'n3',name:'Borneo Coffee Roasters',city:'Miri',type:'飲品',daysAgo:4,thumb:'https://picsum.photos/300/200?coffee'},
-  {id:'n4',name:'Mukah Craft Studio',city:'Mukah',type:'文創',daysAgo:8,thumb:'https://picsum.photos/300/200?craft'},
-  {id:'n5',name:'Dayak Village Stay',city:'Kuching',type:'住宿',daysAgo:12,thumb:'https://picsum.photos/300/200?village'},
+  {id:'n1',name:'椰香小館',city:'Kuching',type:'餐飲',daysAgo:1,thumb:'https://picsum.photos/300/200?food',    summary:'道地砂勞越口味，主打椰香海鮮套餐。',tags:['food','local']},
+  {id:'n2',name:'Sibu Heritage Walk',city:'Sibu',type:'體驗',daysAgo:2,thumb:'https://picsum.photos/300/200?heritage',summary:'導覽老街、碼頭與在地故事的半日遊。',tags:['tour','culture']},
+  {id:'n3',name:'Borneo Coffee Roasters',city:'Miri',type:'飲品',daysAgo:4,thumb:'https://picsum.photos/300/200?coffee',summary:'手烘咖啡＋在地甜點，週末滿座。',tags:['coffee','dessert']},
+  {id:'n4',name:'Mukah Craft Studio',city:'Mukah',type:'文創',daysAgo:8,thumb:'https://picsum.photos/300/200?craft',summary:'展示與販售 Melanau 編織工藝。',tags:['craft','souvenir']},
+  {id:'n5',name:'Dayak Village Stay',city:'Kuching',type:'住宿',daysAgo:12,thumb:'https://picsum.photos/300/200?village',summary:'山區部落體驗，附早餐與傳統表演。',tags:['stay','nature']},
 ];
 
-// 篩選狀態
+// 狀態
 let filter = 'all';
 
-// 篩選器
+// 篩選
 function applyFilter(list){
   if (filter === '7d')  return list.filter(i => i.daysAgo <= 7);
   if (filter === '30d') return list.filter(i => i.daysAgo <= 30);
@@ -27,9 +27,9 @@ function applyFilter(list){
 function cardHTML(d){
   const timeLabel = d.daysAgo <= 1 ? '今天' : d.daysAgo + ' 天前';
   const badge = d.daysAgo <= 7 ? `<span class="newly-badge">NEW</span>` : '';
-  const summary = d.summary || d.desc || '';
+  const summary = d.summary ? `<p class="summary">${d.summary}</p>` : '';
   const tagLine = d.tags?.length
-    ? `<div class="tags">${d.tags.slice(0,2).map(t=>`<span>#${t}</span>`).join('')}</div>`
+    ? `<div class="tags">${d.tags.slice(0,2).map(t => `<span>#${t}</span>`).join('')}</div>`
     : '';
 
   return `
@@ -38,7 +38,7 @@ function cardHTML(d){
     <div class="newly-info">
       <h3>${d.name}${badge}</h3>
       <div class="meta">${d.city} · ${d.type}</div>
-      ${summary ? `<p class="summary">${summary}</p>` : ''}
+      ${summary}
       ${tagLine}
       <div class="time">${timeLabel}</div>
     </div>
@@ -47,21 +47,58 @@ function cardHTML(d){
 
 // 渲染清單
 function renderList(){
-  const box = $('#newlyList');
+  const box   = $('#newlyList');
   const empty = $('#newlyEmpty');
   if (!box) return;
 
   const list = applyFilter(NEWLY);
   if (!list.length){
     box.innerHTML = '';
-    empty && (empty.hidden = false);
+    if (empty) empty.hidden = false;
     return;
   }
-  empty && (empty.hidden = true);
+
+  if (empty) empty.hidden = true;
   box.innerHTML = list.map(cardHTML).join('');
 }
 
-// 綁定篩選 chips
+// 開啟詳情（用共用 overlay）
+function openNewlyDetailById(id){
+  const d = NEWLY.find(x => x.id === id);
+  if (!d) return;
+
+  // 有共用的漂亮版 → 用它
+  if (typeof window.openDetailView === 'function'){
+    window.openDetailView({
+      id: d.id,
+      title: d.name,
+      subtitle: `${d.city} · ${d.type}`,
+      cover: d.thumb,
+      status: 'info',
+      city: d.city,
+      dateRange: '',
+      body: d.summary || '這是一個示意的商家詳情區塊，可連結到 Explore 頁面顯示更完整資訊。',
+      actions: [
+        {
+          type: 'primary',
+          label: '前往 Explore',
+          href: `index.html#explore?city=${encodeURIComponent(d.city)}`
+        },
+        {
+          type: 'ghost',
+          label: '關閉',
+          action: 'close'
+        }
+      ]
+    });
+    return;
+  }
+
+  // 沒有共用就保命 alert
+  alert(`${d.name}\n${d.city} · ${d.type}`);
+}
+
+// 綁定篩選
 function bindFilters(){
   $$('#newlyMain [data-filter]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -75,60 +112,45 @@ function bindFilters(){
   });
 }
 
-// 開啟共用詳情
-function openNewlyDetail(id){
-  const d = NEWLY.find(x => x.id === id);
-  if (!d) return;
-
-  // 共用 overlay 的 API（在 detail-overlay.js 裡 export 的）
-  // 如果你是用 <script type="module">，這裡直接呼叫全域的 window.openDetailView
-  const openFn = window.openDetailView || window.showDetailOverlay; // 看你最後取哪個名字
-  if (typeof openFn === 'function'){
-    openFn({
-      id: d.id,
-      title: d.name,
-      cover: d.thumb,
-      city: d.city,
-      type: d.type,
-      // 這裡先塞描述，之後你從 Supabase 帶完整的再換
-      description: '這是最新上架的在地店家，點「到商家頁」可看更完整資訊。',
-      tags: d.tags || [],
-      actions: [
-        { type: 'primary', label: '到商家頁', href: `#detail/${d.id}` },
-        { type: 'ghost',   label: '分享',     action: 'share' }
-      ]
-    });
-  }else{
-    // 如果你還沒載入共用 js，就暫時 alert 一下，避免沒反應
-    alert(`${d.name}\n${d.city} · ${d.type}`);
-  }
-}
-
-// 綁定清單點擊
-function bindListActions(){
+// 綁定卡片
+function bindListClicks(){
   $('#newlyList')?.addEventListener('click', (e)=>{
-    const card = e.target.closest('.newly-card'); 
+    const card = e.target.closest('.newly-card');
     if (!card) return;
-    openNewlyDetail(card.dataset.id);
+    openNewlyDetailById(card.dataset.id);
   });
 }
 
-// Header：返回 & 設定
+// Header 按鈕
 function bindHeader(){
   $('#btnBackHome')?.addEventListener('click', ()=>{
-    // 回首頁 hash
+    // 回到主頁的 home tab
     location.href = 'index.html#home';
   });
+
   $('#btnOpenSettings')?.addEventListener('click', ()=>{
+    // 這裡沿用 app.js 那套 settings overlay
     const s = $('#p-settings');
-    if (s){ s.hidden = false; s.classList.add('active'); }
+    if (s){
+      s.hidden = false;
+      s.classList.add('active');
+    }
   });
 }
 
-// 啟動
+// 初始化（等 DOM）
 document.addEventListener('DOMContentLoaded', ()=>{
-  bindHeader();
   bindFilters();
-  bindListActions();
+  bindListClicks();
+  bindHeader();
   renderList();
+
+  // 如果你這頁的 overlay 是透過 <include> 注入的
+  // 再補聽一次，確保真的載入了
+  document.addEventListener('include:loaded', (e)=>{
+    if (e.detail?.src?.includes('detail-overlay.html')){
+      // 再 render 一次也沒關係，資料不大
+      renderList();
+    }
+  });
 });
