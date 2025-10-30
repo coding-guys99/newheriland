@@ -295,3 +295,171 @@
   backdrop-filter: blur(15px);
   box-shadow: 0 6px 18px rgba(0,0,0,.05);
 }
+
+/* HeriLand — Curation Article Style */
+
+#curationDetail {
+  backdrop-filter: blur(20px);
+  background: rgba(245, 244, 240, 0.85); /* 米白霧面背景 */
+}
+
+#curationBody {
+  padding: 24px 18px 80px;
+  font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #2b2b2b;
+  background: transparent;
+}
+
+/* hero 圖 */
+.curation-hero {
+  width: 100%;
+  height: 220px;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 16px;
+}
+
+/* 標題與作者資訊 */
+.curation-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #173b2b; /* 深森綠 */
+}
+
+.curation-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #555;
+  background: #f0efec;
+  padding: 6px 12px;
+  border-radius: 40px;
+  width: fit-content;
+  margin-bottom: 14px;
+}
+
+.curation-meta img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* intro */
+.curation-intro {
+  font-size: 15px;
+  line-height: 1.75;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* 文章段落 */
+.curation-article {
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.curation-article h3.curation-h2 {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 28px 0 8px;
+  color: #173b2b;
+}
+
+.curation-article p.curation-p {
+  margin: 0 0 14px;
+  white-space: pre-wrap;
+}
+
+/* 小提醒 */
+.curation-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f3f7f4;
+  color: #173b2b;
+  font-size: 14px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  margin: 18px 0;
+  border-left: 4px solid #1f5d40;
+}
+
+.curation-tip .ct-badge {
+  font-weight: 600;
+}
+
+/* 文中店家卡 */
+.curation-place-inline {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 10px;
+  margin: 16px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #e8e8e8;
+}
+
+.curation-place-inline .cpi-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.cpi-meta {
+  flex: 1;
+}
+
+.cpi-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: #173b2b;
+}
+
+.cpi-city {
+  font-size: 13px;
+  color: #777;
+}
+
+.cpi-note {
+  font-size: 13px;
+  color: #444;
+}
+
+.cpi-btn {
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5d1;
+  background: #fff;
+  color: #1f5d40;
+}
+
+/* 底部按鈕 */
+.curation-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+  justify-content: center;
+}
+
+.curation-actions .btn {
+  min-width: 120px;
+  padding: 10px 16px;
+  font-size: 15px;
+  border-radius: 12px;
+}
+
+.curation-actions .btn.primary {
+  background: #1f5d40;
+  color: #fff;
+  border: none;
+}
