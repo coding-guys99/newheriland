@@ -199,3 +199,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
     renderExpList();
   }
 });
+
+// 返回首頁
+document.querySelector('#btnBackHome')?.addEventListener('click', ()=>{
+  location.href = 'index.html#home';
+});
+
+// 開啟設定
+document.querySelector('#btnOpenSettings')?.addEventListener('click', ()=>{
+  const settings = document.querySelector('#p-settings');
+  if(settings){
+    settings.hidden = false;
+    settings.classList.add('active');
+  }
+});
