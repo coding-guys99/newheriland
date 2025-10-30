@@ -4,9 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>在地策展｜HeriLand</title>
+
+  <!-- base -->
   <link rel="stylesheet" href="css/app.css">
+  <!-- curator profile page -->
   <link rel="stylesheet" href="css/curator.css">
-    <link rel="stylesheet" href="css/curation.css">
+  <!-- curation article style (用在 overlay 內容) -->
+  <link rel="stylesheet" href="css/curation.css">
+  <!-- 通用詳情浮層樣式 -->
+  <link rel="stylesheet" href="css/detail-overlay.css">
 </head>
 <body class="curator-body">
 
@@ -72,31 +78,35 @@
         <!-- js 塞 -->
       </div>
     </section>
-
   </main>
-  
-  <!-- 通用詳情浮層（要放在 body 裡、接近底部） -->
-<section id="ui-detail-overlay" class="overlay-page detail-layer" hidden aria-modal="true" role="dialog" aria-labelledby="ui-detail-title">
-  <header class="subappbar detail-head">
-    <button class="icon-btn back" id="ui-detail-close" aria-label="Back / Close">←</button>
-    <h1 id="ui-detail-title" class="detail-title" tabindex="-1">詳情</h1>
-  </header>
-  <div class="detail-shell" id="ui-detail-shell">
-    <div class="detail-hero" id="ui-detail-hero" hidden></div>
-    <div class="detail-body" id="ui-detail-body">
-      <p class="detail-muted">Loading…</p>
+
+  <!-- ✅ 通用詳情浮層（只要放一次就好） -->
+  <section id="ui-detail-overlay"
+           class="overlay-page detail-layer"
+           hidden
+           aria-modal="true"
+           role="dialog"
+           aria-labelledby="ui-detail-title">
+    <header class="subappbar detail-head">
+      <button class="icon-btn back" id="ui-detail-close" aria-label="Back / Close">←</button>
+      <h1 id="ui-detail-title" class="detail-title" tabindex="-1">詳情</h1>
+    </header>
+    <div class="detail-shell" id="ui-detail-shell">
+      <div class="detail-hero" id="ui-detail-hero" hidden></div>
+      <div class="detail-body" id="ui-detail-body">
+        <p class="detail-muted">Loading…</p>
+      </div>
+      <div class="detail-actions" id="ui-detail-actions" hidden></div>
     </div>
-    <div class="detail-actions" id="ui-detail-actions" hidden></div>
-  </div>
-</section>
-  
-<div data-include="partials/detail-overlay.html"></div>
+  </section>
 
-  <!-- 設定 overlay 用你原本的就好，可以不貼 -->
+  <!-- JS：順序很重要！ -->
+  <!-- 1. 控制浮層的 -->
   <script type="module" src="js/detail-overlay.js"></script>
-
-<script type="module" src="js/curation.js"></script>
+  <!-- 2. 產生「文章型策展內容」的 -->
+  <script type="module" src="js/curation.js"></script>
+  <!-- 3. 這頁本身（點卡片 → 呼叫上面那個） -->
   <script type="module" src="js/curator.js"></script>
-  
+
 </body>
 </html>
