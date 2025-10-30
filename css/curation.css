@@ -157,3 +157,141 @@
   .curation-block-text { color: #e5e7eb; }
   .curation-actions .btn { background: color-mix(in srgb, #0b0f12 70%, transparent); border-color: rgba(255,255,255,.06); color:#e5e7eb; }
 }
+
+/* 讓整個內容更像一張卡貼在灰玻璃上 */
+.curation-body {
+  max-width: 900px;            /* iPad / 大螢幕也不會太寬 */
+  margin: 70px auto 18px;      /* 上面讓出 header，高度你可以再調 */
+  gap: 14px;                   /* 稍微拉開一點 */
+}
+
+/* Hero 做得像一張海報 */
+.curation-hero {
+  height: 210px;
+  border-radius: 18px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+}
+.curation-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 42%;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.4) 100%);
+  pointer-events: none;
+}
+
+/* 標題再厚一點、行距緊一點 */
+.curation-title {
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: .02em;
+  margin: 2px 2px 0;
+}
+
+/* 作者列做成一條小膠囊 */
+.curation-meta {
+  background: rgba(255,255,255,.55);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 999px;
+  padding: 6px 10px;
+  gap: 12px;
+  font-size: 12.5px;
+  color: #1f2937;
+  width: fit-content;
+  box-shadow: 0 6px 18px rgba(0,0,0,.05);
+}
+.curation-meta .author img {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255,255,255,.9);
+}
+
+/* 讓 intro 看起來像開場白 */
+.curation-intro {
+  background: rgba(255,255,255,.8);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 14px;
+  padding: 10px 12px 10px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #1f2937;
+}
+
+/* 一般段落卡 */
+.curation-block {
+  background: rgba(255,255,255,.85);
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 16px;
+  padding: 11px 13px 10px;
+  box-shadow: 0 12px 30px rgba(15,23,42,.05);
+}
+.curation-block-title {
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.curation-block-text {
+  font-size: 13.3px;
+  line-height: 1.55;
+  color: #1f2937;
+}
+
+.curation-place {
+  background: rgba(248,250,252,.7);
+  border-radius: 14px;
+  padding: 6px;
+  gap: 10px;
+}
+.curation-place-thumb {
+  flex: 0 0 60px;
+  border-radius: 12px;
+}
+.curation-place-btn {
+  background: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+  color: #0f172a;
+  box-shadow: 0 8px 24px rgba(15,23,42,.12);
+}
+
+.curation-actions {
+  margin-top: 6px;
+  padding-bottom: 4px;
+}
+.curation-actions .btn {
+  min-height: 44px;
+  font-size: 13.5px;
+}
+
+@media (prefers-color-scheme: dark){
+  .curation-meta {
+    background: rgba(11,15,18,.45);
+    border-color: rgba(255,255,255,.08);
+    color: #e2e8f0;
+  }
+  .curation-intro {
+    background: rgba(11,15,18,.55);
+    border-color: rgba(255,255,255,.04);
+    color: #e2e8f0;
+  }
+  .curation-block {
+    background: rgba(11,15,18,.65);
+    border-color: rgba(255,255,255,.06);
+    box-shadow: 0 16px 40px rgba(0,0,0,.45);
+  }
+}
+
+.curation-top {
+  background: rgba(248,248,248, .8);
+  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(15px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.05);
+}
