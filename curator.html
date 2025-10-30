@@ -6,6 +6,7 @@
   <title>在地策展｜HeriLand</title>
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/curator.css">
+    <link rel="stylesheet" href="css/curation.css">
 </head>
 <body class="curator-body">
 
@@ -73,9 +74,21 @@
     </section>
 
   </main>
+  
+      <!-- ===== 策展文章（在地策展 → 精選策展 → 文章） ===== -->
+    <section id="curationPanel" class="overlay-page curation-overlay" hidden aria-labelledby="curationHeading">
+      <header class="subappbar">
+        <button class="icon-btn back" id="btnCurationBack" aria-label="Back">←</button>
+        <h1 id="curationHeading" class="settings-title">策展內容</h1>
+      </header>
+      <div id="curationBody" class="curation-body" aria-live="polite">
+        <!-- js 塞文章 -->
+      </div>
+    </section>
 
   <!-- 設定 overlay 用你原本的就好，可以不貼 -->
 
   <script type="module" src="js/curator.js"></script>
+  <script type="module" src="js/curation.js"></script>
 </body>
 </html>
