@@ -1,21 +1,23 @@
-// curation.js — 在地策展（文章型）
+// js/curation.js — 在地策展文章（使用共用 detail-overlay 浮層）
 
-// 1) 範例資料（之後你要從 supabase 撈就丟進 openCuration(...)）
+import { openDetailView } from './detail-overlay.js';
+
+//
+// 範例資料（可替換為 Supabase 內容）
+//
 const CURATION_SAMPLE = {
   id: 'kch-weekend-01',
   hero: 'https://picsum.photos/1200/700?c=1',
   title: '週末在古晉這樣玩：老街 → 咖啡 → 河畔夜拍',
-  author: '@SarawakFoodie',
+  author: 'Sarawak Foodie',
   authorAvatar: 'https://i.pravatar.cc/100?img=4',
   city: 'Kuching',
   date: '2025-10-30',
   intro: '給第一次來古晉、但又不想跟團的人。下面每一段都是可以獨立拆開走的。',
-  // ✅ 這裡已經是「文章型」的型別
   blocks: [
     { type: 'h2', text: '1. 早上先繞老街' },
     { type: 'p',  text: '09:30 前人比較少，路邊小吃可以慢慢拍。記得先吃一點，不然後面幾個點會排隊。' },
-    {
-      type: 'place-inline',
+    { type: 'place-inline',
       placeId: 'cat-laksa',
       name: '老街砂拉越叻沙',
       city: 'Kuching Old Town',
@@ -24,9 +26,8 @@ const CURATION_SAMPLE = {
     { type: 'p',  text: '吃完可以往河邊走，路上會經過一段老房子，很好拍。' },
     { type: 'tip', text: '假日 16:00 前到，不然背景會亂。' },
     { type: 'h2', text: '2. 下午去河畔拍 vlog' },
-    { type: 'p',  text: '沿河這段的光線 15:30~16:30 最漂亮。' },
-    {
-      type: 'place-inline',
+    { type: 'p',  text: '沿河這段的光線 15:30~16:30 最漂亮，想拍 Reels 可以抓這段時間。' },
+    { type: 'place-inline',
       placeId: 'river-diner',
       name: 'Riverside Diner',
       city: 'Waterfront'
@@ -34,158 +35,96 @@ const CURATION_SAMPLE = {
   ]
 };
 
+//
+// 將 curation blocks 轉成 HTML 片段
+//
+function renderCurationToHTML(data){
+  let html = '';
 
-// 2) 真正畫面渲染
-function renderCuration(data = CURATION_SAMPLE){
-  const wrap = document.getElementById('curationBody');
-  if (!wrap) return;
-
-  // 先畫上面固定那幾塊
-  let html = `
-    <div class="curation-hero" style="background-image:url('${data.hero || ''}')"></div>
-    <h2 class="curation-title" id="curationTitleH">${data.title || ''}</h2>
-    <div class="curation-meta">
-      <span class="author">
-        ${data.authorAvatar ? `<img src="${data.authorAvatar}" alt="">` : ''}
-        ${data.author || 'Local curator'}
-      </span>
-      ${data.city ? `<span>📍 ${data.city}</span>` : ''}
-      ${data.date ? `<span>🗓️ ${data.date}</span>` : ''}
-    </div>
-    ${data.intro ? `<p class="curation-intro">${data.intro}</p>` : ''}
-    <div class="curation-article" id="curationArticle">
-  `;
-
-  // 再把 blocks 一個一個塞進去（文章流）
-  (data.blocks || []).forEach(b => {
-    if (!b || !b.type) return;
-
-    // 1) 大標段
-    if (b.type === 'h2') {
-      html += `<h3 class="curation-h2">${b.text || ''}</h3>`;
-      return;
-    }
-
-    // 2) 內文段落
-    if (b.type === 'p') {
-      html += `<p class="curation-p">${b.text || ''}</p>`;
-      return;
-    }
-
-    // 3) 文中店家卡
-    if (b.type === 'place-inline') {
-      html += `
-        <article class="curation-place-inline" data-place-id="${b.placeId || ''}">
-          <div class="cpi-thumb" style="${b.thumb ? `background-image:url('${b.thumb}')` : ''}"></div>
-          <div class="cpi-meta">
-            <div class="cpi-name">${b.name || '未命名店家'}</div>
-            ${b.city ? `<div class="cpi-city">${b.city}</div>` : ''}
-            ${b.note ? `<div class="cpi-note">${b.note}</div>` : ''}
-          </div>
-          <button type="button" class="cpi-btn" data-open-place="${b.placeId || ''}">查看店家</button>
-        </article>
-      `;
-      return;
-    }
-
-    // 4) 小提醒
-    if (b.type === 'tip') {
-      html += `
-        <div class="curation-tip">
-          <span class="ct-badge">小提醒</span>
-          <span class="ct-text">${b.text || ''}</span>
-        </div>
-      `;
-      return;
-    }
-
-    // 5) 圖片（你之後要加）
-    if (b.type === 'img') {
-      html += `
-        <figure class="curation-img">
-          <img src="${b.src}" alt="${b.alt || ''}">
-          ${b.caption ? `<figcaption>${b.caption}</figcaption>` : ''}
-        </figure>
-      `;
-      return;
-    }
-  });
-
-  // 收尾
+  // 導言區
   html += `
+    <div class="meta-line" style="margin-bottom:8px">
+      ${data.authorAvatar ? `<img src="${data.authorAvatar}" alt="" style="width:22px;height:22px;border-radius:50%;object-fit:cover">` : ''}
+      <span>${data.author||'Local Curator'}</span>
+      ${data.city ? `<span>📍${data.city}</span>` : ''}
+      ${data.date ? `<span>🗓️${data.date}</span>` : ''}
     </div>
-    <div class="curation-actions">
-      <button class="btn" id="btnCurationShare">分享</button>
-      <button class="btn primary" id="btnCurationFav">收藏這篇</button>
-    </div>
-  `;
+    ${data.intro ? `<p class="desc">${data.intro}</p>` : ''}
+    <hr style="border:none;border-top:1px solid rgba(0,0,0,.08);margin:10px 0;">`;
 
-  wrap.innerHTML = html;
-
-  // 綁「查看店家」
-  wrap.querySelectorAll('[data-open-place]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const pid = btn.dataset.openPlace;
-      if (window.showPlaceDetail) {
-        window.showPlaceDetail(pid);
-      } else {
-        alert(`之後開店家詳情：${pid || '（無 id）'}`);
-      }
-    });
+  // 主體內容
+  (data.blocks||[]).forEach(b=>{
+    if (b.type === 'h2'){
+      html += `<h2 style="font-size:17px;font-weight:800;margin:14px 0 6px;">${b.text}</h2>`;
+    }
+    else if (b.type === 'p'){
+      html += `<p class="desc" style="margin-bottom:8px;">${b.text}</p>`;
+    }
+    else if (b.type === 'tip'){
+      html += `
+        <div style="background:rgba(46,94,78,.08);padding:8px 10px;border-radius:10px;font-size:13px;margin:8px 0;">
+          <strong>小提醒：</strong>${b.text}
+        </div>`;
+    }
+    else if (b.type === 'place-inline'){
+      html += `
+        <div class="curation-inline-place" data-open-place="${b.placeId||''}" 
+             style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f8fafc;border-radius:10px;margin:8px 0;cursor:pointer;">
+          <div style="flex:1;">
+            <div style="font-weight:700;">${b.name||'未命名店家'}</div>
+            <div style="font-size:13px;color:#6b7280;">${b.city||''}</div>
+            ${b.note ? `<div style="font-size:13px;color:#374151;">${b.note}</div>` : ''}
+          </div>
+          <div style="font-size:13px;color:#2563eb;">查看</div>
+        </div>`;
+    }
   });
 
-  // 分享
-  document.getElementById('btnCurationShare')?.addEventListener('click', async () => {
-    try {
-      await navigator.share?.({
-        title: data.title,
-        text: data.intro,
-        url: location.href
+  // 綁定「查看店家」事件
+  setTimeout(()=>{
+    document.querySelectorAll('[data-open-place]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const pid = btn.dataset.openPlace;
+        if (window.showPlaceDetail) window.showPlaceDetail(pid);
+        else alert(`之後會開啟店家詳情：${pid || '（無 id）'}`);
       });
-    } catch (_) {}
-  });
+    });
+  },50);
 
-  // 收藏
-  document.getElementById('btnCurationFav')?.addEventListener('click', () => {
-    alert('已加入收藏（示意）');
+  return html;
+}
+
+//
+// 封裝：開啟策展詳情浮層
+//
+export function openCuration(data = CURATION_SAMPLE){
+  const html = renderCurationToHTML(data);
+  openDetailView({
+    headerTitle: '在地策展',
+    hero: data.hero,
+    bodyHTML: `
+      <div class="title-lg">${data.title}</div>
+      ${html}
+    `,
+    actions: [
+      {
+        id: 'share',
+        label: '分享',
+        onClick: async ()=>{
+          try {
+            await navigator.share?.({ title: data.title, text: data.intro, url: location.href });
+          } catch(_){}
+        }
+      },
+      {
+        id: 'fav',
+        label: '收藏這篇',
+        primary: true,
+        onClick: ()=>alert('已加入收藏（示意）')
+      }
+    ]
   });
 }
 
-
-// 3) 開 / 關 Overlay
-function openCuration(data = CURATION_SAMPLE){
-  const panel = document.getElementById('curationDetail');
-  const titleBar = document.getElementById('curationTitle');
-  if (!panel) {
-    console.warn('curationDetail not found in DOM');
-    return;
-  }
-
-  renderCuration(data);
-  if (titleBar) titleBar.textContent = data.title || '策展內容';
-
-  panel.hidden = false;
-  panel.classList.add('active');
-  document.body.classList.add('no-scroll');
-}
-
-function closeCuration(){
-  const panel = document.getElementById('curationDetail');
-  if (!panel) return;
-  panel.classList.remove('active');
-  panel.hidden = true;
-  document.body.classList.remove('no-scroll');
-}
-
-
-// 4) 初始綁定（top bar）
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btnCurationBack')?.addEventListener('click', closeCuration);
-  document.getElementById('btnCurationMore')?.addEventListener('click', () => {
-    alert('之後可以放：編輯 / 分享 / 刪除 / 複製連結');
-  });
-});
-
-// 5) 提供給別的檔用
+// 給外部（例如 curator.js）呼叫
 window.openCuration = openCuration;
-window.closeCuration = closeCuration;
