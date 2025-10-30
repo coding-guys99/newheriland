@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>在地策展｜HeriLand</title>
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/curator.css">
+</head>
+<body class="curator-body">
+
+  <!-- 頂部欄 -->
+  <header class="subappbar curator-top">
+    <button class="icon-btn back" id="btnBack" aria-label="Back">←</button>
+    <h1 class="settings-title" id="curatorName">在地策展人</h1>
+    <div class="curator-actions">
+      <button class="icon-btn" id="btnShare" aria-label="Share">⤴</button>
+      <button class="icon-btn" id="btnSettings" aria-label="Settings">⚙</button>
+    </div>
+  </header>
+
+  <!-- 內容 -->
+  <main id="curatorMain" class="curator-main" aria-live="polite">
+    <!-- Hero / 基本資料 -->
+    <section class="curator-hero">
+      <div class="avatar-wrap">
+        <img id="curatorAvatar" src="https://picsum.photos/160?face" alt="Curator avatar">
+      </div>
+      <div class="curator-info">
+        <h2 id="curatorDisplay">@Curator</h2>
+        <p id="curatorTagline" class="tagline">用在地視角帶你逛 Kuching</p>
+        <div class="stats-row">
+          <span><b id="statTrips">12</b> 策展</span>
+          <span><b id="statPlaces">38</b> 地點</span>
+          <span><b id="statSaves">240</b> 收藏</span>
+        </div>
+        <div class="curator-btns">
+          <button type="button" class="btn primary" id="btnFollow">追蹤</button>
+          <button type="button" class="btn ghost" id="btnMessage">私訊</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 精選策展 -->
+    <section class="curator-block">
+      <header class="block-head">
+        <h2 class="block-title">精選策展</h2>
+        <button class="text-link" id="btnViewAllTrips" type="button">看全部</button>
+      </header>
+      <div class="curator-trips" id="tripList">
+        <!-- js 塞卡片 -->
+      </div>
+    </section>
+
+    <!-- 推薦店家 / 體驗 -->
+    <section class="curator-block">
+      <header class="block-head">
+        <h2 class="block-title">他推薦的店家</h2>
+      </header>
+      <div class="curator-places" id="placeList">
+        <!-- js 塞小卡 -->
+      </div>
+    </section>
+
+    <!-- 影音分享（可選） -->
+    <section class="curator-block">
+      <header class="block-head">
+        <h2 class="block-title">最近影音</h2>
+      </header>
+      <div class="curator-videos" id="videoList">
+        <!-- js 塞 -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 設定 overlay 用你原本的就好，可以不貼 -->
+
+  <script type="module" src="js/curator.js"></script>
+</body>
+</html>
