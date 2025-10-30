@@ -47,7 +47,7 @@ const HOME_DATA = Object.assign({
   ],
   spotlight: [
     { name:'@SarawakFoodie',  avatar:'https://i.pravatar.cc/100?img=1', href:'curator.html?id=sarawak-foodie' },
-    { name:'@LocalTraveler',  avatar:'https://i.pravatar.cc/100?img=2', href:'curator.html?id=LocalTraveler' },
+    { name:'@LocalTraveler',  avatar:'https://i.pravatar.cc/100?img=2', href:'curator.html?id=local-traveler' },
     { name:'@TeaMaker',       avatar:'https://i.pravatar.cc/100?img=3', href:'curator.html?id=TeaMaker' },
   ],
   goods: [
