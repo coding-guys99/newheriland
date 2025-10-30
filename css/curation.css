@@ -1,177 +1,159 @@
-/* ===== Curation Detail ===== */
-#curationDetail.overlay-page {
+/* curation.css — 策展文章型 overlay */
+
+.curation-ovl {
   display: grid;
   grid-template-rows: auto 1fr;
-  background: color-mix(in srgb, rgba(10,12,16,.42) 100%, transparent);
+  background: color-mix(in srgb, rgba(10,12,16,.5) 100%, transparent);
   -webkit-backdrop-filter: blur(10px) saturate(120%);
   backdrop-filter: blur(10px) saturate(120%);
 }
 
 .curation-body {
-  margin: 72px 12px 14px;
-  background: color-mix(in srgb, #ffffff 82%, transparent);
-  border: 1px solid rgba(255,255,255,.32);
-  border-radius: 16px;
-  box-shadow: 0 16px 50px rgba(0,0,0,.28);
-  padding: 12px 12px calc(16px + env(safe-area-inset-bottom));
   overflow: auto;
-  max-height: calc(100dvh - 110px);
+  padding: 12px 12px calc(16px + env(safe-area-inset-bottom));
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
-/* Hero */
 .curation-hero {
-  position: relative;
-  height: 210px;
-  border-radius: 14px;
+  width: 100%;
+  height: 220px;
+  border-radius: 16px;
   background: #e5e7eb center/cover no-repeat;
-  overflow: hidden;
-}
-.curation-hero::after {
-  content:"";
-  position:absolute; inset:auto 0 0 0; height: 42%;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.3) 100%);
+  box-shadow: 0 18px 50px rgba(0,0,0,.25);
 }
 
-/* title + meta */
 .curation-title {
-  margin: 4px 2px 0;
+  margin: 2px 2px 0;
+  font-size: 20px;
   font-weight: 800;
-  font-size: 18px;
   letter-spacing: .1px;
 }
+
 .curation-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 10px;
+  gap: 8px 12px;
   align-items: center;
-  font-size: 12px;
-  color: #64748b;
+  font-size: 13px;
+  color: #475569;
 }
+
 .curation-meta .author {
   display: inline-flex;
   gap: 6px;
   align-items: center;
-}
-.curation-meta img {
-  width: 20px; height: 20px; border-radius: 999px;
-}
-
-/* blocks */
-.curation-block {
-  background: color-mix(in srgb, #ffffff 94%, transparent);
-  border: 1px solid rgba(0,0,0,.02);
-  border-radius: 12px;
-  padding: 10px 10px 8px;
-  display: grid;
-  gap: 4px;
-}
-.curation-block-title {
   font-weight: 700;
-  color: #111827;
-}
-.curation-block-text {
-  color: #475569;
-  line-height: 1.5;
-  font-size: 13px;
 }
 
-/* place 卡（文章裡提到店家） */
+.curation-meta .author img {
+  width: 26px; height: 26px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.curation-blocks {
+  display: grid;
+  gap: 10px;
+}
+
+.curation-block {
+  background: color-mix(in srgb, #ffffff 80%, transparent);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 14px;
+  padding: 10px 10px 8px;
+  box-shadow: 0 10px 26px rgba(0,0,0,.12);
+}
+
+.curation-block-title {
+  margin: 0 0 4px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.curation-block-text {
+  margin: 0;
+  line-height: 1.45;
+  font-size: 13px;
+  color: #1f2937;
+}
+
 .curation-place {
   display: flex;
   gap: 10px;
   align-items: center;
-  background: linear-gradient(135deg, rgba(46,94,78,.05), rgba(46,94,78,0));
-  border-radius: 12px;
-  padding: 8px;
-  border: 1px solid rgba(46,94,78,.12);
 }
+
 .curation-place-thumb {
-  width: 52px; height: 52px;
-  border-radius: 10px;
-  background: #d1d5db center/cover no-repeat;
-  flex: 0 0 52px;
+  width: 58px; height: 58px;
+  border-radius: 12px;
+  background: #ddd center/cover no-repeat;
 }
+
 .curation-place-meta {
   flex: 1;
 }
+
 .curation-place-name {
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
 }
+
 .curation-place-city {
   font-size: 12px;
-  color: #64748b;
+  color: #94a3b8;
 }
+
 .curation-place-btn {
   appearance: none;
-  border: 1px solid rgba(46,94,78,.28);
+  border: 1px solid rgba(0,0,0,.06);
   background: #fff;
   border-radius: 999px;
-  padding: 5px 12px;
+  padding: 6px 10px;
   font-weight: 700;
-  font-size: 12px;
   cursor: pointer;
+  font-size: 12px;
 }
 
-/* tip 樣式 */
 .curation-tip {
-  background: #fef9c3;
-  border: 1px solid rgba(245,158,11,.25);
-  border-radius: 12px;
-  padding: 8px 10px;
-  font-size: 13px;
-  color: #854d0e;
+  background: rgba(46,94,78,.1);
+  border: 1px solid rgba(46,94,78,.25);
+  border-radius: 14px;
+  padding: 6px 10px 8px;
   display: flex;
   gap: 6px;
+  font-size: 13px;
   align-items: flex-start;
 }
-.curation-tip strong {
-  font-weight: 700;
+
+.curation-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 6px;
 }
 
-/* footer actions */
-.curation-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 4px;
-}
 .curation-actions .btn {
   appearance: none;
-  border: 1px solid rgba(0,0,0,.1);
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.06);
   background: #fff;
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-weight: 700;
-  font-size: 13px;
+  padding: 10px 12px;
+  font-weight: 800;
   cursor: pointer;
-}
-.curation-actions .btn.primary {
-  background: #2E5E4E;
-  border-color: #2E5E4E;
-  color: #fff;
+  text-align: center;
 }
 
-/* dark */
-@media (prefers-color-scheme: dark) {
-  .curation-body {
-    background: color-mix(in srgb, #0b0f12 74%, transparent);
-    border-color: rgba(255,255,255,.12);
-  }
-  .curation-block {
-    background: color-mix(in srgb, #0b0f12 78%, transparent);
-    border-color: rgba(255,255,255,.02);
-  }
-  .curation-title { color: #f8fafc; }
-  .curation-block-text { color: #cbd5e1; }
-  .curation-place {
-    background: color-mix(in srgb, #0b0f12 62%, transparent);
-    border-color: rgba(124,193,167,.28);
-  }
-  .curation-tip {
-    background: color-mix(in srgb, #473600 42%, transparent);
-    color: #fde68a;
-  }
-  .curation-actions .btn { background: color-mix(in srgb, #0b0f12 72%, transparent); color: #eef2f6; }
+.curation-actions .btn.primary {
+  background: #2E5E4E;
+  color: #fff;
+  border-color: #2E5E4E;
+}
+
+/* 暗色 */
+@media (prefers-color-scheme: dark){
+  .curation-body { color: #e5e7eb; }
+  .curation-block { background: color-mix(in srgb, #0b0f12 74%, transparent); border-color: rgba(255,255,255,.08); }
+  .curation-block-text { color: #e5e7eb; }
+  .curation-actions .btn { background: color-mix(in srgb, #0b0f12 70%, transparent); border-color: rgba(255,255,255,.06); color:#e5e7eb; }
 }
