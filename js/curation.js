@@ -44,10 +44,11 @@ const CURATION_SAMPLE = {
 
 function renderCuration(data = CURATION_SAMPLE){
   const wrap = document.getElementById('curationBody');
-  if (!wrap) return;
+  if (!wrap) return; // 保護
+
   wrap.innerHTML = `
     <div class="curation-hero" style="background-image:url('${data.hero||''}')"></div>
-    <h2 class="curation-title">${data.title||''}</h2>
+    <h2 class="curation-title" id="curationTitleH">${data.title||''}</h2>
     <div class="curation-meta">
       <span class="author">
         ${data.authorAvatar ? `<img src="${data.authorAvatar}" alt="">` : ''}
@@ -58,39 +59,39 @@ function renderCuration(data = CURATION_SAMPLE){
     </div>
     ${data.intro ? `<p class="curation-block-text">${data.intro}</p>` : ''}
     <div class="curation-blocks">
-      ${ (data.blocks||[]).map(b => {
-          if (b.type === 'text'){
-            return `
-              <article class="curation-block">
-                ${b.title ? `<h3 class="curation-block-title">${b.title}</h3>` : ''}
-                ${b.body ? `<p class="curation-block-text">${b.body}</p>` : ''}
-              </article>`;
-          }
-          if (b.type === 'place'){
-            return `
-              <article class="curation-block">
-                <div class="curation-place" data-place-id="${b.placeId||''}">
-                  <div class="curation-place-thumb" style="background-image:url('${b.thumb||''}')"></div>
-                  <div class="curation-place-meta">
-                    <div class="curation-place-name">${b.name||'未命名店家'}</div>
-                    <div class="curation-place-city">${b.city||''}</div>
-                  </div>
-                  <button type="button" class="curation-place-btn" data-open-place="${b.placeId||''}">
-                    查看店家
-                  </button>
+      ${(data.blocks||[]).map(b => {
+        if (b.type === 'text'){
+          return `
+            <article class="curation-block">
+              ${b.title ? `<h3 class="curation-block-title">${b.title}</h3>` : ''}
+              ${b.body ? `<p class="curation-block-text">${b.body}</p>` : ''}
+            </article>`;
+        }
+        if (b.type === 'place'){
+          return `
+            <article class="curation-block">
+              <div class="curation-place" data-place-id="${b.placeId||''}">
+                <div class="curation-place-thumb" style="background-image:url('${b.thumb||''}')"></div>
+                <div class="curation-place-meta">
+                  <div class="curation-place-name">${b.name||'未命名店家'}</div>
+                  <div class="curation-place-city">${b.city||''}</div>
                 </div>
-                ${b.note ? `<p class="curation-block-text" style="margin-top:4px">${b.note}</p>` : ''}
-              </article>`;
-          }
-          if (b.type === 'tip'){
-            return `
-              <article class="curation-tip">
-                <strong>小提醒</strong>
-                <span>${b.body||''}</span>
-              </article>`;
-          }
-          return '';
-        }).join('') }
+                <button type="button" class="curation-place-btn" data-open-place="${b.placeId||''}">
+                  查看店家
+                </button>
+              </div>
+              ${b.note ? `<p class="curation-block-text" style="margin-top:4px">${b.note}</p>` : ''}
+            </article>`;
+        }
+        if (b.type === 'tip'){
+          return `
+            <article class="curation-tip">
+              <strong>小提醒</strong>
+              <span>${b.body||''}</span>
+            </article>`;
+        }
+        return '';
+      }).join('')}
     </div>
     <div class="curation-actions">
       <button class="btn" id="btnCurationShare">分享</button>
@@ -98,51 +99,64 @@ function renderCuration(data = CURATION_SAMPLE){
     </div>
   `;
 
-  // 綁定「查看店家」
+  // 查看店家 → 之後可接你的 detail
   wrap.querySelectorAll('[data-open-place]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const pid = btn.dataset.openPlace;
-      // 這裡先用 alert 代替 → 之後接你的商家詳情
-      alert(`之後會開啟店家詳情：${pid || '（無 id）'}`);
+      if (window.showPlaceDetail) {
+        window.showPlaceDetail(pid);
+      } else {
+        alert(`之後開店家詳情：${pid || '（無 id）'}`);
+      }
     });
   });
 
   // 分享
   document.getElementById('btnCurationShare')?.addEventListener('click', async ()=>{
-    try {
+    try{
       await navigator.share?.({ title: data.title, text: data.intro, url: location.href });
-    } catch(_) {}
+    }catch(_){}
   });
 
   // 收藏
   document.getElementById('btnCurationFav')?.addEventListener('click', ()=>{
-    alert('已加入你的收藏（示意）');
+    alert('已加入收藏（示意）');
   });
 }
 
-function openCuration(data){
+function openCuration(data = CURATION_SAMPLE){
+  const panel = document.getElementById('curationDetail');
+  const titleBar = document.getElementById('curationTitle');
+
+  if (!panel) {
+    console.warn('curationDetail not found in DOM');
+    return;
+  }
+
   renderCuration(data);
-  document.getElementById('curationDetail').hidden = false;
-  document.getElementById('curationDetail').classList.add('active');
+
+  if (titleBar) titleBar.textContent = data.title || '策展內容';
+
+  panel.hidden = false;
+  panel.classList.add('active');
   document.body.classList.add('no-scroll');
 }
 
 function closeCuration(){
-  document.getElementById('curationDetail').classList.remove('active');
-  document.getElementById('curationDetail').hidden = true;
+  const panel = document.getElementById('curationDetail');
+  if (!panel) return;
+  panel.classList.remove('active');
+  panel.hidden = true;
   document.body.classList.remove('no-scroll');
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{
-  // 閉關
   document.getElementById('btnCurationBack')?.addEventListener('click', closeCuration);
   document.getElementById('btnCurationMore')?.addEventListener('click', ()=>{
-    alert('之後可以放「編輯 / 分享 / 刪除」');
+    alert('之後可以放：編輯 / 分享 / 刪除 / 複製連結');
   });
-
-  // 測試入口：你也可以從首頁直接叫 openCuration()
-  // openCuration(CURATION_SAMPLE);
 });
 
-// 給外面呼叫用（首頁點頭像 → 開這個）
+// 給外面呼叫
 window.openCuration = openCuration;
+window.closeCuration = closeCuration;
