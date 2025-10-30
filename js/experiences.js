@@ -1,270 +1,201 @@
-// experiences.js — list (2-column, reuse featured.css) + detail page fill
+// experiences.js — list + filters + detail overlay
 
-// ---------- tiny helpers ----------
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
-const qs  = (k, d=location.search) => new URLSearchParams(d).get(k) || '';
-const toCaps = (s='') => (s||'').toString().toUpperCase();
 
-// ---------- mock data (swap to Supabase later) ----------
-/*
-Supabase table: experiences
-- id (text/uuid)
-- title (text)
-- cover (text)
-- images (jsonb)
-- city_id (text)
-- tags (jsonb)
-- summary (text)
-- description (text)
-- status (text)         // 'active' | 'draft'
-- featured_rank (int)   // 1 is top
-- created_at (ts)
-*/
+// 假資料（之後換 Supabase experiences 表）
 const EXPERIENCES = [
   {
-    id: 'xp-sarawak-museum',
-    title: '砂拉越博物館：穿越百年的人類學收藏',
-    cover: 'https://picsum.photos/800/450?museum',
-    images: [],
-    city_id: 'kuching',
-    tags: ['culture','family','weekend'],
-    summary: '東南亞頂尖的人類學與天然史館藏，一次走讀砂拉越百年歷史。',
-    description: '以輕導覽為主，推薦親子與第一次到古晉的旅人。館內動線友善、設施新穎，雨天也能輕鬆安排。',
-    status: 'active',
-    featured_rank: 1
+    id: 'sarawak-food-trail',
+    title: '古晉在地美食走讀',
+    cover: 'https://picsum.photos/640/360?exp1',
+    city: 'Kuching',
+    tags: ['food','culture'],
+    summary: '半日體驗，帶你吃到道地砂拉越風味。',
+    highlights: [
+      '老師傅麵攤與在地小吃介紹',
+      '河岸散步 + 老街故事',
+      '可延伸到夜市行程'
+    ],
+    desc: '這是一條很適合第一次來古晉的輕體驗路線，從早餐開始一路吃到下午茶，不走觀光店，主要以在地人愛去的小店為主。',
+    link: '#explore?city=kuching'
   },
   {
-    id: 'xp-kampung-foodwalk',
-    title: '甘榜美食散步：在地早餐與早市文化',
-    cover: 'https://picsum.photos/800/450?food',
-    images: [],
-    city_id: 'sibu',
-    tags: ['food','culture','weekend'],
-    summary: '跟著在地人走早市，米糕、乾盤麵、傳統糕點一路吃。',
-    description: '無需預約；清晨集合，路線 1.5–2 小時。以吃與拍照為主，視天候調整。',
-    status: 'active',
-    featured_rank: 2
+    id: 'sibu-handmade',
+    title: '詩巫手作藤編下午',
+    cover: 'https://picsum.photos/640/360?exp2',
+    city: 'Sibu',
+    tags: ['handmade','culture'],
+    summary: '小班制 4-6 人，適合情侶 / 小組。',
+    highlights: [
+      '在地老師教你基本編織',
+      '現場可加購茶飲',
+      '成品可帶走'
+    ],
+    desc: '藤編工藝是當地很有代表性的手作，課程會從入門開始做一個小托盤或杯墊，難度不高，重點是氛圍很chill。',
+    link: '#explore?city=sibu'
   },
   {
-    id: 'xp-sunset-kayak',
-    title: '紅樹林黃昏獨木舟',
-    cover: 'https://picsum.photos/800/450?kayak',
-    images: [],
-    city_id: 'miri',
-    tags: ['outdoor','weekend','family'],
-    summary: '在導教陪同下，安全體驗潟湖水道與夕陽金光。',
-    description: '適合初學者，救生衣與基本裝備包含在內。建議攜帶防曬與防水包。',
-    status: 'active',
-    featured_rank: 4
+    id: 'miri-sunset',
+    title: '美里黃昏海邊拍照散步',
+    cover: 'https://picsum.photos/640/360?exp3',
+    city: 'Miri',
+    tags: ['outdoor','photo'],
+    summary: '適合 2-8 人同行，可搭配餐廳。',
+    highlights: [
+      '日落打卡點建議',
+      '教你拍 3 種構圖',
+      '結束可串到夜市'
+    ],
+    desc: '如果你是帶朋友來美里，這條超好用，時間落在傍晚，光線漂亮、又不會太熱，拍完去吃海鮮剛剛好。',
+    link: '#explore?city=miri'
   },
   {
-    id: 'xp-handcraft-beads',
-    title: '手作串珠：傳統圖紋與當代飾品',
-    cover: 'https://picsum.photos/800/450?handcraft',
-    images: [],
-    city_id: 'mukah',
-    tags: ['handcraft','culture'],
-    summary: '從圖紋故事到配色實作，做一件只屬於你的紀念小物。',
-    description: '小班制工作坊，材料現場提供。無需經驗，專人指導。',
-    status: 'active',
-    featured_rank: 3
-  }
+    id: 'family-weekend',
+    title: '親子週末在地農場體驗',
+    cover: 'https://picsum.photos/640/360?exp4',
+    city: 'Mukah',
+    tags: ['family','outdoor'],
+    summary: '看動物、做小點心、放電剛剛好。',
+    highlights: [
+      '小朋友互動區',
+      '簡單農事體驗',
+      '附建議路線'
+    ],
+    desc: '給本地家庭或回鄉探親的人一個半天的行程，不用自己查，就照這張表單跑。',
+    link: '#explore?city=mukah'
+  },
 ];
 
-// ---------- state (filters, optional) ----------
-const state = {
-  filter: 'all', // 'all' | 'featured'
-  tags: new Set(['culture','food','outdoor','handcraft','family','weekend']),
-  cities: new Set(['kuching','sibu','miri','mukah'])
+// 狀態
+const expState = {
+  filter: 'all'
 };
 
-// ---------- filter + sort ----------
-function applyFilter(list){
-  const base = list.filter(x => x.status === 'active');
-
-  const byFeat = (state.filter === 'featured')
-    ? base.filter(x => Number.isFinite(x.featured_rank))
-    : base;
-
-  const byTag = byFeat.filter(x => {
-    if (!x.tags?.length) return false;
-    return x.tags.some(t => state.tags.has(t));
-  });
-
-  const byCity = byTag.filter(x => state.cities.has(x.city_id));
-
-  return byCity.sort((a,b)=>{
-    const af = Number.isFinite(a.featured_rank) ? a.featured_rank : 9999;
-    const bf = Number.isFinite(b.featured_rank) ? b.featured_rank : 9999;
-    return af - bf || a.title.localeCompare(b.title);
-  });
+function filterExperiences(list){
+  if (expState.filter === 'all') return list;
+  return list.filter(x => x.tags?.includes(expState.filter));
 }
 
-// ---------- list: render (use featured.css structures) ----------
-function cardHTML(x){
-  // 使用 .card-v 結構，以便直接吃 featured.css
-  const tagsLine = (x.tags||[]).map(t=>`#${t}`).join(' ');
+function cardHTML(e){
+  const firstTag = e.tags?.[0] || '體驗';
   return `
-    <article class="card-v" data-id="${x.id}" aria-label="${x.title}">
-      <div class="thumb" style="background-image:url('${x.cover}')"></div>
-      <div class="body">
-        <h3 class="name">${x.title}</h3>
-        <div class="sub">${tagsLine || '&nbsp;'}</div>
-        <div class="meta">📍 ${toCaps(x.city_id)}</div>
-        <div class="foot">
-          <button class="btn" data-act="share"  data-id="${x.id}">分享</button>
-          <button class="btn" data-act="detail" data-id="${x.id}">看介紹</button>
+    <article class="exp-card" data-id="${e.id}">
+      <div class="exp-thumb" style="background-image:url('${e.cover}')"></div>
+      <div class="exp-body">
+        <h3 class="exp-title">${e.title}</h3>
+        <div class="exp-meta">
+          <span>📍 ${e.city}</span>
+          <span class="exp-tag">${firstTag}</span>
+        </div>
+        <p class="exp-summary">${e.summary}</p>
+        <div class="exp-foot">
+          <span style="font-size:11px;color:#94a3b8;">約 1.5 ~ 3 小時</span>
+          <button class="exp-cta" type="button" data-id="${e.id}">看體驗介紹</button>
         </div>
       </div>
     </article>
   `;
 }
 
-function renderList(){
-  const box = $('#xpList');
-  const empty = $('#xpEmpty');
+function renderExpList(){
+  const box = $('#expList');
+  const empty = $('#expEmpty');
   if (!box) return;
 
-  const list = applyFilter(EXPERIENCES);
+  const list = filterExperiences(EXPERIENCES);
   if (!list.length){
     box.innerHTML = '';
-    if (empty) empty.hidden = false;
+    empty.hidden = false;
     return;
   }
-  if (empty) empty.hidden = true;
-
-  // 兩欄容器（確保 class）
-  box.classList.add('row','cards');
+  empty.hidden = true;
   box.innerHTML = list.map(cardHTML).join('');
 }
 
-// ---------- list: bind actions ----------
-function bindListActions(){
-  // 點按鈕（避免整卡誤觸）
-  $('#xpList')?.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.btn'); if (!btn) return;
-    const id  = btn.dataset.id;
-    const act = btn.dataset.act;
+function openExpDetail(id){
+  const e = EXPERIENCES.find(x => x.id === id);
+  if (!e) return;
+  const panel = $('#expDetail');
+  const cont  = $('#expContent');
 
-    if (act === 'detail' && id){
-      // 跳到獨立詳情頁
-      location.href = `./partial/detail-template.html?id=${encodeURIComponent(id)}`;
-    }
-    if (act === 'share' && id){
-      const x = EXPERIENCES.find(y => y.id === id);
-      if (!x) return;
-      (async ()=>{
-        try{
-          await navigator.share?.({ title: x.title, text: x.summary, url: location.href });
-        }catch(_){}
-      })();
-    }
-  });
-}
+  $('#expTitle').textContent = '體驗詳情';
 
-// （可選）filter chips 綁定：如果頁面放了 chips 就會生效
-function bindFilters(){
-  $$('#xpMain [data-filter]').forEach(chip=>{
-    chip.addEventListener('click', ()=>{
-      $$('#xpMain [data-filter]').forEach(c=>{
-        const on = (c===chip);
-        c.classList.toggle('is-on', on);
-        c.setAttribute('aria-selected', on ? 'true' : 'false');
-      });
-      state.filter = chip.dataset.filter;
-      renderList();
-    });
-  });
+  const tagsHTML = (e.tags||[]).map(t=>`<span class="exp-badge">${t}</span>`).join('');
 
-  $$('#xpMain [data-tag]').forEach(chip=>{
-    chip.addEventListener('click', ()=>{
-      const tag = chip.dataset.tag;
-      const on = chip.classList.toggle('is-on');
-      chip.setAttribute('aria-pressed', on ? 'true' : 'false');
-      if (on) state.tags.add(tag); else state.tags.delete(tag);
-      renderList();
-    });
-  });
+  const highlightsHTML = (e.highlights||[]).map(h=>`<li>${h}</li>`).join('');
 
-  $$('#xpMain [data-city]').forEach(chip=>{
-    chip.addEventListener('click', ()=>{
-      const c = chip.dataset.city;
-      const on = chip.classList.toggle('is-on');
-      chip.setAttribute('aria-pressed', on ? 'true' : 'false');
-      if (on) state.cities.add(c); else state.cities.delete(c);
-      renderList();
-    });
-  });
-}
+  cont.innerHTML = `
+    <div class="exp-hero" style="background-image:url('${e.cover}')"></div>
+    <h2 class="exp-title-lg">${e.title}</h2>
+    <div class="exp-meta-lg">
+      <span class="exp-badge city">📍 ${e.city}</span>
+      ${tagsHTML}
+      <span>🕒 建議時長 1.5 ~ 3 小時</span>
+    </div>
+    <p class="exp-desc">${e.desc}</p>
+    <p class="exp-section-title">你會做到的：</p>
+    <ul class="exp-points">
+      ${highlightsHTML}
+    </ul>
+    <div class="exp-detail-actions">
+      <button class="btn" data-exp-share>分享給朋友</button>
+      <a class="btn primary" href="${e.link}">去這個城市</a>
+    </div>
+  `;
 
-// ---------- detail page: fill by ?id= ----------
-function renderDetailPage(){
-  const id = qs('id');
-  if (!id) return;
+  panel.hidden = false;
+  panel.classList.add('active');
+  document.body.classList.add('no-scroll');
 
-  const x = EXPERIENCES.find(y => y.id === id);
-  if (!x) {
-    // 簡單空狀態
-    const ct = $('#xpContent') || document.body;
-    ct.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-emoji">🫥</div>
-        <div class="empty-title">找不到這個體驗</div>
-        <div class="empty-sub">請返回上一頁或稍後再試。</div>
-      </div>`;
-    return;
-  }
-
-  // 盡量容錯多種節點 id，對應你現有/未來的 detail HTML
-  const titleEl = $('#xpTitle') || $('#xpDetailTitle') || $('h1');
-  const heroBox = $('#xpHero') || $('#xpDetailHero') || $('.xp-hero');
-  const heroImg = $('#xpHeroImg');
-  const metaBox = $('#xpMeta') || $('#xpDetailMeta');
-  const tagsBox = $('#xpTags');
-  const descBox = $('#xpDesc') || $('#xpDetailDesc') || $('.xp-detail-copy');
-
-  if (titleEl) titleEl.textContent = x.title;
-
-  if (heroImg) {
-    heroImg.src = x.cover;
-    heroImg.alt = x.title;
-  } else if (heroBox) {
-    heroBox.style.backgroundImage = `url('${x.cover}')`;
-    heroBox.style.backgroundSize = 'cover';
-    heroBox.style.backgroundPosition = 'center';
-  }
-
-  if (metaBox) {
-    metaBox.innerHTML = `📍 ${toCaps(x.city_id)}`;
-  }
-
-  const tagLine = (x.tags||[]).map(t => `<span class="xp-tag">#${t}</span>`).join(' ');
-  if (tagsBox) tagsBox.innerHTML = tagLine;
-  if (descBox) descBox.textContent = x.description || x.summary || '';
-
-  // 行動按鈕（可選）
-  $('#xpGoCity')?.addEventListener('click', ()=>{
-    location.href = `explore.html#explore?city=${encodeURIComponent(x.city_id)}`;
-  });
-  $('#xpShare')?.addEventListener('click', async ()=>{
+  cont.querySelector('[data-exp-share]')?.addEventListener('click', async ()=>{
     try{
-      await navigator.share?.({ title: x.title, text: x.summary, url: location.href });
+      await navigator.share?.({ title: e.title, text: e.summary, url: location.href });
     }catch(_){}
   });
-  $('#btnBackHome')?.addEventListener('click', ()=> location.href = 'index.html#home');
 }
 
-// ---------- bootstrap ----------
+function closeExpDetail(){
+  const panel = $('#expDetail');
+  if (!panel) return;
+  panel.classList.remove('active');
+  panel.setAttribute('hidden','');
+  document.body.classList.remove('no-scroll');
+}
+
+function bindExpUI(){
+  // 篩選
+  $$('#expMain .filters [data-filter]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      $$('#expMain .filters [data-filter]').forEach(b=>{
+        const on = (b===btn);
+        b.classList.toggle('is-on', on);
+        b.setAttribute('aria-selected', on?'true':'false');
+      });
+      expState.filter = btn.dataset.filter;
+      renderExpList();
+    });
+  });
+
+  // 卡片 CTA
+  $('#expList')?.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.exp-cta'); if (!btn) return;
+    e.stopPropagation();
+    const id = btn.dataset.id;
+    if (id) openExpDetail(id);
+  });
+
+  // 關閉詳情
+  $('#btnCloseExp')?.addEventListener('click', closeExpDetail);
+
+  // 空狀態重新整理
+  $('#btnExpRetry')?.addEventListener('click', renderExpList);
+}
+
 document.addEventListener('DOMContentLoaded', ()=>{
-  // 如果是入口清單頁（有 #xpList 或 #xpMain），渲染兩欄清單
-  if ($('#xpList') || $('#xpMain')) {
-    renderList();
-    bindListActions();
-    bindFilters(); // 沒放 chips 也不會出錯
-  }
-  // 如果是詳情頁（有 #xpDetail 或 #xpContent），填入內容
-  if ($('#xpDetail') || $('#xpContent')) {
-    renderDetailPage();
+  // 如果這頁是獨立 html，就會直接跑
+  if (document.querySelector('#expMain')){
+    bindExpUI();
+    renderExpList();
   }
 });
