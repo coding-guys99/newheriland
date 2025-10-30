@@ -1,31 +1,24 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>體驗介紹 | HeriLand</title>
-  <link rel="stylesheet" href="css/detail.css">
-  <style>
-    body{margin:0;background:#f6f6f6;}
-    .subappbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:8px;
-      padding:10px 14px;background:#fff;border-bottom:1px solid rgba(0,0,0,.06);}
-    .subappbar h1{margin:0;font-size:18px;font-weight:800}
-    .page{padding:12px}
-    /* 讓卡片置中、和 overlay 同版型 */
-    .detail-card{max-width:720px;margin:10px auto}
-  </style>
-</head>
-<body>
-  <header class="subappbar">
-    <button class="icon-btn back" onclick="history.back()">←</button>
-    <h1>體驗介紹</h1>
-    <span style="margin-left:auto"></span>
+<!-- partials/detail-overlay.html -->
+<section id="ui-detail-overlay" class="overlay-page detail-layer" hidden aria-modal="true" role="dialog" aria-labelledby="ui-detail-title">
+  <header class="subappbar detail-head">
+    <button class="icon-btn back" id="ui-detail-close" aria-label="Back / Close">←</button>
+    <h1 id="ui-detail-title" class="detail-title" tabindex="-1">詳情</h1>
   </header>
 
-  <main class="page">
-    <div id="detailRoot"></div>
-  </main>
+  <!-- 玻璃卡內容區（實際滾動的地方） -->
+  <div class="detail-shell" id="ui-detail-shell">
+    <!-- 頭圖（可選） -->
+    <div class="detail-hero" id="ui-detail-hero" hidden></div>
 
-  <script type="module" src="js/detail.js"></script>
-</body>
-</html>
+    <!-- 文字區 -->
+    <div class="detail-body" id="ui-detail-body">
+      <!-- 這裡會由 JS 填入 -->
+      <p class="detail-muted">Loading…</p>
+    </div>
+
+    <!-- 底部按鈕（可選） -->
+    <div class="detail-actions" id="ui-detail-actions" hidden>
+      <!-- JS 會決定要放什麼 -->
+    </div>
+  </div>
+</section>
