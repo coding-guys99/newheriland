@@ -113,11 +113,52 @@ function bindEvents(){
     }catch(_){}
   });
 
-  // 點 trip 進 overlay：先 alert 代替
   $('#tripList')?.addEventListener('click', (e)=>{
-    const card = e.target.closest('.trip-card'); if (!card) return;
-    alert('這裡可以開剛剛那種玻璃詳情，顯示這條路線的點');
-  });
+  const card = e.target.closest('.trip-card'); 
+  if (!card) return;
+
+  const tripId = card.dataset.trip;   // 例如 "kch-street-food"
+
+  // 1) 先從目前這個 curator 的資料裡把這篇 trip 找出來
+  const curatorId = getCuratorId();
+  const curator = CURATORS[curatorId] || CURATORS['sarawak-foodie'];
+  const tripData = curator.trips.find(t => t.id === tripId);
+
+  // 2) 組成「文章型」的資料，丟給 curation.js
+  // 這裡我先硬塞一個簡單版，之後你可以真的從 supabase 抓回來再塞
+  const richData = {
+    id: tripData.id,
+    hero: tripData.cover,
+    title: tripData.title,
+    author: curator.name,
+    authorAvatar: curator.avatar,
+    city: tripData.city,
+    date: new Date().toISOString().slice(0,10),
+    intro: `${curator.name} 推的 ${tripData.city} 路線，這篇是示意。`,
+    blocks: [
+      {
+        type: 'text',
+        title: '怎麼逛',
+        body: '先從老街開始，拍完再往河邊走，如果遇到下雨就換室內咖啡館。'
+      },
+      {
+        type: 'place',
+        placeId: 'demo-place-1',
+        name: '街口咖啡 Kok Pi',
+        city: tripData.city,
+        thumb: 'https://picsum.photos/200/200?coffee',
+        note: '這家是他特別寫的 → 點了就去 detail'
+      }
+    ]
+  };
+
+  // 3) 真正開啟 overlay
+  if (window.openCuration) {
+    window.openCuration(richData);
+  } else {
+    console.warn('curation.js 還沒載到');
+  }
+});
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{
