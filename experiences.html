@@ -1,44 +1,75 @@
-<!-- experiences.html / 或者你直接塞在 index.html 裡面 -->
-<section id="expMain" class="page experiences" data-page="experiences" hidden aria-label="體驗行程">
-  <!-- 頂部標題列（可以跟你的主 Header 對齊） -->
-  <header class="exp-head">
-    <h1 data-focusable-heading>體驗行程</h1>
-    <p class="exp-sub">在地文化、手作、戶外、親子，一次逛完。</p>
-  </header>
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>體驗行程｜HeriLand</title>
 
-  <!-- 篩選列 -->
-  <div class="filters">
-    <div class="chips" role="list">
-      <button type="button" class="chip is-on" data-filter="all" aria-selected="true">全部</button>
-      <button type="button" class="chip" data-filter="culture">文化走讀</button>
-      <button type="button" class="chip" data-filter="food">在地美食</button>
-      <button type="button" class="chip" data-filter="outdoor">戶外體驗</button>
-      <button type="button" class="chip" data-filter="family">親子友善</button>
-    </div>
-  </div>
+  <!-- 主樣式 -->
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/experiences.css">
 
-  <!-- 清單 -->
-  <div id="expList" class="exp-list" aria-live="polite">
-    <!-- js 塞進來 -->
-  </div>
+  <!-- 可以依實際情況再加上 favicon、OG、i18n 等 -->
+</head>
 
-  <!-- 空狀態 -->
-  <div id="expEmpty" class="empty-state" hidden>
-    <div class="empty-emoji">🗺️</div>
-    <div class="empty-title">暫時沒有符合的體驗</div>
-    <div class="empty-sub">換個主題或城市看看。</div>
-    <button id="btnExpRetry" class="err-retry" type="button">重新整理</button>
-  </div>
-</section>
+<body>
+  <main>
 
-<!-- ===== 詳情 Overlay（跟優惠活動一樣的語言） ===== -->
-<section id="expDetail" class="overlay-page" hidden aria-labelledby="expTitle">
-  <header class="subappbar settings-header">
-    <button class="icon-btn back" id="btnCloseExp" aria-label="Close">←</button>
-    <h1 id="expTitle" class="settings-title" tabindex="-1">體驗詳情</h1>
-  </header>
+    <!-- ===== Experiences / 體驗行程 ===== -->
+    <section id="expMain"
+            class="page experiences active"
+            data-page="experiences"
+            aria-label="體驗行程">
 
-  <div id="expContent" class="exp-content">
-    <!-- js 塞進來 -->
-  </div>
-</section>
+      <!-- 頂部標題列 -->
+      <header class="exp-head">
+        <h1 data-focusable-heading>體驗行程</h1>
+        <p class="exp-sub">在地文化、手作、戶外、親子，一次逛完。</p>
+      </header>
+
+      <!-- 篩選列 -->
+      <div class="filters">
+        <div class="chips" role="list">
+          <button type="button" class="chip is-on" data-filter="all" aria-selected="true">全部</button>
+          <button type="button" class="chip" data-filter="culture">文化走讀</button>
+          <button type="button" class="chip" data-filter="food">在地美食</button>
+          <button type="button" class="chip" data-filter="outdoor">戶外體驗</button>
+          <button type="button" class="chip" data-filter="family">親子友善</button>
+        </div>
+      </div>
+
+      <!-- 清單 -->
+      <div id="expList" class="exp-list" aria-live="polite">
+        <!-- experiences.js 會自動渲染卡片 -->
+      </div>
+
+      <!-- 空狀態 -->
+      <div id="expEmpty" class="empty-state" hidden>
+        <div class="empty-emoji">🗺️</div>
+        <div class="empty-title">暫時沒有符合的體驗</div>
+        <div class="empty-sub">換個主題或城市看看。</div>
+        <button id="btnExpRetry" class="err-retry" type="button">重新整理</button>
+      </div>
+    </section>
+
+    <!-- ===== Experiences 詳情 Overlay ===== -->
+    <section id="expDetail"
+            class="overlay-page"
+            hidden
+            aria-labelledby="expTitle">
+      <header class="subappbar settings-header">
+        <button class="icon-btn back" id="btnCloseExp" aria-label="Close">←</button>
+        <h1 id="expTitle" class="settings-title" tabindex="-1">體驗詳情</h1>
+      </header>
+      <div id="expContent" class="exp-content">
+        <!-- experiences.js 會注入內容 -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== JS ===== -->
+  <script src="js/experiences.js"></script>
+</body>
+</html>
