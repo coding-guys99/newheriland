@@ -46,9 +46,9 @@ const HOME_DATA = Object.assign({
     { name:'教會小組',   img:'https://picsum.photos/800/500?13', href:'#explore?theme=church' },
   ],
   spotlight: [
-    { name:'@SarawakFoodie',  avatar:'https://i.pravatar.cc/100?img=1', href:'#' },
-    { name:'@LocalTraveler',  avatar:'https://i.pravatar.cc/100?img=2', href:'#' },
-    { name:'@TeaMaker',       avatar:'https://i.pravatar.cc/100?img=3', href:'#' },
+    { name:'@SarawakFoodie',  avatar:'https://i.pravatar.cc/100?img=1', href:'curator.html?id=sarawak-foodie' },
+    { name:'@LocalTraveler',  avatar:'https://i.pravatar.cc/100?img=2', href:'curator.html?id=LocalTraveler' },
+    { name:'@TeaMaker',       avatar:'https://i.pravatar.cc/100?img=3', href:'curator.html?id=TeaMaker' },
   ],
   goods: [
     { name:'手作香氛蠟燭', price:'$9.9', href:'#' },
