@@ -75,16 +75,20 @@
 
   </main>
   
-      <!-- ===== 策展文章（在地策展 → 精選策展 → 文章） ===== -->
-    <section id="curationPanel" class="overlay-page curation-overlay" hidden aria-labelledby="curationHeading">
-      <header class="subappbar">
-        <button class="icon-btn back" id="btnCurationBack" aria-label="Back">←</button>
-        <h1 id="curationHeading" class="settings-title">策展內容</h1>
-      </header>
-      <div id="curationBody" class="curation-body" aria-live="polite">
-        <!-- js 塞文章 -->
-      </div>
-    </section>
+      <!-- ============ Curation Overlay (共用) ============ -->
+<section id="curationDetail" class="overlay-page curation-ovl" hidden aria-labelledby="curationTitle">
+  <!-- 頂部欄 -->
+  <header class="subappbar curation-top">
+    <button class="icon-btn back" id="btnCurationBack" aria-label="Back">←</button>
+    <h1 class="settings-title" id="curationTitle">策展內容</h1>
+    <button class="icon-btn" id="btnCurationMore" aria-label="More">⋯</button>
+  </header>
+
+  <!-- 內容體 -->
+  <div id="curationBody" class="curation-body" tabindex="0">
+    <!-- JS 會塞進來 -->
+  </div>
+</section>
 
   <!-- 設定 overlay 用你原本的就好，可以不貼 -->
 
