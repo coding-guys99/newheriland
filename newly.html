@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>新上架｜HeriLand</title>
+
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/newly.css">
+</head>
+<body>
+  <main>
+
+    <!-- ===== 新上架主頁 ===== -->
+    <section id="newlyMain"
+             class="page newly active"
+             data-page="newly"
+             aria-label="新上架">
+
+      <!-- Header：返回與設定 -->
+      <header class="subappbar newly-topbar">
+        <button class="icon-btn back" id="btnBackHome" aria-label="返回首頁">←</button>
+        <h1 data-focusable-heading>新上架</h1>
+        <button class="icon-btn settings" id="btnOpenSettings" aria-label="開啟設定">⚙️</button>
+      </header>
+
+      <!-- 說明列 -->
+      <div class="newly-head">
+        <p class="newly-sub">最新加入的在地店家與景點，依上架時間排序。</p>
+      </div>
+
+      <!-- 篩選 chips -->
+      <div class="filters">
+        <div class="chips" role="list">
+          <button type="button" class="chip is-on" data-filter="all" aria-selected="true">全部</button>
+          <button type="button" class="chip" data-filter="7d">最近 7 天</button>
+          <button type="button" class="chip" data-filter="30d">最近 30 天</button>
+          <button type="button" class="chip" data-filter="city">依城市</button>
+        </div>
+      </div>
+
+      <!-- 清單 -->
+      <div id="newlyList" class="newly-list" aria-live="polite"></div>
+
+      <!-- 空狀態 -->
+      <div id="newlyEmpty" class="empty-state" hidden>
+        <div class="empty-emoji">🕓</div>
+        <div class="empty-title">目前沒有新上架項目</div>
+        <div class="empty-sub">稍後再來看看，或換個篩選。</div>
+        <button id="btnNewlyRetry" class="err-retry" type="button">重新整理</button>
+      </div>
+    </section>
+
+    <!-- ===== 詳情 Overlay（共用樣式） ===== -->
+    <section id="newlyDetail"
+             class="overlay-page"
+             hidden
+             aria-labelledby="newlyTitle">
+      <header class="subappbar settings-header">
+        <button class="icon-btn back" id="btnCloseNewly" aria-label="Close">←</button>
+        <h1 id="newlyTitle" class="settings-title" tabindex="-1">商家詳情</h1>
+      </header>
+      <div id="newlyContent" class="newly-content"></div>
+    </section>
+
+  </main>
+
+  <script src="js/app.js"></script>
+  <script src="js/newly.js"></script>
+</body>
+</html>
