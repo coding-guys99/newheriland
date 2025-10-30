@@ -10,7 +10,7 @@ const HOME_DATA = Object.assign({
     { ico:'👥', label:'多人推薦', href:'group.html' },
     { ico:'🛍️', label:'精選店家', href:'featured.html' },
     { ico:'🌿', label:'體驗行程', href:'experiences.html' },
-    { ico:'🧭', label:'新上架',   href:'#explore?sort=latest' },
+    { ico:'🧭', label:'新上架',   href:'newly.html' },
     { ico:'💬', label:'在地討論', href:'#saved' },
     { ico:'💡', label:'投稿店家', href:'#add' },
   ],
