@@ -79,3 +79,37 @@
   .newly-info .meta{ color:#cbd5e1; }
   .newly-info .time{ color:#A7F3D0; }
 }
+
+/* ===== 商家詳情（共用玻璃卡） ===== */
+.merchant-detail.overlay-page{
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: color-mix(in srgb, rgba(9,12,16,.42) 100%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  backdrop-filter: blur(10px) saturate(120%);
+  overscroll-behavior: contain;
+}
+
+.merchant-detail .md-card{
+  margin: 72px 12px 14px;
+  background: color-mix(in srgb, #ffffff 84%, transparent);
+  border: 1px solid rgba(255,255,255,.55);
+  border-radius: 16px;
+  box-shadow: 0 18px 48px rgba(0,0,0,.22);
+  padding: 0 0 calc(14px + env(safe-area-inset-bottom));
+  overflow: auto;
+  max-height: calc(100dvh - 96px);
+}
+
+/* Hero 圖 */
+.md-hero{
+  position: relative;
+  height: 210px;
+  border-radius: 16px 16px 0 0;
+  background: #e5e7eb center/cover no-repeat;
+  overflow: hidden;
+}
+.md-hero::after{
+  content:"";
+  position:absolute; inset:auto 0 0 0; height:46%;
+  background: linear-gradient(180deg
