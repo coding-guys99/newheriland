@@ -10,9 +10,9 @@ const HOME_DATA = Object.assign({
     { ico:'👥', label:'多人推薦', href:'group.html' },
     { ico:'🛍️', label:'精選店家', href:'featured.html' },
     { ico:'🌿', label:'體驗行程', href:'experiences.html' },
-    { ico:'🧭', label:'新上架',   href:'newly.html' },
-    { ico:'💬', label:'在地討論', href:'#saved' },
-    { ico:'💡', label:'投稿店家', href:'#add' },
+ //==   { ico:'🧭', label:'新上架',   href:'newly.html' },
+ //==   { ico:'💬', label:'在地討論', href:'#saved' },
+ //==   { ico:'💡', label:'投稿店家', href:'#add' },
   ],
   hero: [
     { img:'https://picsum.photos/1200/600?1', title:'Mid-Autumn Specials', href:'#explore?collection=mid-autumn' },
