@@ -243,3 +243,45 @@
     color: #eef2f6;
   }
 }
+
+/* ===== 體驗行程 Header：返回 + 標題 + 設定 ===== */
+.exp-topbar{
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 10px;
+  background: color-mix(in srgb, #ffffff 92%, transparent);
+  border-bottom: 1px solid rgba(0,0,0,.08);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  backdrop-filter: blur(10px) saturate(120%);
+}
+
+.exp-topbar h1{
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: .5px;
+}
+
+.icon-btn{
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 6px;
+}
+
+.icon-btn:active{ transform: translateY(1px); }
+
+@media (prefers-color-scheme: dark){
+  .exp-topbar{
+    background: color-mix(in srgb, #0b0f12 75%, transparent);
+    border-bottom-color: rgba(255,255,255,.08);
+  }
+  .exp-topbar h1{ color:#f5f7fa; }
+  .icon-btn{ color:#f1f5f9; }
+}
