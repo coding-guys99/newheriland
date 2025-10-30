@@ -23,14 +23,19 @@ function applyFilter(list){
 
 // 渲染卡片
 function cardHTML(d){
-  const timeLabel = d.daysAgo<=1?'今天':d.daysAgo+' 天前';
-  const badge = d.daysAgo<=7?`<span class="newly-badge">NEW</span>`:'';
+  const timeLabel = d.daysAgo <= 1 ? '今天' : d.daysAgo + ' 天前';
+  const badge = d.daysAgo <= 7 ? `<span class="newly-badge">NEW</span>` : '';
+  const summary = d.summary || d.desc || ''; // 有的話顯示一行預覽
+  const tagLine = d.tags?.length ? `<div class="tags">${d.tags.slice(0,2).map(t=>`<span>#${t}</span>`).join('')}</div>` : '';
+
   return `
   <article class="newly-card" data-id="${d.id}">
-    <div class="newly-thumb" style="background-image:url('${d.thumb}')"></div>
+    <div class="newly-thumb" style="background-image:url('${d.thumb || 'https://via.placeholder.com/300x200?text=No+Image'}')"></div>
     <div class="newly-info">
       <h3>${d.name}${badge}</h3>
       <div class="meta">${d.city} · ${d.type}</div>
+      ${summary ? `<p class="summary">${summary}</p>` : ''}
+      ${tagLine}
       <div class="time">${timeLabel}</div>
     </div>
   </article>`;
