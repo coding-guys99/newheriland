@@ -57,7 +57,7 @@ function renderCuration(data = CURATION_SAMPLE){
       ${data.city ? `<span>📍 ${data.city}</span>` : ''}
       ${data.date ? `<span>🗓️ ${data.date}</span>` : ''}
     </div>
-    ${data.intro ? `<p class="curation-block-text">${data.intro}</p>` : ''}
+    ${data.intro ? `<div class="curation-intro">${data.intro}</div>` : ''}
     <div class="curation-blocks">
       ${(data.blocks||[]).map(b => {
         if (b.type === 'text'){
