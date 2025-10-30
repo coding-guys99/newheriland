@@ -149,7 +149,7 @@ function bindListActions(){
 
     if (act === 'detail' && id){
       // 跳到獨立詳情頁
-      location.href = `./partial/detail.html?id=${encodeURIComponent(id)}`;
+      location.href = `./partial/detail-template.html?id=${encodeURIComponent(id)}`;
     }
     if (act === 'share' && id){
       const x = EXPERIENCES.find(y => y.id === id);
