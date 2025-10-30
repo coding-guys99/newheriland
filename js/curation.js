@@ -10,36 +10,24 @@ const CURATION_SAMPLE = {
   date: '2025-10-30',
   intro: '給第一次來古晉、但又不想跟團的人。下面每一段都是可以獨立拆開走的。',
   blocks: [
-    {
-      type: 'text',
-      title: '1. 早上先繞老街',
-      body: '09:30 前人比較少，路邊小吃可以慢慢拍。記得先吃一點，不然後面幾個點會排隊。'
-    },
-    {
-      type: 'place',
-      placeId: 'cat-laksa',
-      name: '老街砂拉越叻沙',
-      city: 'Kuching Old Town',
-      thumb: 'https://picsum.photos/200/200?food=1',
-      note: '只吃一碗就吃這家'
-    },
-    {
-      type: 'text',
-      title: '2. 下午去河畔拍 vlog',
-      body: '沿河這段的光線 15:30~16:30 最漂亮，想拍 Reels 可以抓這段時間。'
-    },
-    {
-      type: 'tip',
-      body: '假日建議 16:00 前到，不然人多、背景會亂。'
-    },
-    {
-      type: 'place',
-      placeId: 'river-diner',
-      name: 'Riverside Diner',
-      city: 'Waterfront',
-      thumb: 'https://picsum.photos/200/200?cafe=2'
-    }
-  ]
+  { type: 'h2', text: '1. 早上先繞老街' },
+  { type: 'p',  text: '09:30 前人比較少，路邊小吃可以慢慢拍。記得先吃一點，不然後面幾個點會排隊。' },
+  { type: 'place-inline',
+    placeId: 'cat-laksa',
+    name: '老街砂拉越叻沙',
+    city: 'Kuching Old Town',
+    note: '只吃一碗就吃這家'
+  },
+  { type: 'p',  text: '吃完可以往河邊走，路上會經過一段老房子，很好拍。' },
+  { type: 'tip', text: '假日 16:00 前到，不然背景會亂。' },
+  { type: 'h2', text: '2. 下午去河畔拍 vlog' },
+  { type: 'p',  text: '沿河這段的光線 15:30~16:30 最漂亮。' },
+  { type: 'place-inline',
+    placeId: 'river-diner',
+    name: 'Riverside Diner',
+    city: 'Waterfront'
+  }
+];
 };
 
 function renderCuration(data = CURATION_SAMPLE){
