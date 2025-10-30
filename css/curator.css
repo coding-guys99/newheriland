@@ -1,0 +1,206 @@
+/* css/curator.css */
+
+.curator-body {
+  background: #f7efe3;
+  min-height: 100vh;
+}
+
+/* 頂部 */
+.curator-top {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, #fff 85%, transparent);
+  border-bottom: 1px solid rgba(0,0,0,.05);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.curator-actions {
+  display:flex;
+  gap:6px;
+}
+
+/* 主內容 */
+.curator-main {
+  display: grid;
+  gap: 16px;
+  padding: 12px 12px calc(18px + env(safe-area-inset-bottom));
+}
+
+/* Hero */
+.curator-hero {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,.03);
+  box-shadow: 0 20px 42px rgba(0,0,0,.08);
+  padding: 16px 14px;
+}
+.avatar-wrap {
+  width: 82px; height: 82px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #ddd;
+}
+.avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.curator-info h2 {
+  margin: 0 0 2px;
+  font-weight: 800;
+  font-size: 18px;
+}
+.tagline {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+.stats-row {
+  display:flex;
+  gap: 10px;
+  margin: 6px 0 8px;
+  font-size: 12px;
+  color: #475569;
+}
+.stats-row b { font-size: 14px; }
+
+.curator-btns {
+  display:flex;
+  gap: 8px;
+}
+.btn {
+  appearance: none;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-weight: 700;
+  background: #fff;
+  cursor: pointer;
+}
+.btn.primary {
+  background: #2E5E4E;
+  border-color: #2E5E4E;
+  color: #fff;
+}
+.btn.ghost {
+  background: #fff;
+}
+
+/* 區塊 */
+.curator-block {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,.03);
+  box-shadow: 0 18px 40px rgba(0,0,0,.04);
+  padding: 12px 10px 14px;
+}
+.block-head {
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  margin-bottom: 10px;
+}
+.block-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+.text-link {
+  appearance:none;
+  background:transparent;
+  border:0;
+  color:#2E5E4E;
+  font-weight:700;
+  cursor:pointer;
+  font-size:13px;
+}
+
+/* 精選策展卡片：橫滑 */
+.curator-trips {
+  display:grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 70%;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 2px;
+}
+.trip-card {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.04);
+  border-radius: 14px;
+  box-shadow: 0 14px 30px rgba(0,0,0,.06);
+  overflow: hidden;
+  scroll-snap-align: start;
+}
+.trip-thumb {
+  height: 120px;
+  background: #ddd center/cover no-repeat;
+}
+.trip-body {
+  padding: 8px 10px 10px;
+}
+.trip-title {
+  margin: 0;
+  font-weight: 800;
+  font-size: 14px;
+}
+.trip-meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* 推薦店家：兩欄小卡 */
+.curator-places {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+.place-card {
+  background: color-mix(in srgb, #fff 96%, transparent);
+  border: 1px solid rgba(0,0,0,.03);
+  border-radius: 14px;
+  padding: 10px;
+  display:grid;
+  gap: 4px;
+}
+.place-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 14px;
+}
+.place-city {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* 影音：縮圖一排 */
+.curator-videos {
+  display:grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 82%;
+  gap: 12px;
+  overflow-x: auto;
+}
+.video-card {
+  background: #000;
+  border-radius: 14px;
+  position: relative;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+}
+.video-card::after {
+  content: "▶";
+  position:absolute;
+  inset: 0;
+  display:grid;
+  place-items:center;
+  font-size: 32px;
+  color: #fff;
+  text-shadow: 0 12px 30px rgba(0,0,0,.4);
+}
