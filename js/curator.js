@@ -13,7 +13,7 @@ const CURATORS = {
     tagline: "砂拉越吃貨帶你走進巷子裡的味道",
     stats: { trips: 8, places: 26, saves: 143 },
     trips: [
-      { id:"kch-street-food", title:"Kuching 老街吃到飽", cover:"https://picsum.photos/600/360?kch1", count:5, city:"Kuching" },
+      { id:"kch-weekend-01", title:"Kuching 老街吃到飽", cover:"https://picsum.photos/600/360?kch1", count:5, city:"Kuching" },
       { id:"seafood-sibu", title:"Sibu 海鮮半日遊", cover:"https://picsum.photos/600/360?sib1", count:3, city:"Sibu" }
     ],
     places: [
