@@ -6,34 +6,31 @@
   <meta name="theme-color" content="#ffffff">
   <title>體驗行程｜HeriLand</title>
 
-  <!-- 主樣式 -->
+  <!-- 樣式 -->
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/experiences.css">
-
-  <!-- 可以依實際情況再加上 favicon、OG、i18n 等 -->
 </head>
 
 <body>
   <main>
 
-    <!-- ===== Experiences / 體驗行程 ===== -->
+    <!-- ===== 體驗行程主頁 ===== -->
     <section id="expMain"
-            class="page experiences active"
-            data-page="experiences"
-            aria-label="體驗行程">
+             class="page experiences active"
+             data-page="experiences"
+             aria-label="體驗行程">
 
-      <!-- 頂部標題列 -->
-      <header class="exp-head">
-        <button class="icon-btn" id="btnBackHome" aria-label="Back">←</button>
-      <h1 data-focusable-heading>體驗行程</h1>
-      <p class="exp-sub">在地文化、手作、戶外、親子，一次逛完。</p>
-      <button id="btnOpenSettings" class="icon-btn" aria-label="Settings">⚙️</button>
+      <!-- Header：返回與設定 -->
+      <header class="subappbar exp-topbar">
+        <button class="icon-btn back" id="btnBackHome" aria-label="返回首頁">←</button>
+        <h1 data-focusable-heading>體驗行程</h1>
+        <button class="icon-btn settings" id="btnOpenSettings" aria-label="開啟設定">⚙️</button>
       </header>
-      
-     <!-- <button class="icon-btn" id="btnBackHome" aria-label="Back">←</button>
-      <h1 data-focusable-heading>體驗行程</h1>
-      <p class="exp-sub">在地文化、手作、戶外、親子，一次逛完。</p>
-      <button id="btnOpenSettings" class="icon-btn" aria-label="Settings">⚙️</button>-->
+
+      <!-- 說明文字 -->
+      <div class="exp-head">
+        <p class="exp-sub">在地文化、手作、戶外、親子，一次逛完。</p>
+      </div>
 
       <!-- 篩選列 -->
       <div class="filters">
@@ -47,9 +44,7 @@
       </div>
 
       <!-- 清單 -->
-      <div id="expList" class="exp-list" aria-live="polite">
-        <!-- experiences.js 會自動渲染卡片 -->
-      </div>
+      <div id="expList" class="exp-list" aria-live="polite"></div>
 
       <!-- 空狀態 -->
       <div id="expEmpty" class="empty-state" hidden>
@@ -60,23 +55,22 @@
       </div>
     </section>
 
-    <!-- ===== Experiences 詳情 Overlay ===== -->
+    <!-- ===== 體驗詳情 Overlay ===== -->
     <section id="expDetail"
-            class="overlay-page"
-            hidden
-            aria-labelledby="expTitle">
+             class="overlay-page"
+             hidden
+             aria-labelledby="expTitle">
       <header class="subappbar settings-header">
         <button class="icon-btn back" id="btnCloseExp" aria-label="Close">←</button>
         <h1 id="expTitle" class="settings-title" tabindex="-1">體驗詳情</h1>
       </header>
-      <div id="expContent" class="exp-content">
-        <!-- experiences.js 會注入內容 -->
-      </div>
+      <div id="expContent" class="exp-content"></div>
     </section>
 
   </main>
 
   <!-- ===== JS ===== -->
+  <script src="js/app.js"></script>
   <script src="js/experiences.js"></script>
 </body>
 </html>
