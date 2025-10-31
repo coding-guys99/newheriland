@@ -837,6 +837,154 @@
   </div>
 </div>
 
+<!-- ====== Edit Profile（會員資料編輯） ====== -->
+<section id="p-edit-profile" class="overlay-page hl-edit" hidden aria-labelledby="h-edit-profile" aria-modal="true" role="dialog">
+  <!-- Header -->
+  <header class="subappbar hl-edit__head">
+    <button class="icon-btn back" id="btnEditProfileBack" aria-label="Back">←</button>
+    <h1 id="h-edit-profile" class="settings-title" tabindex="-1">Edit profile</h1>
+    <button class="btn small primary" id="btnEditProfileSave">Save</button>
+  </header>
+
+  <!-- Body -->
+  <div class="hl-edit__body" id="hlEditBody" tabindex="-1">
+    <!-- A. avatar + basic -->
+    <section class="hl-set__section">
+      <div class="hl-edit__card hl-edit__ident">
+        <button class="hl-avatar-btn" id="btnChangeAvatar" aria-label="Change avatar">
+          <span class="hl-avatar" id="hlEditAvatar">H</span>
+          <span class="hl-avatar-edit">Change</span>
+        </button>
+        <div class="hl-edit__meta">
+          <label class="hl-field">
+            <span class="k">Display name</span>
+            <input type="text" id="hlEditName" value="Guest User" autocomplete="name" />
+          </label>
+          <label class="hl-field">
+            <span class="k">Tagline</span>
+            <input type="text" id="hlEditTagline" value="Discovering Sarawak" placeholder="e.g. Love Miri sunsets" />
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- B. personal details -->
+    <section class="hl-set__section">
+      <h2 class="hl-set__overline">Personal details</h2>
+      <div class="hl-set__card">
+        <button class="hl-set__item" data-ep-open="gender">
+          <span class="l">Gender</span>
+          <span class="v" id="hlEditGenderVal">Prefer not to say</span>
+          <span class="c">›</span>
+        </button>
+        <button class="hl-set__item" data-ep-open="city">
+          <span class="l">Preferred city</span>
+          <span class="v" id="hlEditCityVal">Kuching</span>
+          <span class="c">›</span>
+        </button>
+        <button class="hl-set__item" data-ep-open="lang">
+          <span class="l">Language</span>
+          <span class="v" id="hlEditLangVal">繁體中文</span>
+          <span class="c">›</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- C. account & security -->
+    <section class="hl-set__section">
+      <h2 class="hl-set__overline">Account & security</h2>
+      <div class="hl-set__card">
+        <div class="hl-set__item">
+          <span class="l">Email</span>
+          <span class="v" id="hlEditEmailVal">not linked</span>
+          <button class="mini-link" id="btnEditEmail">Add</button>
+        </div>
+        <button class="hl-set__item" id="btnEditPassword">
+          <span class="l">Password</span>
+          <span class="v muted" id="hlEditPwdVal">Not set</span>
+          <span class="c">›</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- D. sign-in methods -->
+    <section class="hl-set__section">
+      <h2 class="hl-set__overline">Sign-in methods</h2>
+      <div class="hl-set__card">
+        <div class="hl-set__item">
+          <span class="l">Google</span>
+          <span class="v muted" id="hlBindGoogleState">Not connected</span>
+          <button class="mini-link" id="btnBindGoogle">Connect</button>
+        </div>
+        <div class="hl-set__item">
+          <span class="l">Apple</span>
+          <span class="v muted" id="hlBindAppleState">Not connected</span>
+          <button class="mini-link" id="btnBindApple">Connect</button>
+        </div>
+        <div class="hl-set__item">
+          <span class="l">Facebook</span>
+          <span class="v muted" id="hlBindFBState">Not connected</span>
+          <button class="mini-link" id="btnBindFB">Connect</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- E. danger -->
+    <section class="hl-set__section">
+      <h2 class="hl-set__overline">Danger zone</h2>
+      <div class="hl-set__card">
+        <button class="hl-set__item danger" id="btnEPLogoutAll">
+          <span class="l">Sign out all devices</span>
+        </button>
+        <button class="hl-set__item danger" id="btnEPDelete">
+          <span class="l">Delete account</span>
+        </button>
+      </div>
+    </section>
+
+    <div class="hl-set__footnote">
+      Changes here affect how people see you in HeriLand.
+    </div>
+  </div>
+
+  <!-- ===== Sub drawers (small bottom sheets) ===== -->
+  <!-- gender -->
+  <div class="hl-subsheet" id="ep-gender" hidden>
+    <header class="hl-subsheet__head">
+      <button class="icon-btn back hl-subsheet__close" aria-label="Close">←</button>
+      <h2 class="hl-subsheet__title">Gender</h2>
+    </header>
+    <div class="hl-subsheet__body">
+      <button class="option" data-gender="Male">Male</button>
+      <button class="option" data-gender="Female">Female</button>
+      <button class="option" data-gender="Prefer not to say">Prefer not to say</button>
+    </div>
+  </div>
+
+  <!-- password -->
+  <div class="hl-subsheet" id="ep-password" hidden>
+    <header class="hl-subsheet__head">
+      <button class="icon-btn back hl-subsheet__close" aria-label="Close">←</button>
+      <h2 class="hl-subsheet__title">Set / change password</h2>
+    </header>
+    <div class="hl-subsheet__body">
+      <label class="hl-field">
+        <span class="k">Current password</span>
+        <input type="password" id="epPwdCurrent" autocomplete="current-password" />
+      </label>
+      <label class="hl-field">
+        <span class="k">New password</span>
+        <input type="password" id="epPwdNew" autocomplete="new-password" />
+      </label>
+      <label class="hl-field">
+        <span class="k">Confirm password</span>
+        <input type="password" id="epPwdConfirm" autocomplete="new-password" />
+      </label>
+      <button class="btn primary wfull" id="btnEPConfirmPwd">Update password</button>
+    </div>
+  </div>
+</section>
+
      
   </main>
   
