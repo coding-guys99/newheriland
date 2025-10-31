@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="css/photo.css">
   <link rel="stylesheet" href="css/feedback.css">
   <link rel="stylesheet" href="css/contact.css">
+  <link rel="stylesheet" href="css/reviews.css">
 </head>
 <body>
 
@@ -591,6 +592,42 @@
         <button type="submit" class="btn primary">送出訊息</button>
       </div>
     </form>
+  </div>
+</section>
+
+<!-- My Reviews -->
+<section data-page="reviews" aria-labelledby="h-reviews" class="section" hidden>
+  <header class="page-head">
+    <button class="icon-btn back" id="btnReviewsBack" aria-label="Back">←</button>
+    <h1 id="h-reviews">我的評論</h1>
+  </header>
+
+  <div class="reviews-body" id="reviewsBody">
+    <!-- 有評論 -->
+    <div class="review-card">
+      <div class="r-top">
+        <h3 class="r-title">Kuching Coffee House</h3>
+        <span class="r-date">2025/10/30</span>
+      </div>
+      <div class="r-stars">⭐⭐⭐⭐☆</div>
+      <p class="r-content">環境很舒服，咖啡不錯喝，下次還會再來～</p>
+    </div>
+
+    <!-- 範例第二筆 -->
+    <div class="review-card">
+      <div class="r-top">
+        <h3 class="r-title">Sibu Heritage Market</h3>
+        <span class="r-date">2025/10/20</span>
+      </div>
+      <div class="r-stars">⭐⭐⭐☆☆</div>
+      <p class="r-content">整體還行，但希望標示更清楚。</p>
+    </div>
+
+    <!-- 空狀態（沒有任何評論時顯示） -->
+    <div class="reviews-empty" hidden>
+      <p>你還沒有留下任何評論。</p>
+      <button class="btn primary" id="btnGoExplore">去探索看看</button>
+    </div>
   </div>
 </section>
 
@@ -1274,5 +1311,6 @@
   <script type="module" src="js/photo-submit.js"></script>
   <script type="module" src="js/feedback.js"></script>
   <script type="module" src="js/contact.js"></script>
+  <script type="module" src="js/reviews.js"></script>
 </body>
 </html>
