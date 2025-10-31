@@ -1,0 +1,71 @@
+/* ===== About HeriLand ===== */
+.about-body {
+  padding: 16px;
+  display: grid;
+  gap: 18px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.about-hero {
+  text-align: center;
+}
+.about-img {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.08);
+}
+
+.about-content {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.06);
+  border: 1px solid rgba(0,0,0,.05);
+  padding: 16px 18px;
+}
+.about-content h2,
+.about-content h3 {
+  margin-top: 0;
+  font-weight: 800;
+  color: #1f2937;
+}
+.about-content p {
+  color: #374151;
+  line-height: 1.6;
+  margin: 8px 0;
+}
+.about-list {
+  list-style: disc;
+  margin-left: 1.2rem;
+  color: #374151;
+  line-height: 1.5;
+}
+.about-footer {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #374151;
+}
+.about-footer a {
+  color: #2563eb;
+  text-decoration: none;
+}
+.about-footer a:hover {
+  text-decoration: underline;
+}
+.about-footer .ver {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-top: 8px;
+}
+
+@media (prefers-color-scheme: dark){
+  .about-content, .about-footer {
+    background: rgba(15,23,42,.55);
+    border-color: rgba(255,255,255,.08);
+    color: #e2e8f0;
+  }
+  .about-list { color: #cbd5e1; }
+  .about-footer a { color: #60a5fa; }
+}
