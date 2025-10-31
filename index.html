@@ -458,6 +458,45 @@
   </div>
 </section>
 
+<!-- Photo Submit -->
+<section data-page="photo-submit" aria-labelledby="h-photo" class="section" hidden>
+  <header class="page-head">
+    <button class="icon-btn back" id="btnPhotoBack" aria-label="Back">←</button>
+    <h1 id="h-photo">照片 / 景點投稿</h1>
+  </header>
+
+  <div class="photo-body">
+    <form id="photoForm" class="photo-form">
+      <div class="form-field">
+        <label for="photoTitle">標題 *</label>
+        <input type="text" id="photoTitle" name="title" placeholder="請輸入景點或照片標題" required>
+      </div>
+
+      <div class="form-field">
+        <label for="photoDesc">描述</label>
+        <textarea id="photoDesc" name="desc" rows="4" placeholder="可以簡單介紹一下照片或景點特色"></textarea>
+      </div>
+
+      <div class="form-field">
+        <label for="photoCity">地點</label>
+        <input type="text" id="photoCity" name="city" placeholder="如：Kuching / Sibu / Miri">
+      </div>
+
+      <div class="form-field upload">
+        <label>上傳照片</label>
+        <input type="file" id="photoFile" accept="image/*">
+        <div class="preview" id="photoPreview">
+          <p>尚未選擇圖片</p>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn primary">送出投稿</button>
+      </div>
+    </form>
+  </div>
+</section>
+
     <!-- ===================== Add (Create Merchant) ===================== -->
 <section data-page="add" class="add" hidden aria-labelledby="h-add">
   <h1 id="h-add" data-focusable-heading>Add a place</h1>
@@ -1135,5 +1174,6 @@
   <script type="module" src="js/settings.js"></script>
   <script type="module" src="js/profile.js"></script>
   <script type="module" src="js/router.js"></script>
+  <script type="module" src="js/photo-submit.js"></script>
 </body>
 </html>
