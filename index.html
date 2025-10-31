@@ -632,6 +632,74 @@
   </div>
 </section>
 
+<!-- For Merchant / Join Partner -->
+<section data-page="merchant" aria-labelledby="h-merchant" class="section" hidden>
+  <header class="page-head">
+    <button class="icon-btn back" id="btnMerchantBack" aria-label="Back">←</button>
+    <h1 id="h-merchant">我要合作 / 成為商家</h1>
+  </header>
+
+  <div class="merchant-body">
+    <div class="m-card p-card">
+      <h2>加入 HeriLand 商家夥伴</h2>
+      <p>
+        歡迎成為 HeriLand 在地夥伴！<br>
+        如果你是旅遊景點、餐飲店、民宿、文創品牌或活動單位，
+        我們誠摯邀請你一起推廣砂拉越的精彩生活。
+      </p>
+      <ul class="m-points">
+        <li>免費上架店家資料與照片</li>
+        <li>曝光於旅遊導覽與城市探索頁</li>
+        <li>支援優惠券、活動任務推廣</li>
+        <li>合作品牌專屬後台（即將開放）</li>
+      </ul>
+    </div>
+
+    <div class="m-contact p-card">
+      <h3>聯繫我們</h3>
+      <p>請選擇以下任一方式與我們聯繫：</p>
+      <div class="m-links">
+        <button class="m-link" data-link="mailto:partner@heriland.app">
+          📧 <span>Email：partner@heriland.app</span>
+        </button>
+        <button class="m-link" data-link="https://wa.me/60123456789">
+          💬 <span>WhatsApp：+60 12-345 6789</span>
+        </button>
+      </div>
+    </div>
+
+    <form id="merchantForm" class="m-form p-card">
+      <h3>提交合作申請</h3>
+      <div class="form-field">
+        <label for="mName">商家名稱 *</label>
+        <input type="text" id="mName" required placeholder="例如：Borneo Café / Miri Stay">
+      </div>
+      <div class="form-field">
+        <label for="mType">類型 *</label>
+        <select id="mType" required>
+          <option value="">請選擇</option>
+          <option value="restaurant">餐飲</option>
+          <option value="stay">住宿</option>
+          <option value="attraction">景點</option>
+          <option value="shop">商店</option>
+          <option value="event">活動 / 其他</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label for="mContact">聯絡方式 *</label>
+        <input type="text" id="mContact" required placeholder="電話 / Email / WhatsApp">
+      </div>
+      <div class="form-field">
+        <label for="mNote">其他說明</label>
+        <textarea id="mNote" rows="3" placeholder="想補充的合作想法或簡介"></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">送出申請</button>
+      </div>
+    </form>
+  </div>
+</section>
+
     <!-- ===================== Add (Create Merchant) ===================== -->
 <section data-page="add" class="add" hidden aria-labelledby="h-add">
   <h1 id="h-add" data-focusable-heading>Add a place</h1>
@@ -1313,5 +1381,6 @@
   <script type="module" src="js/feedback.js"></script>
   <script type="module" src="js/contact.js"></script>
   <script type="module" src="js/reviews.js"></script>
+  <script type="module" src="js/merchant.js"></script>
 </body>
 </html>
