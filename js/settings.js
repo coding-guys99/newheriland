@@ -29,7 +29,6 @@ function hlSet(k,v){ try { localStorage.setItem(k,v); } catch(_){} }
 function hlApplyTheme(mode){
   if (mode === 'dark'){ document.documentElement.classList.add('dark'); return; }
   if (mode === 'light'){ document.documentElement.classList.remove('dark'); return; }
-  // system
   const m = matchMedia('(prefers-color-scheme: dark)');
   document.documentElement.classList.toggle('dark', m.matches);
 }
@@ -44,25 +43,22 @@ function hlSyncUI(){
   const role    = hlGet(HL_LS.role)    || HL_DEF.role;
   const mock    = hlGet(HL_LS.mock)    || HL_DEF.mock;
   const devCity = hlGet(HL_LS.devCity) || HL_DEF.devCity;
-  
-  const avatar = hlGet('hl.pref.avatar') || 'H';
-const pfAvatar = document.getElementById('profileCardAvatar');
-if (pfAvatar) pfAvatar.textContent = avatar;
-const setAvatar = document.getElementById('hlEditAvatar');
-if (setAvatar) setAvatar.textContent = avatar;
 
-  // 🆕 使用者資料（edit profile 會寫進來的）
+  // user profile fields
   const name    = hlGet('hl.pref.name')    || 'Guest User';
   const tagline = hlGet('hl.pref.tagline') || 'Discovering Sarawak';
   const gender  = hlGet('hl.pref.gender')  || 'Prefer not to say';
+  const avatar  = hlGet('hl.pref.avatar')  || 'H';
 
-  // ====== 1. 設定抽屜頭部同步 ======
+  // 1) 設定抽屜頭部同步
   const elName = document.querySelector('.hl-set__name');
   const elSub  = document.querySelector('.hl-set__sub');
+  const elHeadAvatar = document.querySelector('.hl-set__avatar');
   if (elName) elName.textContent = name;
   if (elSub)  elSub.textContent  = tagline;
+  if (elHeadAvatar) elHeadAvatar.textContent = avatar;
 
-  // ====== 2. 設定面板各欄位同步 ======
+  // 2) 面板各欄位同步
   const el = {
     lang:    document.getElementById('hlSetLangVal'),
     cur:     document.getElementById('hlSetCurVal'),
@@ -75,28 +71,34 @@ if (setAvatar) setAvatar.textContent = avatar;
     devCity: document.getElementById('hlDevForceCityVal'),
   };
 
-  if (el.lang)  el.lang.textContent  = lang;
-  if (el.cur)   el.cur.textContent   = cur;
-  if (el.theme) el.theme.textContent = (theme === 'system' ? 'System' : (theme === 'dark' ? 'Dark' : 'Light'));
-  if (el.city)  el.city.textContent  = city;
-  if (el.notif) el.notif.checked     = (notif === 'on');
-  if (el.offl)  el.offl.checked      = (offl === 'on');
-  if (el.role)  el.role.textContent  = role;
-  if (el.mock)  el.mock.textContent  = mock;
+  if (el.lang)   el.lang.textContent   = lang;
+  if (el.cur)    el.cur.textContent    = cur;
+  if (el.theme)  el.theme.textContent  = (theme === 'system' ? 'System' : (theme === 'dark' ? 'Dark' : 'Light'));
+  if (el.city)   el.city.textContent   = city;
+  if (el.notif)  el.notif.checked      = (notif === 'on');
+  if (el.offl)   el.offl.checked       = (offl === 'on');
+  if (el.role)   el.role.textContent   = role;
+  if (el.mock)   el.mock.textContent   = mock;
   if (el.devCity) el.devCity.textContent = devCity;
 
-  // ====== 3. 同步到 Profile 頁的卡片（真正你剛剛說沒變的那裡） ======
-  const pfName = document.getElementById('profileCardName');
-  const pfTag  = document.getElementById('profileCardTagline');
-  const pfGen  = document.getElementById('profileCardGender'); // 有就更新，沒有就忽略
-  if (pfName) pfName.textContent = name;
-  if (pfTag)  pfTag.textContent  = tagline;
-  if (pfGen)  pfGen.textContent  = gender;
+  // 3) 同步到 Profile 頁的卡片
+  const pfName   = document.getElementById('profileCardName');
+  const pfTag    = document.getElementById('profileCardTagline');
+  const pfGen    = document.getElementById('profileCardGender');
+  const pfAvatar = document.getElementById('profileCardAvatar');
+  if (pfName)   pfName.textContent   = name;
+  if (pfTag)    pfTag.textContent    = tagline;
+  if (pfGen)    pfGen.textContent    = gender;
+  if (pfAvatar) pfAvatar.textContent = avatar;
 
-  // ====== 4. 套用主題 ======
+  // 4) 同步到 Edit Profile 裡面的頭像（左邊大圈圈）
+  const editAvatar = document.getElementById('hlEditAvatar');
+  if (editAvatar) editAvatar.textContent = avatar;
+
+  // 5) 套用主題
   hlApplyTheme(theme);
 
-  // ====== 5. 子面板選中狀態 ======
+  // 6) sub sheet 的選中狀態
   document.querySelectorAll('#hlSub-lang .hl-sub__opt').forEach(btn=>{
     btn.classList.toggle('is-current', btn.dataset.val === lang);
   });
@@ -112,21 +114,18 @@ if (setAvatar) setAvatar.textContent = avatar;
   document.querySelectorAll('#hlSub-forceCity .hl-sub__opt').forEach(btn=>{
     btn.classList.toggle('is-current', btn.dataset.devCity === devCity);
   });
-}
 
-window.dispatchEvent(new CustomEvent('hl:userUpdated', {
-  detail: {
-    name,
-    tagline
-  }
-}));
+  // 7) 廣播給別的 js（home / profile / headbar 要聽的話）
+  window.dispatchEvent(new CustomEvent('hl:userUpdated', {
+    detail: { name, tagline, gender, avatar }
+  }));
+}
 
 function hlOpenDrawer(){
   const box = document.getElementById('hlSettingsDrawer');
   if (!box) return;
   box.classList.add('is-open');
   box.setAttribute('aria-hidden', 'false');
-  // focus panel
   box.querySelector('.hl-set__panel')?.focus?.();
 }
 function hlCloseDrawer(){
@@ -134,7 +133,6 @@ function hlCloseDrawer(){
   if (!box) return;
   box.classList.remove('is-open');
   box.setAttribute('aria-hidden', 'true');
-  // 關所有 sub
   document.querySelectorAll('.hl-sub.is-open').forEach(s=>{
     s.classList.remove('is-open');
     s.setAttribute('aria-hidden','true');
@@ -142,7 +140,6 @@ function hlCloseDrawer(){
 }
 
 function hlOpenSub(id){
-  // 先把其他 sub 關掉
   document.querySelectorAll('.hl-sub.is-open').forEach(s=>{
     s.classList.remove('is-open');
     s.setAttribute('aria-hidden','true');
@@ -161,21 +158,15 @@ function hlBindSettings(){
   const box = document.getElementById('hlSettingsDrawer');
   if (!box) return;
 
-  // 讓外部也可以叫
   window.openSettingsPanel = hlOpenDrawer;
 
-  // 頂部齒輪（你 index 原本就有）
   document.getElementById('btnOpenSettings')?.addEventListener('click', hlOpenDrawer);
-  // profile 卡片上的
   document.getElementById('profileCardSettings')?.addEventListener('click', hlOpenDrawer);
-  // profile 列表上的
   document.getElementById('plOpenSettings')?.addEventListener('click', hlOpenDrawer);
 
-  // 點背景關閉
   box.querySelector('.hl-set__backdrop')?.addEventListener('click', hlCloseDrawer);
-  // 面板擋冒泡
   box.querySelector('.hl-set__panel')?.addEventListener('click', e=> e.stopPropagation());
-  // ESC
+
   window.addEventListener('keydown', e=>{
     if (e.key === 'Escape'){
       const openSub = document.querySelector('.hl-sub.is-open');
@@ -184,7 +175,6 @@ function hlBindSettings(){
     }
   });
 
-  // 開 sub
   box.querySelectorAll('[data-hl-set-open]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const name = btn.getAttribute('data-hl-set-open');
@@ -192,7 +182,6 @@ function hlBindSettings(){
     });
   });
 
-  // 關 sub
   box.querySelectorAll('[data-hl-sub-close]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const sub = btn.closest('.hl-sub');
@@ -200,7 +189,7 @@ function hlBindSettings(){
     });
   });
 
-  // 語言選擇
+  // lang
   document.querySelectorAll('#hlSub-lang .hl-sub__opt').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const val = btn.dataset.val;
@@ -209,8 +198,7 @@ function hlBindSettings(){
       hlCloseSub(btn.closest('.hl-sub'));
     });
   });
-
-  // 幣別
+  // currency
   document.querySelectorAll('#hlSub-currency .hl-sub__opt').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const val = btn.dataset.val;
@@ -219,8 +207,7 @@ function hlBindSettings(){
       hlCloseSub(btn.closest('.hl-sub'));
     });
   });
-
-  // 主題
+  // theme
   document.querySelectorAll('#hlSub-theme .hl-sub__opt').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const val = btn.dataset.val;
@@ -229,35 +216,29 @@ function hlBindSettings(){
       hlCloseSub(btn.closest('.hl-sub'));
     });
   });
-
-  // 城市
+  // city
   document.querySelectorAll('#hlSub-city .hl-sub__opt').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const val = btn.dataset.val;
       hlSet(HL_LS.city, val);
       hlSyncUI();
       hlCloseSub(btn.closest('.hl-sub'));
-      // 這裡你可以 dispatch 事件給 home/explore
       window.dispatchEvent(new CustomEvent('hl:preferredCityChanged', { detail: { city: val }}));
     });
   });
 
-  // 通知 toggle
+  // toggles
   document.getElementById('hlSetNotif')?.addEventListener('change', e=>{
     hlSet(HL_LS.notif, e.target.checked ? 'on' : 'off');
   });
-
-  // Offline toggle
   document.getElementById('hlSetOffline')?.addEventListener('change', e=>{
     hlSet(HL_LS.offl, e.target.checked ? 'on' : 'off');
   });
-
-  // Offline clear
   document.getElementById('hlOfflineClear')?.addEventListener('click', ()=>{
     alert('Offline cache cleared (demo)');
   });
 
-  // 開發者工具
+  // dev
   document.getElementById('hlDevToggleMock')?.addEventListener('click', ()=>{
     const cur = hlGet(HL_LS.mock) || HL_DEF.mock;
     const next = cur === 'on' ? 'off' : 'on';
@@ -273,7 +254,6 @@ function hlBindSettings(){
       hlSet(HL_LS.devCity, val);
       hlSyncUI();
       hlCloseSub(btn.closest('.hl-sub'));
-      // 通知外面
       window.dispatchEvent(new CustomEvent('hl:devForceCity', { detail: { city: val }}));
     });
   });
@@ -302,25 +282,19 @@ function hlBindSettings(){
     alert('All HeriLand keys cleared.');
   });
 
-  // 假的我的收藏 → 跳到 saved
+  // 快速導頁
   document.getElementById('hlGoFavorites')?.addEventListener('click', ()=>{
     location.hash = '#saved';
     hlCloseDrawer();
   });
-  // 假的「我要投稿」
   document.getElementById('hlForMerchant')?.addEventListener('click', ()=>{
     location.hash = '#add';
     hlCloseDrawer();
   });
 
-  // 登入登出（先做假的）
   document.getElementById('hlSignInOut')?.addEventListener('click', ()=>{
     const now = hlGet(HL_LS.role) || 'Guest';
-    if (now === 'Guest'){
-      hlSet(HL_LS.role, 'User');
-    } else {
-      hlSet(HL_LS.role, 'Guest');
-    }
+    hlSet(HL_LS.role, now === 'Guest' ? 'User' : 'Guest');
     hlSyncUI();
   });
 }
@@ -335,7 +309,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const ep = document.getElementById('p-edit-profile');
   if (!ep) return;
 
-  // 1) 開啟：header 或 settings 裡的 edit 鈕都會叫這個
   window.openEditProfile = function(){
     ep.hidden = false;
     ep.classList.add('active');
@@ -343,12 +316,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.body.classList.add('no-scroll');
   };
 
-  // 2) 關閉
   function closeEditProfile(){
     ep.classList.remove('active');
     ep.setAttribute('hidden','');
     document.body.classList.remove('no-scroll');
-    // 關掉所有小 sheet
     ep.querySelectorAll('.hl-subsheet').forEach(s=>{
       s.hidden = true;
       s.classList.remove('is-open');
@@ -356,39 +327,37 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 
   document.getElementById('btnEditProfileBack')?.addEventListener('click', closeEditProfile);
+
+  // avatar 暫時用 alert
   document.getElementById('btnChangeAvatar')?.addEventListener('click', ()=>{
-  alert('Change avatar function not implemented yet.');
-});
+    alert('Change avatar function not implemented yet.');
+  });
+
   document.getElementById('btnEditProfileSave')?.addEventListener('click', ()=>{
-  const name = document.getElementById('hlEditName')?.value?.trim() || 'Guest User';
-  const tagline = document.getElementById('hlEditTagline')?.value?.trim() || '';
-  const gender = document.getElementById('hlEditGenderVal')?.textContent?.trim() || '';
-  
-  // 存進 localStorage（使用你原本的 hlSet）
-  hlSet('hl.pref.name', name);
-  hlSet('hl.pref.tagline', tagline);
-  hlSet('hl.pref.gender', gender);
+    const name    = document.getElementById('hlEditName')?.value?.trim() || 'Guest User';
+    const tagline = document.getElementById('hlEditTagline')?.value?.trim() || 'Discovering Sarawak';
+    const gender  = document.getElementById('hlEditGenderVal')?.textContent?.trim() || 'Prefer not to say';
+    // 之後如果你做上傳頭像，這裡記得也寫 hl.pref.avatar
+    hlSet('hl.pref.name', name);
+    hlSet('hl.pref.tagline', tagline);
+    hlSet('hl.pref.gender', gender);
 
-  // 更新設定抽屜
-  hlSyncUI?.();
+    // 重新同步全部 UI
+    hlSyncUI();
 
-  closeEditProfile();
-});
+    closeEditProfile();
+  });
 
-  // 3) 從 Settings 頁的 "Edit" 叫這個
-  document.getElementById('hlSetEditProfile')?.addEventListener('click', () => {
-  // 先關掉右側設定抽屜
-  hlCloseDrawer?.();
-  // 再開編輯頁
-  window.openEditProfile?.();
-});
+  // 設定面板「Edit」進來的
+  document.getElementById('hlSetEditProfile')?.addEventListener('click', ()=>{
+    hlCloseDrawer?.();
+    window.openEditProfile?.();
+  });
 
-
-  // 4) 開小 sheet
+  // bottom sheets (gender / city / lang / password)
   ep.querySelectorAll('[data-ep-open]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const id = btn.getAttribute('data-ep-open');
-      // 關其它
       ep.querySelectorAll('.hl-subsheet').forEach(s=>{ s.hidden = true; s.classList.remove('is-open'); });
       const target = document.getElementById('ep-' + id);
       if (target){
@@ -398,7 +367,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
   });
 
-  // 5) 關小 sheet
   ep.querySelectorAll('.hl-subsheet__close').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const sheet = btn.closest('.hl-subsheet');
@@ -407,7 +375,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
   });
 
-  // 6) 選 gender
+  // gender select
   const genderBox = document.getElementById('ep-gender');
   if (genderBox){
     genderBox.querySelectorAll('.option').forEach(opt=>{
@@ -421,7 +389,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
   }
 
-  // 7) 密碼先做假儲存
+  // password demo
   document.getElementById('btnEPConfirmPwd')?.addEventListener('click', ()=>{
     const out = document.getElementById('hlEditPwdVal');
     if (out) out.textContent = 'Updated just now';
