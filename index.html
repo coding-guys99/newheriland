@@ -596,126 +596,131 @@
 
 
     <!-- ====== Settings Drawer（右邊滑出覆蓋全頁） ====== -->
-<aside id="p-settings" class="settings-drawer overlay-page" hidden aria-labelledby="h-settings" data-page="settings">
-  <div class="settings-panel-wrap">
-    <!-- 頂部 AppBar -->
-    <header class="subappbar settings-header">
-      <button class="icon-btn back" id="btnSettingsBack" aria-label="Close">←</button>
-      <h1 id="h-settings" class="settings-title" tabindex="-1">Settings</h1>
+<!-- HeriLand Settings Drawer (NEW, clean) -->
+<div id="hlSettingsDrawer" class="hl-set" aria-hidden="true">
+  <!-- backdrop -->
+  <div class="hl-set__backdrop" data-hl-set-close></div>
+
+  <!-- panel -->
+  <div class="hl-set__panel" role="dialog" aria-modal="true" aria-labelledby="hlSetTitle">
+    <header class="hl-set__head">
+      <button class="hl-set__back" type="button" data-hl-set-close aria-label="Close">←</button>
+      <h2 id="hlSetTitle">Settings</h2>
     </header>
 
-    <!-- 可滾動內容 -->
-    <div class="settings-scroll">
-      <!-- MY ACTIVITY 一張卡 -->
-      <div class="set-section">
-        <h2 class="set-overline">MY ACTIVITY</h2>
-        <div class="set-groupcard">
-          <div class="activity-row">
-            <button class="activity-btn">Creator</button>
-            <button class="activity-btn">Favorites</button>
-            <button class="activity-btn">Drafts</button>
-          </div>
+    <div class="hl-set__body">
+      <!-- MY ACTIVITY -->
+      <section class="hl-set__section">
+        <h3 class="hl-set__overline">My activity</h3>
+        <div class="hl-set__quick">
+          <button type="button">Creator</button>
+          <button type="button">Favorites</button>
+          <button type="button">Drafts</button>
         </div>
-      </div>
+      </section>
 
-      <!-- PREFERENCES 一張卡 -->
-      <div class="set-section">
-        <h2 class="set-overline">PREFERENCES</h2>
-        <div class="set-groupcard">
-          <button class="set-item" data-target="settings-language" role="listitem" aria-controls="settings-language">
-            <span class="label">Language</span><span class="value">English</span><span class="chev">›</span>
-          </button>
-          <button class="set-item" data-target="settings-currency" role="listitem" aria-controls="settings-currency">
-            <span class="label">Currency</span><span class="value">USD</span><span class="chev">›</span>
-          </button>
-          <div class="set-item" role="listitem" aria-live="polite">
-            <span class="label">Time Format</span><span class="value">24h</span>
-          </div>
-          <div class="set-item" role="listitem">
-            <span class="label">Dark Mode</span>
-            <label class="switch"><input type="checkbox" id="toggleDark"/><i></i></label>
-          </div>
+      <!-- PREFERENCES -->
+      <section class="hl-set__section">
+        <h3 class="hl-set__overline">Preferences</h3>
+        <button class="hl-set__item" data-hl-set-open="lang">
+          <span class="l">Language</span>
+          <span class="v" id="hlSetLangVal">English</span>
+          <span class="c">›</span>
+        </button>
+        <button class="hl-set__item" data-hl-set-open="currency">
+          <span class="l">Currency</span>
+          <span class="v" id="hlSetCurVal">USD</span>
+          <span class="c">›</span>
+        </button>
+        <div class="hl-set__item">
+          <span class="l">Time Format</span>
+          <span class="v">24h</span>
         </div>
-      </div>
+        <div class="hl-set__item">
+          <span class="l">Dark Mode</span>
+          <label class="hl-switch">
+            <input type="checkbox" id="hlSetDark">
+            <i></i>
+          </label>
+        </div>
+      </section>
 
-      <!-- PRIVACY 一張卡 -->
-      <div class="set-section">
-        <h2 class="set-overline">PRIVACY</h2>
-        <div class="set-groupcard">
-          <button class="set-item" data-target="settings-privacy" role="listitem" aria-controls="settings-privacy">
-            <span class="label">Privacy</span><span class="chev only">›</span>
-          </button>
-          <div class="set-item" role="listitem">
-            <span class="label">Accessibility</span>
-            <label class="switch"><input type="checkbox" id="toggleA11y"/><i></i></label>
-          </div>
+      <!-- PRIVACY -->
+      <section class="hl-set__section">
+        <h3 class="hl-set__overline">Privacy</h3>
+        <button class="hl-set__item" data-hl-set-open="privacy">
+          <span class="l">Privacy</span>
+          <span class="c">›</span>
+        </button>
+        <div class="hl-set__item">
+          <span class="l">Accessibility</span>
+          <label class="hl-switch">
+            <input type="checkbox" id="hlSetA11y">
+            <i></i>
+          </label>
         </div>
-      </div>
+      </section>
 
-      <!-- ABOUT 一張卡 -->
-      <div class="set-section">
-        <h2 class="set-overline">ABOUT</h2>
-        <div class="set-groupcard">
-          <div class="set-item" role="listitem">
-            <span class="label">Version</span><span class="value">v1.0.0</span>
-          </div>
-          <button class="set-item" data-target="settings-policy" role="listitem" aria-controls="settings-policy">
-            <span class="label">Policy</span><span class="chev only">›</span>
-          </button>
+      <!-- ABOUT -->
+      <section class="hl-set__section">
+        <h3 class="hl-set__overline">About</h3>
+        <div class="hl-set__item">
+          <span class="l">Version</span>
+          <span class="v">v1.0.0</span>
         </div>
+        <button class="hl-set__item" data-hl-set-open="policy">
+          <span class="l">Policy</span>
+          <span class="c">›</span>
+        </button>
+      </section>
+    </div>
+
+    <!-- === tertiary sheets (slide up) === -->
+    <div class="hl-sub" id="hlSetSheet-lang" aria-hidden="true">
+      <header class="hl-sub__head">
+        <button type="button" class="hl-sub__back" data-hl-sub-close>←</button>
+        <h3>Language</h3>
+      </header>
+      <div class="hl-sub__body">
+        <button class="hl-sub__opt" data-val="English">English</button>
+        <button class="hl-sub__opt" data-val="繁體中文">繁體中文</button>
+        <button class="hl-sub__opt" data-val="Bahasa Melayu">Bahasa Melayu</button>
+      </div>
+    </div>
+
+    <div class="hl-sub" id="hlSetSheet-currency" aria-hidden="true">
+      <header class="hl-sub__head">
+        <button type="button" class="hl-sub__back" data-hl-sub-close>←</button>
+        <h3>Currency</h3>
+      </header>
+      <div class="hl-sub__body">
+        <button class="hl-sub__opt" data-val="USD">USD</button>
+        <button class="hl-sub__opt" data-val="MYR">MYR</button>
+        <button class="hl-sub__opt" data-val="SGD">SGD</button>
+      </div>
+    </div>
+
+    <div class="hl-sub" id="hlSetSheet-privacy" aria-hidden="true">
+      <header class="hl-sub__head">
+        <button type="button" class="hl-sub__back" data-hl-sub-close>←</button>
+        <h3>Privacy</h3>
+      </header>
+      <div class="hl-sub__body">
+        <p>Placeholder privacy content…</p>
+      </div>
+    </div>
+
+    <div class="hl-sub" id="hlSetSheet-policy" aria-hidden="true">
+      <header class="hl-sub__head">
+        <button type="button" class="hl-sub__back" data-hl-sub-close>←</button>
+        <h3>Policy</h3>
+      </header>
+      <div class="hl-sub__body">
+        <p>Placeholder terms & policy…</p>
       </div>
     </div>
   </div>
-
-  <!-- 背景遮罩 -->
-  <div class="settings-backdrop" aria-hidden="true"></div>
-</aside>
-
-
-    <!-- ====== Settings 第三級（通用樣板） ====== -->
-    <section id="settings-language" class="overlay-page tertiary" hidden aria-labelledby="h-language">
-  <header class="subappbar settings-header">
-    <button class="icon-btn back sub-back" aria-label="Back">←</button>
-    <h1 id="h-language" class="settings-title" tabindex="-1">Language</h1>
-  </header>
-  <div class="settings-panel">
-    <button class="option">English</button>
-    <button class="option">繁體中文</button>
-    <button class="option">Bahasa Melayu</button>
-  </div>
-</section>
-
-<section id="settings-currency" class="overlay-page tertiary" hidden aria-labelledby="h-currency">
-  <header class="subappbar settings-header">
-    <button class="icon-btn back sub-back" aria-label="Back">←</button>
-    <h1 id="h-currency" class="settings-title" tabindex="-1">Currency</h1>
-  </header>
-  <div class="settings-panel">
-    <button class="option">USD</button>
-    <button class="option">MYR</button>
-    <button class="option">SGD</button>
-  </div>
-</section>
-
-<section id="settings-privacy" class="overlay-page tertiary" hidden aria-labelledby="h-privacy">
-  <header class="subappbar settings-header">
-    <button class="icon-btn back sub-back" aria-label="Back">←</button>
-    <h1 id="h-privacy" class="settings-title" tabindex="-1">Privacy</h1>
-  </header>
-  <div class="settings-panel">
-    <p class="copy">Your privacy matters. (Placeholder)</p>
-  </div>
-</section>
-
-<section id="settings-policy" class="overlay-page tertiary" hidden aria-labelledby="h-policy">
-  <header class="subappbar settings-header">
-    <button class="icon-btn back sub-back" aria-label="Back">←</button>
-    <h1 id="h-policy" class="settings-title" tabindex="-1">Policy</h1>
-  </header>
-  <div class="settings-panel">
-    <p class="copy">Terms & Policy (Placeholder)</p>
-  </div>
-</section>
+</div>
      
   </main>
   
