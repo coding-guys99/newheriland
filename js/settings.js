@@ -295,3 +295,84 @@ document.addEventListener('DOMContentLoaded', ()=>{
   hlBindSettings();
   hlSyncUI();
 });
+
+// ==== Edit Profile controller ====
+(function(){
+  const ep = document.getElementById('p-edit-profile');
+  if (!ep) return;
+
+  // 1) 開啟：header 或 settings 裡的 edit 鈕都會叫這個
+  window.openEditProfile = function(){
+    ep.hidden = false;
+    ep.classList.add('active');
+    ep.querySelector('#h-edit-profile')?.focus({preventScroll:true});
+    document.body.classList.add('no-scroll');
+  };
+
+  // 2) 關閉
+  function closeEditProfile(){
+    ep.classList.remove('active');
+    ep.setAttribute('hidden','');
+    document.body.classList.remove('no-scroll');
+    // 關掉所有小 sheet
+    ep.querySelectorAll('.hl-subsheet').forEach(s=>{
+      s.hidden = true;
+      s.classList.remove('is-open');
+    });
+  }
+
+  document.getElementById('btnEditProfileBack')?.addEventListener('click', closeEditProfile);
+  document.getElementById('btnEditProfileSave')?.addEventListener('click', ()=>{
+    // TODO: collect & save
+    closeEditProfile();
+  });
+
+  // 3) 從 Settings 頁的 "Edit" 叫這個
+  document.getElementById('hlEditBtn')?.addEventListener('click', ()=> window.openEditProfile());
+
+  // 4) 開小 sheet
+  ep.querySelectorAll('[data-ep-open]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.getAttribute('data-ep-open');
+      // 關其它
+      ep.querySelectorAll('.hl-subsheet').forEach(s=>{ s.hidden = true; s.classList.remove('is-open'); });
+      const target = document.getElementById('ep-' + id);
+      if (target){
+        target.hidden = false;
+        target.classList.add('is-open');
+      }
+    });
+  });
+
+  // 5) 關小 sheet
+  ep.querySelectorAll('.hl-subsheet__close').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const sheet = btn.closest('.hl-subsheet');
+      sheet.hidden = true;
+      sheet.classList.remove('is-open');
+    });
+  });
+
+  // 6) 選 gender
+  const genderBox = document.getElementById('ep-gender');
+  if (genderBox){
+    genderBox.querySelectorAll('.option').forEach(opt=>{
+      opt.addEventListener('click', ()=>{
+        const val = opt.dataset.gender;
+        const out = document.getElementById('hlEditGenderVal');
+        if (out) out.textContent = val;
+        genderBox.hidden = true;
+        genderBox.classList.remove('is-open');
+      });
+    });
+  }
+
+  // 7) 密碼先做假儲存
+  document.getElementById('btnEPConfirmPwd')?.addEventListener('click', ()=>{
+    const out = document.getElementById('hlEditPwdVal');
+    if (out) out.textContent = 'Updated just now';
+    const sheet = document.getElementById('ep-password');
+    sheet.hidden = true;
+    sheet.classList.remove('is-open');
+  });
+})();
