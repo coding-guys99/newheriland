@@ -9,12 +9,12 @@
 
   // 你的 tab 對應的 hash（可視需求改）
   const TAB_TO_HASH = {
-    home:    '#home',
-    explore: '#explore',
-    map:     '#map',
-    saved:   '#saved',
-    add:     '#add',
-  };
+  home:    '#home',
+  explore: '#explore',
+  map:     '#map',
+  profile: '#profile',
+  add:     '#add',
+};
 
   // 一些路由別名 → 指到哪個 tab
   const HASH_TO_TAB_ALIAS = {
@@ -30,10 +30,11 @@
 
   // 解析目前 hash 的主段（#detail/abc?x=1 → 'detail'）
   function currentSegment(){
-    const h = (location.hash || '').replace(/^#\/?/, '');
-    if (!h) return 'home';
-    return h.split(/[?\/]/)[0] || 'home';
-  }
+  const h = (location.hash || '').replace(/^#\/?/, '');
+  if (!h) return 'home';
+  return h.split(/[?\/]/)[0] || 'home';
+}
+
 
   function segToTab(seg){
     if (TAB_TO_HASH[seg]) return seg;               // home/explore/map/saved/add
@@ -107,11 +108,17 @@
   }
 
   function onHashChange(){
-    const seg = currentSegment();
-    const tab = segToTab(seg);
-    setActiveTab(tab);
-    simpleSwitchTo(tab);
+  const seg = currentSegment();
+  const tab = segToTab(seg);
+  setActiveTab(tab);
+  simpleSwitchTo(tab);
+
+  // ← 新增這段
+  if (seg === 'settings' && typeof window.openSettingsPanel === 'function') {
+    window.openSettingsPanel();
   }
+}
+
 
   // 鍵盤導覽（左右切換）
   function onKeydown(e){
