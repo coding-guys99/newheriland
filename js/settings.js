@@ -108,6 +108,11 @@ function hlCloseDrawer(){
 }
 
 function hlOpenSub(id){
+  // 先把其他 sub 關掉
+  document.querySelectorAll('.hl-sub.is-open').forEach(s=>{
+    s.classList.remove('is-open');
+    s.setAttribute('aria-hidden','true');
+  });
   const sub = document.getElementById(id);
   if (!sub) return;
   sub.classList.add('is-open');
