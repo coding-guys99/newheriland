@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="css/profile.css">
     <link rel="stylesheet" href="css/saved.css">
   <link rel="stylesheet" href="css/photo.css">
+  <link rel="stylesheet" href="css/feedback.css">
 </head>
 <body>
 
@@ -493,6 +494,59 @@
 
       <div class="form-actions">
         <button type="submit" class="btn primary">送出投稿</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- Feedback -->
+<section data-page="feedback" aria-labelledby="h-feedback" class="section" hidden>
+  <header class="page-head">
+    <button class="icon-btn back" id="btnFeedbackBack" aria-label="Back">←</button>
+    <h1 id="h-feedback">意見回饋</h1>
+  </header>
+
+  <div class="fb-body">
+    <form id="feedbackForm" class="fb-form">
+      <!-- 分類 -->
+      <div class="form-field">
+        <label for="fbType">回饋類型</label>
+        <select id="fbType" name="type">
+          <option value="bug">功能有問題 / BUG</option>
+          <option value="content">內容錯誤 / 店家資料有誤</option>
+          <option value="suggest">功能建議</option>
+          <option value="other">其他</option>
+        </select>
+      </div>
+
+      <!-- 主旨 -->
+      <div class="form-field">
+        <label for="fbTitle">主旨 *</label>
+        <input type="text" id="fbTitle" name="title" placeholder="簡單說一下你要反映的內容" required>
+      </div>
+
+      <!-- 內容 -->
+      <div class="form-field">
+        <label for="fbContent">說明 *</label>
+        <textarea id="fbContent" name="content" rows="4" placeholder="請盡量說明情況，例如在哪一頁、做了什麼操作、看到什麼錯誤" required></textarea>
+      </div>
+
+      <!-- 聯絡方式（選填） -->
+      <div class="form-field">
+        <label for="fbContact">聯絡方式（選填）</label>
+        <input type="text" id="fbContact" name="contact" placeholder="Email / Line / WhatsApp">
+      </div>
+
+      <!-- 是否要回覆 -->
+      <div class="form-field form-inline">
+        <label>
+          <input type="checkbox" id="fbNeedReply">
+          我希望收到回覆
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn primary">送出回饋</button>
       </div>
     </form>
   </div>
@@ -1176,5 +1230,6 @@
   <script type="module" src="js/profile.js"></script>
   <script type="module" src="js/router.js"></script>
   <script type="module" src="js/photo-submit.js"></script>
+  <script type="module" src="js/feedback.js"></script>
 </body>
 </html>
