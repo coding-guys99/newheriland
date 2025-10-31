@@ -336,12 +336,46 @@
       <div class="card">地圖 placeholder</div>
     </section>
 
-    <!-- Saved -->
-    <section data-page="saved" aria-labelledby="h-saved" class="section" hidden>
-      <h1 id="h-saved" data-focusable-heading>Saved</h1>
-      <p>收藏與清單。</p>
-      <div id="savedList" class="merchant-list"></div>
-    </section>
+    <!-- Profile -->
+<section data-page="profile" aria-labelledby="h-profile" class="section" hidden>
+  <h1 id="h-profile" data-focusable-heading>My HeriLand</h1>
+
+  <!-- 頭像與用戶資訊 -->
+  <header class="profile-header">
+    <img class="avatar" src="img/avatar-default.png" alt="User avatar">
+    <div class="profile-info">
+      <h2 class="name">Guest User</h2>
+      <p class="subtitle">Discovering Sarawak</p>
+    </div>
+    <button id="btnOpenSettings" class="icon-btn gear" aria-label="Settings">⚙︎</button>
+  </header>
+
+  <!-- 四格捷徑 -->
+  <section class="profile-quick">
+    <button class="p-quick"><span>❤️</span><br>收藏</button>
+    <button class="p-quick"><span>📝</span><br>評論</button>
+    <button class="p-quick"><span>🎟️</span><br>優惠券</button>
+    <button class="p-quick"><span>🗓️</span><br>任務</button>
+  </section>
+
+  <!-- 列表組 -->
+  <section class="profile-list">
+    <h3 class="pl-head">我的內容</h3>
+    <button class="pl-item">我的收藏</button>
+    <button class="pl-item">我的評論</button>
+    <button class="pl-item">我的體驗</button>
+
+    <h3 class="pl-head">平台互動</h3>
+    <button class="pl-item">照片投稿</button>
+    <button class="pl-item">意見回饋</button>
+    <button class="pl-item">關於 HeriLand</button>
+
+    <h3 class="pl-head">設定</h3>
+    <button class="pl-item" onclick="location.hash='#settings'">開啟設定</button>
+    <button class="pl-item">登出帳號</button>
+  </section>
+</section>
+
 
     <!-- ===================== Add (Create Merchant) ===================== -->
 <section data-page="add" class="add" hidden aria-labelledby="h-add">
@@ -743,6 +777,7 @@
   <script type="module" src="js/settings.js"></script>
 </body>
 </html>
+
 
 
 
