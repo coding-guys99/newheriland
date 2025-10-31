@@ -340,37 +340,103 @@
 
     <!-- Profile -->
 <section data-page="profile" aria-labelledby="h-profile" class="section" hidden>
+  <!-- 頂部標題列（保持你原本的） -->
   <h1 id="h-profile" data-focusable-heading>My HeriLand</h1>
 
-  <!-- 上方頭像卡 -->
-  <header class="profile-header">
-    <img class="avatar" src="img/avatar-default.png" alt="User avatar" id="profileCardAvatar">
-    <div class="profile-info">
-      <h2 class="name" id="profileCardName">Guest User</h2>
-      <p class="subtitle" id="profileCardTagline">Discovering Sarawak</p>
+  <!-- 頭像卡 -->
+  <header class="profile-header p-card p-user">
+    <div class="p-user__avatar" id="profileCardAvatar">H</div>
+    <div class="p-user__meta">
+      <h2 class="p-user__name" id="profileCardName">Guest User</h2>
+      <p class="p-user__tag" id="profileCardTagline">Discovering Sarawak</p>
     </div>
-    <!-- 卡片裡的齒輪 -->
+    <!-- 卡片裡的齒輪：直接開 settings drawer -->
     <button class="icon-btn gear" id="profileCardSettings" aria-label="Profile settings">⚙︎</button>
   </header>
 
-  <!-- 四格捷徑：常用功能 -->
-  <section class="profile-quick">
-    <button class="p-quick" data-go="favorites"><span>❤️</span><br>收藏</button>
-    <button class="p-quick" data-go="reviews"><span>📝</span><br>評論</button>
-    <button class="p-quick" data-go="coupons"><span>🎟️</span><br>優惠券</button>
-    <button class="p-quick" data-go="missions"><span>🗓️</span><br>任務</button>
+  <!-- 四格捷徑 -->
+  <section class="profile-quick p-card">
+    <button class="p-quick" id="pQuickFavs">
+      <span class="ico">❤️</span>
+      <span class="txt">我的收藏</span>
+    </button>
+    <button class="p-quick" id="pQuickReviews">
+      <span class="ico">📝</span>
+      <span class="txt">我的評論</span>
+    </button>
+    <button class="p-quick" id="pQuickCoupons">
+      <span class="ico">🎟️</span>
+      <span class="txt">優惠券 / 任務</span>
+    </button>
+    <button class="p-quick" id="pQuickPost">
+      <span class="ico">📷</span>
+      <span class="txt">照片投稿</span>
+    </button>
   </section>
 
-  <!-- 列表組：不重複的 -->
-  <section class="profile-list">
-    <h3 class="pl-head">平台互動</h3>
-    <button class="pl-item" data-go="photo">照片投稿</button>
-    <button class="pl-item" data-go="feedback">意見回饋</button>
+  <!-- 我的內容 -->
+  <section class="p-box">
+    <h3 class="p-box__title">我的內容</h3>
+    <div class="p-list p-card">
+      <button class="p-item" id="pMyFavs">
+        <span class="l">我的收藏</span>
+        <span class="r">View all</span>
+      </button>
+      <button class="p-item" id="pMyReviews">
+        <span class="l">我的評論</span>
+        <span class="r">0 篇</span>
+      </button>
+      <button class="p-item" id="pMyTrips">
+        <span class="l">我的體驗 / 行程</span>
+        <span class="r muted">Coming soon</span>
+      </button>
+    </div>
+  </section>
 
-    <h3 class="pl-head">帳號與服務</h3>
-    <button class="pl-item" id="plOpenSettings">開啟設定</button>
-    <button class="pl-item" data-go="about">關於 HeriLand</button>
-    <button class="pl-item" data-go="logout">登出帳號</button>
+  <!-- 平台互動 -->
+  <section class="p-box">
+    <h3 class="p-box__title">平台互動</h3>
+    <div class="p-list p-card">
+      <button class="p-item" id="pPhotoSubmit">
+        <span class="l">照片 / 景點投稿</span>
+        <span class="r">Add now</span>
+      </button>
+      <button class="p-item" id="pFeedback">
+        <span class="l">意見回饋</span>
+        <span class="r muted">Tell us</span>
+      </button>
+      <button class="p-item" id="pForMerchant">
+        <span class="l">我要合作 / 成為商家</span>
+        <span class="r">Join</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- 關於 / 評分 / 條款：一張 4 格卡，像你截的 Trip 那樣 -->
+  <section class="p-box">
+    <div class="p-gridcard p-card">
+      <button class="p-gitem" id="pAboutHL">
+        <span class="g-ico">ℹ️</span>
+        <span class="g-t">關於 HeriLand</span>
+      </button>
+      <button class="p-gitem" id="pRateHL">
+        <span class="g-ico">⭐</span>
+        <span class="g-t">覺得好用嗎？</span>
+      </button>
+      <button class="p-gitem" id="pTerms">
+        <span class="g-ico">📄</span>
+        <span class="g-t">條款 / 隱私</span>
+      </button>
+      <button class="p-gitem" id="plOpenSettings">
+        <span class="g-ico">⚙️</span>
+        <span class="g-t">開啟設定</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- 登出 -->
+  <section class="p-box">
+    <button class="p-logout" id="pLogout">登出帳號</button>
   </section>
 </section>
 
