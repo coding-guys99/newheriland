@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="css/saved.css">
   <link rel="stylesheet" href="css/photo.css">
   <link rel="stylesheet" href="css/feedback.css">
+  <link rel="stylesheet" href="css/contact.css">
 </head>
 <body>
 
@@ -547,6 +548,47 @@
 
       <div class="form-actions">
         <button type="submit" class="btn primary">送出回饋</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- Contact Support -->
+<section data-page="contact" aria-labelledby="h-contact" class="section" hidden>
+  <header class="page-head">
+    <button class="icon-btn back" id="btnContactBack" aria-label="Back">←</button>
+    <h1 id="h-contact">聯繫客服</h1>
+  </header>
+
+  <div class="contact-body">
+    <div class="contact-card p-card">
+      <p class="intro">需要協助嗎？你可以透過以下方式直接與 HeriLand 團隊聯繫：</p>
+
+      <div class="contact-links">
+        <button class="c-link" data-link="mailto:support@heriland.app">
+          📧 <span>Email：support@heriland.app</span>
+        </button>
+        <button class="c-link" data-link="https://wa.me/60123456789">
+          💬 <span>WhatsApp：+60 12-345 6789</span>
+        </button>
+        <button class="c-link" data-link="https://www.instagram.com/heriland.app/">
+          📸 <span>Instagram：@heriland.app</span>
+        </button>
+      </div>
+    </div>
+
+    <form id="contactForm" class="contact-form p-card">
+      <h3>或留言給我們：</h3>
+      <div class="form-field">
+        <label for="ctName">姓名</label>
+        <input type="text" id="ctName" placeholder="可留空">
+      </div>
+      <div class="form-field">
+        <label for="ctMsg">訊息內容 *</label>
+        <textarea id="ctMsg" rows="4" placeholder="請輸入要聯繫的內容..." required></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">送出訊息</button>
       </div>
     </form>
   </div>
@@ -1231,5 +1273,6 @@
   <script type="module" src="js/router.js"></script>
   <script type="module" src="js/photo-submit.js"></script>
   <script type="module" src="js/feedback.js"></script>
+  <script type="module" src="js/contact.js"></script>
 </body>
 </html>
