@@ -1,0 +1,114 @@
+/* ===== For Merchant / Join Partner ===== */
+.merchant-body {
+  padding: 16px;
+  display: grid;
+  gap: 20px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.m-card, .m-contact, .m-form {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.06);
+  border: 1px solid rgba(0,0,0,.05);
+  padding: 18px 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.m-card h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #1f2937;
+}
+.m-card p {
+  font-size: 0.95rem;
+  color: #374151;
+  line-height: 1.5;
+}
+.m-points {
+  list-style: disc;
+  margin-left: 1.2rem;
+  color: #374151;
+}
+.m-points li {
+  margin: 4px 0;
+  font-size: 0.9rem;
+}
+
+.m-contact h3, .m-form h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+.m-links {
+  display: grid;
+  gap: 10px;
+}
+.m-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 12px;
+  background: #f9fafb;
+  font-weight: 600;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background .2s, transform .15s;
+}
+.m-link:hover {
+  background: #eef2f7;
+  transform: translateY(-2px);
+}
+
+/* 表單樣式沿用 Feedback / Contact */
+.m-form .form-field {
+  display: grid;
+  gap: 6px;
+}
+.m-form label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #374151;
+}
+.m-form input, .m-form select, .m-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 12px;
+  background: #fff;
+  font-size: 0.95rem;
+}
+.m-form textarea { resize: vertical; }
+
+.m-form .form-actions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+}
+.m-form .btn.primary {
+  background: #2E5E4E;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 24px;
+  font-weight: 700;
+}
+
+@media (prefers-color-scheme: dark){
+  .m-card, .m-contact, .m-form {
+    background: rgba(15,23,42,.55);
+    border-color: rgba(255,255,255,.08);
+    color: #e2e8f0;
+  }
+  .m-link {
+    background: rgba(15,23,42,.35);
+    border-color: rgba(255,255,255,.1);
+    color: #e2e8f0;
+  }
+  .m-link:hover { background: rgba(37,99,235,.2); }
+}
