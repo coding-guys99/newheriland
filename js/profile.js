@@ -91,7 +91,7 @@
 }
 
   function openMerchantJoin(){
-    alert('導向「我要合作 / 成為商家」頁（demo）');
+    showPage('merchant');
   }
 
   function openAbout(){
