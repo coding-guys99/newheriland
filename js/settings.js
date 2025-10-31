@@ -1,5 +1,5 @@
 // js/settings.js
-// 單一來源負責 Settings：開/關、子頁導覽、偏好持久化（localStorage）與回填
+// 單一來源負責 Settings：開/關（右側 drawer）、子頁導覽、偏好持久化（localStorage）與回填
 
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -18,16 +18,33 @@ const DEFAULTS = {
   a11y: 'off',
 };
 
-function loadPref(key, fallback){ try { return localStorage.getItem(key) ?? fallback; } catch(_) { return fallback; } }
-function savePref(key, val){ try { localStorage.setItem(key, val); } catch(_) {} }
+function loadPref(key, fallback){
+  try { return localStorage.getItem(key) ?? fallback; } catch(_) { return fallback; }
+}
+function savePref(key, val){
+  try { localStorage.setItem(key, val); } catch(_) {}
+}
 
 function applyDarkMode(mode){
   // mode: 'on' | 'off' | 'system'
-  if (mode === 'on'){ document.documentElement.classList.add('dark');  return; }
-  if (mode === 'off'){document.documentElement.classList.remove('dark'); return; }
+  if (mode === 'on'){
+    document.documentElement.classList.add('dark');
+    return;
+  }
+  if (mode === 'off'){
+    document.documentElement.classList.remove('dark');
+    return;
+  }
   // system
   const m = matchMedia('(prefers-color-scheme: dark)');
   document.documentElement.classList.toggle('dark', m.matches);
+}
+
+function markCurrentInPanel(panelSel, currentText){
+  const panel = $(panelSel); if (!panel) return;
+  $$('.option', panel).forEach(btn => {
+    btn.classList.toggle('is-current', btn.textContent.trim() === currentText);
+  });
 }
 
 function syncUIFromPrefs(){
@@ -40,8 +57,8 @@ function syncUIFromPrefs(){
   // PREFERENCES 卡上的 value
   const langRow = $('#p-settings .set-item[data-target="settings-language"] .value');
   const curRow  = $('#p-settings .set-item[data-target="settings-currency"] .value');
-  langRow && (langRow.textContent = lang);
-  curRow  && (curRow.textContent  = cur);
+  if (langRow) langRow.textContent = lang;
+  if (curRow)  curRow.textContent  = cur;
 
   // Dark Mode：用開關代表是否「強制開啟」
   const darkChk = $('#toggleDark');
@@ -61,35 +78,44 @@ function syncUIFromPrefs(){
   markCurrentInPanel('#settings-currency', cur);
 }
 
-function markCurrentInPanel(panelSel, currentText){
-  const panel = $(panelSel); if (!panel) return;
-  $$('.option', panel).forEach(btn => {
-    btn.classList.toggle('is-current', btn.textContent.trim() === currentText);
-  });
-}
+/* ======================
+   Drawer 開/關
+   ====================== */
 
-// === Drawer 控制 ===
+// 全域開啟（給 tabbar.js 用）
 window.openSettingsPanel = function(){
   const el = document.getElementById('p-settings');
   if (!el) return;
   el.classList.add('is-open');
   el.hidden = false;
-  $('#h-settings')?.focus({preventScroll:true});
+  // 聚焦主標題
+  const head = document.getElementById('h-settings');
+  head && head.focus?.({ preventScroll: true });
 };
 
+// 全域關閉
 window.closeSettingsPanel = function(){
   const el = document.getElementById('p-settings');
   if (!el) return;
   el.classList.remove('is-open');
-  setTimeout(()=> el.hidden = true, 280);
-  // 關掉所有 tertiary
+  // 動畫跑完再真正 hidden
+  setTimeout(()=> {
+    el.hidden = true;
+  }, 280);
+
+  // 關掉已開的第 3 級
   ['#settings-language','#settings-currency','#settings-privacy','#settings-policy'].forEach(id=>{
     const page = $(id);
-    if (page){ page.classList.remove('active'); page.setAttribute('hidden',''); }
+    if (page){
+      page.classList.remove('active');
+      page.setAttribute('hidden','');
+    }
   });
 };
 
-
+/* ======================
+   第三級開啟
+   ====================== */
 function openTertiary(id){
   const page = document.getElementById(id); if (!page) return;
   page.hidden = false;
@@ -97,22 +123,40 @@ function openTertiary(id){
   page.querySelector('.settings-title')?.focus({preventScroll:true});
 }
 
+/* ======================
+   綁定事件
+   ====================== */
 function bindEvents(){
-  // 開關入口
+  // 頂部的設定鈕（header 那顆）
   $('#btnOpenSettings')?.addEventListener('click', window.openSettingsPanel);
-$('#btnSettingsBack')?.addEventListener('click', window.closeSettingsPanel);
 
+  // Drawer 裡的返回鍵
+  $('#btnSettingsBack')?.addEventListener('click', window.closeSettingsPanel);
 
-  // 二級 -> 第三級
+  // 點背景關閉
+  document.addEventListener('click', (e)=>{
+    if (e.target.matches('.settings-backdrop')) {
+      window.closeSettingsPanel();
+    }
+  });
+
+  // 二級 → 第三級
   $$('#p-settings .set-item[data-target]').forEach(btn=>{
-    btn.addEventListener('click', ()=> openTertiary(btn.dataset.target));
+    btn.addEventListener('click', ()=>{
+      openTertiary(btn.dataset.target);
+    });
   });
 
   // 第三級返回
   $$('.overlay-page.tertiary .sub-back').forEach(btn=>{
     btn.addEventListener('click', (e)=>{
       const page = e.target.closest('.overlay-page');
-      if (page){ page.classList.remove('active'); page.setAttribute('hidden',''); $('#h-settings')?.focus({preventScroll:true}); }
+      if (page){
+        page.classList.remove('active');
+        page.setAttribute('hidden','');
+        // 回到 drawer 標題
+        $('#h-settings')?.focus({preventScroll:true});
+      }
     });
   });
 
@@ -153,36 +197,52 @@ $('#btnSettingsBack')?.addEventListener('click', window.closeSettingsPanel);
 
   // Esc 關閉
   window.addEventListener('keydown', (e)=>{
-    if (e.key === 'Escape'){
-      // 若有任何 tertiary 開啟，先關 tertiary
-      const opened = $$('.overlay-page.tertiary.active');
-      if (opened.length){
-        const page = opened[opened.length-1];
-        page.classList.remove('active'); page.setAttribute('hidden',''); $('#h-settings')?.focus({preventScroll:true});
-        return;
-      }
-      // 否則關閉二級
-      const s = $('#p-settings');
-      if (s && !s.hidden) window.closeSettingsPanel();
+    if (e.key !== 'Escape') return;
+
+    // 先關第 3 級
+    const opened = $$('.overlay-page.tertiary.active');
+    if (opened.length){
+      const page = opened[opened.length-1];
+      page.classList.remove('active');
+      page.setAttribute('hidden','');
+      $('#h-settings')?.focus({preventScroll:true});
+      return;
+    }
+
+    // 否則關閉 drawer
+    const s = $('#p-settings');
+    if (s && !s.hidden){
+      window.closeSettingsPanel();
     }
   });
 
-  // 當系統深淺色改變時，若是 system 模式就跟著變
+  // 系統深淺色改變時同步
   matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', ()=>{
     const dark = loadPref(LS.dark, DEFAULTS.dark);
     if (dark === 'system') applyDarkMode('system');
   });
 
-// 點擊背景關閉 drawer
-document.addEventListener('click', e=>{
-  if (e.target.matches('.settings-backdrop')){
-    window.closeSettingsPanel();
+  // Profile 卡片上的那顆小齒輪（若有）
+  const btnProfileCardSettings = document.getElementById('profileCardSettings');
+  if (btnProfileCardSettings) {
+    btnProfileCardSettings.addEventListener('click', () => {
+      // 你也可以改成 location.hash = '#settings'
+      window.openSettingsPanel();
+    });
   }
-});
 
-  
+  // Profile 裡列表那行「開啟設定」如果你有給 id
+  const plOpenSettings = document.getElementById('plOpenSettings');
+  if (plOpenSettings){
+    plOpenSettings.addEventListener('click', () => {
+      window.openSettingsPanel();
+    });
+  }
 }
 
+/* ======================
+   初始化
+   ====================== */
 function safeInit(){
   // 確保 DOM 上已經有 settings 結構（若你曾用 <include>）
   if (!$('#p-settings')) return false;
@@ -198,14 +258,3 @@ document.addEventListener('DOMContentLoaded', ()=>{
   obs.observe(document.body, { childList:true, subtree:true });
 });
 document.addEventListener('include:loaded', ()=> safeInit());
-
-const btnProfileCardSettings = document.getElementById('profileCardSettings');
-if (btnProfileCardSettings) {
-  btnProfileCardSettings.addEventListener('click', () => {
-    // 方式 1：走 hash（tabbar.js 會幫你叫 openSettingsPanel）
-    location.hash = '#settings';
-
-    // 方式 2：你等下要做的 drawer，可以直接叫
-    // if (window.openSettingsPanel) window.openSettingsPanel();
-  });
-}
