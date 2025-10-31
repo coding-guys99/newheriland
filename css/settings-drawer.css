@@ -241,3 +241,33 @@
   .hl-sub { background: #111827; }
   .hl-sub__opt { background: rgba(15,23,42,.65); border-color: rgba(255,255,255,.02); color: #e2e8f0; }
 }
+
+/* group card */
+.hl-set__card {
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid rgba(0,0,0,.02);
+  box-shadow: 0 10px 30px rgba(0,0,0,.04);
+  overflow: hidden;
+}
+.hl-set__card .hl-set__item {
+  border-radius: 0;
+  margin-bottom: 0;
+  box-shadow: none;
+  border-bottom: 1px solid rgba(0,0,0,.035);
+}
+.hl-set__card .hl-set__item:last-child {
+  border-bottom: 0;
+}
+.hl-set__section {
+  margin-bottom: 16px;
+}
+@media (prefers-color-scheme: dark) {
+  .hl-set__card {
+    background: rgba(15,23,42,.55);
+    border-color: rgba(255,255,255,.02);
+  }
+  .hl-set__card .hl-set__item {
+    border-bottom-color: rgba(255,255,255,.03);
+  }
+}
