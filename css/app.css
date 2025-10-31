@@ -528,3 +528,61 @@ main { min-height: calc(100dvh - 88px); }
 }
 
 body.no-scroll { overflow: hidden; }
+
+/* ===== Settings Drawer override (right slide-in) ===== */
+/* 讓 drawer 顯示邏輯蓋過舊的 overlay-page */
+.settings-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  pointer-events: none; /* 沒開的時候不能點 */
+}
+
+/* 面板本體 */
+.settings-drawer .settings-panel-wrap {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(88vw, 420px);
+  background: #fff;
+  box-shadow: -6px 0 25px rgba(0,0,0,.15);
+  transform: translateX(100%);
+  transition: transform .28s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 可捲內容 */
+.settings-drawer .settings-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
+/* 背景罩 */
+.settings-drawer .settings-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.25);
+  opacity: 0;
+  transition: opacity .24s ease-out;
+}
+
+/* 打開狀態 */
+.settings-drawer.is-open {
+  pointer-events: auto;
+}
+.settings-drawer.is-open .settings-panel-wrap {
+  transform: translateX(0);
+}
+.settings-drawer.is-open .settings-backdrop {
+  opacity: 1;
+}
+
+/* 深色模式 */
+@media (prefers-color-scheme: dark){
+  .settings-drawer .settings-panel-wrap {
+    background: color-mix(in srgb, #0b0f12 82%, transparent);
+  }
+}
