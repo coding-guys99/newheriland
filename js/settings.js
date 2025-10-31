@@ -68,23 +68,27 @@ function markCurrentInPanel(panelSel, currentText){
   });
 }
 
-function openSettings(){
-  const p = $('#p-settings'); if (!p) return;
-  p.hidden = false;
-  p.classList.add('active');
+// === Drawer 控制 ===
+window.openSettingsPanel = function(){
+  const el = document.getElementById('p-settings');
+  if (!el) return;
+  el.classList.add('is-open');
+  el.hidden = false;
   $('#h-settings')?.focus({preventScroll:true});
-}
+};
 
-function closeSettings(){
-  const p = $('#p-settings'); if (!p) return;
-  p.classList.remove('active');
-  p.setAttribute('hidden','');
-  // 關掉已開的三級頁
+window.closeSettingsPanel = function(){
+  const el = document.getElementById('p-settings');
+  if (!el) return;
+  el.classList.remove('is-open');
+  setTimeout(()=> el.hidden = true, 280);
+  // 關掉所有 tertiary
   ['#settings-language','#settings-currency','#settings-privacy','#settings-policy'].forEach(id=>{
     const page = $(id);
     if (page){ page.classList.remove('active'); page.setAttribute('hidden',''); }
   });
-}
+};
+
 
 function openTertiary(id){
   const page = document.getElementById(id); if (!page) return;
@@ -95,8 +99,9 @@ function openTertiary(id){
 
 function bindEvents(){
   // 開關入口
-  $('#btnOpenSettings')?.addEventListener('click', openSettings);
-  $('#btnSettingsBack')?.addEventListener('click', closeSettings);
+  $('#btnOpenSettings')?.addEventListener('click', window.openSettingsPanel);
+$('#btnSettingsBack')?.addEventListener('click', window.closeSettingsPanel);
+
 
   // 二級 -> 第三級
   $$('#p-settings .set-item[data-target]').forEach(btn=>{
@@ -158,7 +163,7 @@ function bindEvents(){
       }
       // 否則關閉二級
       const s = $('#p-settings');
-      if (s && !s.hidden) closeSettings();
+      if (s && !s.hidden) window.closeSettingsPanel();
     }
   });
 
@@ -167,6 +172,15 @@ function bindEvents(){
     const dark = loadPref(LS.dark, DEFAULTS.dark);
     if (dark === 'system') applyDarkMode('system');
   });
+
+// 點擊背景關閉 drawer
+document.addEventListener('click', e=>{
+  if (e.target.matches('.settings-backdrop')){
+    window.closeSettingsPanel();
+  }
+});
+
+  
 }
 
 function safeInit(){
