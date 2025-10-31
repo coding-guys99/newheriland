@@ -64,34 +64,31 @@
   // ====== 實際行為（之後你要換成真的頁面，就改這邊） ======
 
   function openMyFavorites(){
-    // 你有 hashtag router 就走 hash，沒有就 alert
-    if (location) location.hash = '#saved';
-    // 也可以加個提示
-    // alert('跳到「我的收藏」頁（demo）');
-  }
+  showPage('saved');      // ← 你自己的 router 名字
+}
+
 
   function openMyReviews(){
-    alert('你的評論列表還沒接上資料（demo）');
-  }
+  showPage('reviews');
+}
+
 
   function openCoupons(){
     alert('優惠券 / 任務功能尚未開放（demo）');
   }
 
   function openPhotoSubmit(){
-    // 你之後會有投稿頁，就換
-    alert('開啟「照片 / 景點投稿」表單（demo）');
-  }
+  showPage('photo-submit');
+}
+
 
   function openFeedback(){
     alert('開啟意見回饋表單（demo）');
   }
 
   function contactSupport(){
-    // 這裡之後你要改成 Messenger / LINE / WhatsApp / mailto 都可以
-    // 先做一個有用一點的訊息
-    alert('請透過官方客服與我們聯繫：\nEmail: support@heriland.app\n(這裡是 demo ，請換成真的管道)');
-  }
+  showPage('contact');
+}
 
   function openMerchantJoin(){
     alert('導向「我要合作 / 成為商家」頁（demo）');
