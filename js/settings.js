@@ -184,3 +184,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
   obs.observe(document.body, { childList:true, subtree:true });
 });
 document.addEventListener('include:loaded', ()=> safeInit());
+
+const btnProfileCardSettings = document.getElementById('profileCardSettings');
+if (btnProfileCardSettings) {
+  btnProfileCardSettings.addEventListener('click', () => {
+    // 方式 1：走 hash（tabbar.js 會幫你叫 openSettingsPanel）
+    location.hash = '#settings';
+
+    // 方式 2：你等下要做的 drawer，可以直接叫
+    // if (window.openSettingsPanel) window.openSettingsPanel();
+  });
+}
