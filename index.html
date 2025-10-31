@@ -444,6 +444,76 @@
   </section>
 </section>
 
+<!-- Saved / 我的收藏 -->
+<section data-page="saved" aria-labelledby="h-saved" class="page" hidden>
+  <header class="subbar">
+    <button type="button" class="subbar__back" data-go-back>←</button>
+    <h1 id="h-saved">我的收藏</h1>
+  </header>
+  <div class="page__body">
+    <p class="muted" id="savedEmpty">你還沒有收藏，去探索看看吧。</p>
+    <div class="list" id="savedList" hidden></div>
+  </div>
+</section>
+
+<!-- My Reviews / 我的評論 -->
+<section data-page="reviews" aria-labelledby="h-reviews" class="page" hidden>
+  <header class="subbar">
+    <button type="button" class="subbar__back" data-go-back>←</button>
+    <h1 id="h-reviews">我的評論</h1>
+  </header>
+  <div class="page__body">
+    <p class="muted">你還沒有留下評論。</p>
+    <button class="btn primary" data-go-explore>去探索</button>
+  </div>
+</section>
+
+<!-- Photo Submit / 照片投稿 -->
+<section data-page="photo-submit" aria-labelledby="h-photo" class="page" hidden>
+  <header class="subbar">
+    <button type="button" class="subbar__back" data-go-back>←</button>
+    <h1 id="h-photo">照片 / 景點投稿</h1>
+  </header>
+  <div class="page__body">
+    <label class="f-field">
+      <span class="k">標題</span>
+      <input type="text" id="psTitle" placeholder="例如：木山河岸咖啡" />
+    </label>
+    <label class="f-field">
+      <span class="k">所在城市</span>
+      <input type="text" id="psCity" placeholder="Kuching / Miri / Sibu..." />
+    </label>
+    <label class="f-field">
+      <span class="k">描述</span>
+      <textarea id="psDesc" rows="3" placeholder="說說為什麼推薦、開放時間、要注意什麼..."></textarea>
+    </label>
+    <button class="btn outline" id="psUploadBtn">選擇圖片（demo）</button>
+    <button class="btn primary" id="psSubmitBtn">送出投稿</button>
+  </div>
+</section>
+
+<!-- Contact / 聯繫客服 -->
+<section data-page="contact" aria-labelledby="h-contact" class="page" hidden>
+  <header class="subbar">
+    <button type="button" class="subbar__back" data-go-back>←</button>
+    <h1 id="h-contact">聯繫客服</h1>
+  </header>
+  <div class="page__body">
+    <div class="p-card">
+      <p>你可以透過以下方式聯繫 HeriLand：</p>
+      <ul class="contact-list">
+        <li>Email：<a href="mailto:support@heriland.app">support@heriland.app</a></li>
+        <li>LINE：@heriland (示意)</li>
+        <li>WhatsApp：+60-xxx-xxxx (示意)</li>
+      </ul>
+    </div>
+    <label class="f-field">
+      <span class="k">快速留言</span>
+      <textarea id="contactMsg" rows="3" placeholder="告訴我們你遇到的問題..."></textarea>
+    </label>
+    <button class="btn primary" id="contactSendBtn">送出</button>
+  </div>
+</section>
 
     <!-- ===================== Add (Create Merchant) ===================== -->
 <section data-page="add" class="add" hidden aria-labelledby="h-add">
