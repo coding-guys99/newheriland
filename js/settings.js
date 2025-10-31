@@ -34,7 +34,6 @@ function applyDarkMode(mode){
     document.documentElement.classList.remove('dark');
     return;
   }
-  // system
   const m = matchMedia('(prefers-color-scheme: dark)');
   document.documentElement.classList.toggle('dark', m.matches);
 }
@@ -76,6 +75,7 @@ window.openSettingsPanel = function(){
   if (!el) return;
   el.classList.add('is-open');
   el.hidden = false;
+  // 聚焦
   const head = document.getElementById('h-settings');
   head && head.focus?.({preventScroll:true});
 };
@@ -84,12 +84,10 @@ window.closeSettingsPanel = function(){
   const el = document.getElementById('p-settings');
   if (!el) return;
   el.classList.remove('is-open');
-  // 動畫 280ms 後再藏
   setTimeout(()=> {
     el.hidden = true;
   }, 280);
-
-  // 關掉所有三級
+  // 關所有三級
   ['#settings-language','#settings-currency','#settings-privacy','#settings-policy'].forEach(id=>{
     const page = $(id);
     if (page){
@@ -99,7 +97,7 @@ window.closeSettingsPanel = function(){
   });
 };
 
-/* ---------- 開子頁 ---------- */
+/* ---------- 第三級 ---------- */
 function openTertiary(id){
   const page = document.getElementById(id); if (!page) return;
   page.hidden = false;
@@ -109,24 +107,25 @@ function openTertiary(id){
 
 /* ---------- 綁事件 ---------- */
 function bindEvents(){
-  // 頂部齒輪
-  const topBtn = document.getElementById('btnOpenSettings');
-  if (topBtn){
-    topBtn.addEventListener('click', ()=> window.openSettingsPanel());
+  // Header 的設定鈕
+  $('#btnOpenSettings')?.addEventListener('click', ()=> window.openSettingsPanel());
+
+  // Drawer 裡的 ←
+  $('#btnSettingsBack')?.addEventListener('click', ()=> window.closeSettingsPanel());
+
+  // ⭐ 面板本體要擋掉點擊冒泡，避免被當成點到背景
+  const panel = document.querySelector('#p-settings .settings-panel-wrap');
+  if (panel){
+    panel.addEventListener('click', (e)=>{
+      e.stopPropagation();
+    });
   }
 
-  // Drawer 裡的返回鍵
-  const backBtn = document.getElementById('btnSettingsBack');
-  if (backBtn){
-    backBtn.addEventListener('click', ()=> window.closeSettingsPanel());
+  // ⭐ 真的只有點到背景才關
+  const backdrop = document.querySelector('#p-settings .settings-backdrop');
+  if (backdrop){
+    backdrop.addEventListener('click', ()=> window.closeSettingsPanel());
   }
-
-  // 點背景關閉
-  document.addEventListener('click', (e)=>{
-    if (e.target.matches('.settings-backdrop')){
-      window.closeSettingsPanel();
-    }
-  });
 
   // 二級 → 第三級
   $$('#p-settings .set-item[data-target]').forEach(btn=>{
@@ -182,6 +181,7 @@ function bindEvents(){
   window.addEventListener('keydown', (e)=>{
     if (e.key !== 'Escape') return;
 
+    // 先關第 3 級
     const openedT = $$('.overlay-page.tertiary.active');
     if (openedT.length){
       const page = openedT[openedT.length-1];
@@ -191,19 +191,20 @@ function bindEvents(){
       return;
     }
 
+    // 再關 drawer
     const drawer = document.getElementById('p-settings');
     if (drawer && !drawer.hidden){
       window.closeSettingsPanel();
     }
   });
 
-  // Profile 卡片上的齒輪（如果有放這個 id）
+  // Profile 卡片上的齒輪
   const cardBtn = document.getElementById('profileCardSettings');
   if (cardBtn){
     cardBtn.addEventListener('click', ()=> window.openSettingsPanel());
   }
 
-  // Profile 裡那行「開啟設定」（如果你有加 id）
+  // Profile 列表的「開啟設定」
   const listBtn = document.getElementById('plOpenSettings');
   if (listBtn){
     listBtn.addEventListener('click', ()=> window.openSettingsPanel());
