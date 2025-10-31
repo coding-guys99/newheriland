@@ -595,3 +595,22 @@
     background: rgba(15,23,42,.35);
   }
 }
+
+/* 讓 Edit profile 置中，而不是黏左邊 */
+.overlay-page.hl-edit {
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.overlay-page.hl-edit .hl-edit__body {
+  width: min(100%, 560px);
+  margin-inline: auto;     /* ← 這一行讓它水平置中 */
+  align-self: flex-start;  /* 保持從上往下排 */
+}
+
+@media (max-width: 540px) {
+  .overlay-page.hl-edit .hl-edit__body {
+    width: 100%;
+    margin-inline: 0;
+  }
+}
