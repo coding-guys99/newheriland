@@ -594,13 +594,17 @@
 </section>
 
 
-    <!-- ====== Settings（二級） ====== -->
-    <section id="p-settings" class="overlay-page" hidden aria-labelledby="h-settings" data-page="settings">
-      <header class="subappbar settings-header">
-        <button class="icon-btn back" id="btnSettingsBack" aria-label="Back">←</button>
-        <h1 id="h-settings" class="settings-title" tabindex="-1">Settings</h1>
-      </header>
+    <!-- ====== Settings Drawer（右邊滑出覆蓋全頁） ====== -->
+<aside id="p-settings" class="settings-drawer overlay-page" hidden aria-labelledby="h-settings" data-page="settings">
+  <div class="settings-panel-wrap">
+    <!-- 頂部 AppBar -->
+    <header class="subappbar settings-header">
+      <button class="icon-btn back" id="btnSettingsBack" aria-label="Close">←</button>
+      <h1 id="h-settings" class="settings-title" tabindex="-1">Settings</h1>
+    </header>
 
+    <!-- 可滾動內容 -->
+    <div class="settings-scroll">
       <!-- MY ACTIVITY 一張卡 -->
       <div class="set-section">
         <h2 class="set-overline">MY ACTIVITY</h2>
@@ -659,54 +663,59 @@
           </button>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
+
+  <!-- 背景遮罩 -->
+  <div class="settings-backdrop" aria-hidden="true"></div>
+</aside>
+
 
     <!-- ====== Settings 第三級（通用樣板） ====== -->
     <section id="settings-language" class="overlay-page tertiary" hidden aria-labelledby="h-language">
-      <header class="subappbar settings-header">
-        <button class="icon-btn back sub-back" aria-label="Back">←</button>
-        <h1 id="h-language" class="settings-title" tabindex="-1">Language</h1>
-      </header>
-      <div class="settings-panel">
-        <button class="option">English</button>
-        <button class="option">繁體中文</button>
-        <button class="option">Bahasa Melayu</button>
-      </div>
-    </section>
+  <header class="subappbar settings-header">
+    <button class="icon-btn back sub-back" aria-label="Back">←</button>
+    <h1 id="h-language" class="settings-title" tabindex="-1">Language</h1>
+  </header>
+  <div class="settings-panel">
+    <button class="option">English</button>
+    <button class="option">繁體中文</button>
+    <button class="option">Bahasa Melayu</button>
+  </div>
+</section>
 
-    <section id="settings-currency" class="overlay-page tertiary" hidden aria-labelledby="h-currency">
-      <header class="subappbar settings-header">
-        <button class="icon-btn back sub-back" aria-label="Back">←</button>
-        <h1 id="h-currency" class="settings-title" tabindex="-1">Currency</h1>
-      </header>
-      <div class="settings-panel">
-        <button class="option">USD</button>
-        <button class="option">MYR</button>
-        <button class="option">SGD</button>
-      </div>
-    </section>
+<section id="settings-currency" class="overlay-page tertiary" hidden aria-labelledby="h-currency">
+  <header class="subappbar settings-header">
+    <button class="icon-btn back sub-back" aria-label="Back">←</button>
+    <h1 id="h-currency" class="settings-title" tabindex="-1">Currency</h1>
+  </header>
+  <div class="settings-panel">
+    <button class="option">USD</button>
+    <button class="option">MYR</button>
+    <button class="option">SGD</button>
+  </div>
+</section>
 
-    <section id="settings-privacy" class="overlay-page tertiary" hidden aria-labelledby="h-privacy">
-      <header class="subappbar settings-header">
-        <button class="icon-btn back sub-back" aria-label="Back">←</button>
-        <h1 id="h-privacy" class="settings-title" tabindex="-1">Privacy</h1>
-      </header>
-      <div class="settings-panel">
-        <p class="copy">Your privacy matters. (Placeholder)</p>
-      </div>
-    </section>
+<section id="settings-privacy" class="overlay-page tertiary" hidden aria-labelledby="h-privacy">
+  <header class="subappbar settings-header">
+    <button class="icon-btn back sub-back" aria-label="Back">←</button>
+    <h1 id="h-privacy" class="settings-title" tabindex="-1">Privacy</h1>
+  </header>
+  <div class="settings-panel">
+    <p class="copy">Your privacy matters. (Placeholder)</p>
+  </div>
+</section>
 
-    <section id="settings-policy" class="overlay-page tertiary" hidden aria-labelledby="h-policy">
-      <header class="subappbar settings-header">
-        <button class="icon-btn back sub-back" aria-label="Back">←</button>
-        <h1 id="h-policy" class="settings-title" tabindex="-1">Policy</h1>
-      </header>
-      <div class="settings-panel">
-        <p class="copy">Terms & Policy (Placeholder)</p>
-      </div>
-    </section>
-    
-    
+<section id="settings-policy" class="overlay-page tertiary" hidden aria-labelledby="h-policy">
+  <header class="subappbar settings-header">
+    <button class="icon-btn back sub-back" aria-label="Back">←</button>
+    <h1 id="h-policy" class="settings-title" tabindex="-1">Policy</h1>
+  </header>
+  <div class="settings-panel">
+    <p class="copy">Terms & Policy (Placeholder)</p>
+  </div>
+</section>
+     
   </main>
   
   <!-- Search Overlay (fullscreen) -->
@@ -780,6 +789,7 @@
   <script type="module" src="js/settings.js"></script>
 </body>
 </html>
+
 
 
 
