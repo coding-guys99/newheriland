@@ -55,9 +55,8 @@
   });
 
   // 從 Profile 叫這頁
-  window.openMyFavorites = function(){
-    document.querySelectorAll('[data-page]').forEach(sec=> sec.hidden = true);
-    document.querySelector('[data-page="saved"]').hidden = false;
-    renderSaved();
-  };
+   window.openMyFavorites = function(){
+  if (window.showPage) window.showPage('saved');
+  renderSaved();
+};
 })();
