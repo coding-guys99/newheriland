@@ -95,15 +95,15 @@
   }
 
   function openAbout(){
-    alert('HeriLand 是砂拉越在地旅遊 / 商家探索工具（demo 純文案）');
+    showPage('about');
   }
 
   function rateApp(){
-    alert('感謝支持！正式版會開啟商店評分連結。');
+    showPage('rateapp');
   }
 
   function openTerms(){
-    alert('這裡會打開「使用條款 / 隱私權政策」頁（demo）');
+    showPage('terms');
   }
 
   function doLogout(){
