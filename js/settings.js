@@ -44,6 +44,14 @@ function hlSyncUI(){
   const role  = hlGet(HL_LS.role)  || HL_DEF.role;
   const mock  = hlGet(HL_LS.mock)  || HL_DEF.mock;
   const devCity = hlGet(HL_LS.devCity) || HL_DEF.devCity;
+  const name = hlGet('hl.pref.name') || 'Guest User';
+  const tagline = hlGet('hl.pref.tagline') || 'Discovering Sarawak';
+  const gender = hlGet('hl.pref.gender') || 'Prefer not to say';
+
+  const elName = document.querySelector('.hl-set__name');
+  const elSub  = document.querySelector('.hl-set__sub');
+  if (elName) elName.textContent = name;
+  if (elSub)  elSub.textContent  = tagline;
 
   const el = {
     lang: document.getElementById('hlSetLangVal'),
@@ -322,10 +330,24 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 
   document.getElementById('btnEditProfileBack')?.addEventListener('click', closeEditProfile);
+  document.getElementById('btnChangeAvatar')?.addEventListener('click', ()=>{
+  alert('Change avatar function not implemented yet.');
+});
   document.getElementById('btnEditProfileSave')?.addEventListener('click', ()=>{
-    // TODO: collect & save
-    closeEditProfile();
-  });
+  const name = document.getElementById('hlEditName')?.value?.trim() || 'Guest User';
+  const tagline = document.getElementById('hlEditTagline')?.value?.trim() || '';
+  const gender = document.getElementById('hlEditGenderVal')?.textContent?.trim() || '';
+  
+  // 存進 localStorage（使用你原本的 hlSet）
+  hlSet('hl.pref.name', name);
+  hlSet('hl.pref.tagline', tagline);
+  hlSet('hl.pref.gender', gender);
+
+  // 更新設定抽屜
+  hlSyncUI?.();
+
+  closeEditProfile();
+});
 
   // 3) 從 Settings 頁的 "Edit" 叫這個
   document.getElementById('hlSetEditProfile')?.addEventListener('click', () => {
