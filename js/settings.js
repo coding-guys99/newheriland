@@ -35,49 +35,68 @@ function hlApplyTheme(mode){
 }
 
 function hlSyncUI(){
-  const lang  = hlGet(HL_LS.lang)  || HL_DEF.lang;
-  const cur   = hlGet(HL_LS.cur)   || HL_DEF.cur;
-  const theme = hlGet(HL_LS.theme) || HL_DEF.theme;
-  const city  = hlGet(HL_LS.city)  || HL_DEF.city;
-  const notif = hlGet(HL_LS.notif) || HL_DEF.notif;
-  const offl  = hlGet(HL_LS.offl)  || HL_DEF.offl;
-  const role  = hlGet(HL_LS.role)  || HL_DEF.role;
-  const mock  = hlGet(HL_LS.mock)  || HL_DEF.mock;
+  const lang    = hlGet(HL_LS.lang)    || HL_DEF.lang;
+  const cur     = hlGet(HL_LS.cur)     || HL_DEF.cur;
+  const theme   = hlGet(HL_LS.theme)   || HL_DEF.theme;
+  const city    = hlGet(HL_LS.city)    || HL_DEF.city;
+  const notif   = hlGet(HL_LS.notif)   || HL_DEF.notif;
+  const offl    = hlGet(HL_LS.offl)    || HL_DEF.offl;
+  const role    = hlGet(HL_LS.role)    || HL_DEF.role;
+  const mock    = hlGet(HL_LS.mock)    || HL_DEF.mock;
   const devCity = hlGet(HL_LS.devCity) || HL_DEF.devCity;
-  const name = hlGet('hl.pref.name') || 'Guest User';
-  const tagline = hlGet('hl.pref.tagline') || 'Discovering Sarawak';
-  const gender = hlGet('hl.pref.gender') || 'Prefer not to say';
+  
+  const avatar = hlGet('hl.pref.avatar') || 'H';
+const pfAvatar = document.getElementById('profileCardAvatar');
+if (pfAvatar) pfAvatar.textContent = avatar;
+const setAvatar = document.getElementById('hlEditAvatar');
+if (setAvatar) setAvatar.textContent = avatar;
 
+  // 🆕 使用者資料（edit profile 會寫進來的）
+  const name    = hlGet('hl.pref.name')    || 'Guest User';
+  const tagline = hlGet('hl.pref.tagline') || 'Discovering Sarawak';
+  const gender  = hlGet('hl.pref.gender')  || 'Prefer not to say';
+
+  // ====== 1. 設定抽屜頭部同步 ======
   const elName = document.querySelector('.hl-set__name');
   const elSub  = document.querySelector('.hl-set__sub');
   if (elName) elName.textContent = name;
   if (elSub)  elSub.textContent  = tagline;
 
+  // ====== 2. 設定面板各欄位同步 ======
   const el = {
-    lang: document.getElementById('hlSetLangVal'),
-    cur:  document.getElementById('hlSetCurVal'),
-    theme:document.getElementById('hlSetThemeVal'),
-    city: document.getElementById('hlSetCityVal'),
-    notif:document.getElementById('hlSetNotif'),
-    offl: document.getElementById('hlSetOffline'),
-    role: document.getElementById('hlSetRoleVal'),
-    mock: document.getElementById('hlDevMockState'),
+    lang:    document.getElementById('hlSetLangVal'),
+    cur:     document.getElementById('hlSetCurVal'),
+    theme:   document.getElementById('hlSetThemeVal'),
+    city:    document.getElementById('hlSetCityVal'),
+    notif:   document.getElementById('hlSetNotif'),
+    offl:    document.getElementById('hlSetOffline'),
+    role:    document.getElementById('hlSetRoleVal'),
+    mock:    document.getElementById('hlDevMockState'),
     devCity: document.getElementById('hlDevForceCityVal'),
   };
 
-  if (el.lang) el.lang.textContent = lang;
-  if (el.cur)  el.cur.textContent  = cur;
-  if (el.theme) el.theme.textContent = theme === 'system' ? 'System' : (theme === 'dark' ? 'Dark' : 'Light');
-  if (el.city) el.city.textContent = city;
-  if (el.notif) el.notif.checked = (notif === 'on');
-  if (el.offl) el.offl.checked = (offl === 'on');
-  if (el.role) el.role.textContent = role;
-  if (el.mock) el.mock.textContent = mock;
+  if (el.lang)  el.lang.textContent  = lang;
+  if (el.cur)   el.cur.textContent   = cur;
+  if (el.theme) el.theme.textContent = (theme === 'system' ? 'System' : (theme === 'dark' ? 'Dark' : 'Light'));
+  if (el.city)  el.city.textContent  = city;
+  if (el.notif) el.notif.checked     = (notif === 'on');
+  if (el.offl)  el.offl.checked      = (offl === 'on');
+  if (el.role)  el.role.textContent  = role;
+  if (el.mock)  el.mock.textContent  = mock;
   if (el.devCity) el.devCity.textContent = devCity;
 
+  // ====== 3. 同步到 Profile 頁的卡片（真正你剛剛說沒變的那裡） ======
+  const pfName = document.getElementById('profileCardName');
+  const pfTag  = document.getElementById('profileCardTagline');
+  const pfGen  = document.getElementById('profileCardGender'); // 有就更新，沒有就忽略
+  if (pfName) pfName.textContent = name;
+  if (pfTag)  pfTag.textContent  = tagline;
+  if (pfGen)  pfGen.textContent  = gender;
+
+  // ====== 4. 套用主題 ======
   hlApplyTheme(theme);
 
-  // 標記 sub sheet 當前選項
+  // ====== 5. 子面板選中狀態 ======
   document.querySelectorAll('#hlSub-lang .hl-sub__opt').forEach(btn=>{
     btn.classList.toggle('is-current', btn.dataset.val === lang);
   });
