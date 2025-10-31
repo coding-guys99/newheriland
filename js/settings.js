@@ -95,6 +95,13 @@ function hlSyncUI(){
   });
 }
 
+window.dispatchEvent(new CustomEvent('hl:userUpdated', {
+  detail: {
+    name,
+    tagline
+  }
+}));
+
 function hlOpenDrawer(){
   const box = document.getElementById('hlSettingsDrawer');
   if (!box) return;
