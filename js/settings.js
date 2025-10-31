@@ -1,233 +1,178 @@
-// js/settings.js
-// Settings Drawer + 子頁 + 偏好
-
-const $  = (s, r=document) => r.querySelector(s);
-const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
-
-const LS = {
-  lang:     'pref.lang',
-  currency: 'pref.currency',
-  dark:     'pref.dark',
-  a11y:     'pref.a11y',
+// js/settings.js — HeriLand new settings drawer
+const LS_KEYS = {
+  lang: 'hl.pref.lang',
+  cur:  'hl.pref.cur',
+  dark: 'hl.pref.dark',
+  a11y: 'hl.pref.a11y'
 };
-
-const DEFAULTS = {
+const DEF = {
   lang: 'English',
-  currency: 'USD',
+  cur:  'USD',
   dark: 'system',
-  a11y: 'off',
+  a11y: 'off'
 };
 
-function loadPref(key, fallback){
-  try { return localStorage.getItem(key) ?? fallback; } catch(_) { return fallback; }
-}
-function savePref(key, val){
-  try { localStorage.setItem(key, val); } catch(_) {}
-}
+function lsGet(k, fb){ try { return localStorage.getItem(k) ?? fb; } catch(_) { return fb; } }
+function lsSet(k, v){ try { localStorage.setItem(k, v); } catch(_){} }
 
-function applyDarkMode(mode){
-  if (mode === 'on'){
-    document.documentElement.classList.add('dark');
-    return;
-  }
-  if (mode === 'off'){
-    document.documentElement.classList.remove('dark');
-    return;
-  }
+function applyDark(mode){
+  if (mode === 'on'){ document.documentElement.classList.add('dark'); return; }
+  if (mode === 'off'){ document.documentElement.classList.remove('dark'); return; }
   const m = matchMedia('(prefers-color-scheme: dark)');
   document.documentElement.classList.toggle('dark', m.matches);
 }
 
-function markCurrentInPanel(panelSel, currentText){
-  const panel = $(panelSel); if (!panel) return;
-  $$('.option', panel).forEach(btn=>{
-    btn.classList.toggle('is-current', btn.textContent.trim() === currentText);
+function openDrawer(){
+  const box = document.getElementById('hlSettingsDrawer');
+  if (!box) return;
+  box.classList.add('is-open');
+  box.setAttribute('aria-hidden','false');
+  box.querySelector('.hl-set__panel')?.focus?.();
+}
+function closeDrawer(){
+  const box = document.getElementById('hlSettingsDrawer');
+  if (!box) return;
+  box.classList.remove('is-open');
+  box.setAttribute('aria-hidden','true');
+  // 關掉所有子 sheet
+  document.querySelectorAll('.hl-sub').forEach(s=>{
+    s.classList.remove('is-open');
+    s.setAttribute('aria-hidden','true');
   });
 }
+function openSheet(name){
+  const s = document.getElementById('hlSetSheet-'+name);
+  if (!s) return;
+  s.classList.add('is-open');
+  s.setAttribute('aria-hidden','false');
+}
+function closeSheet(node){
+  node.classList.remove('is-open');
+  node.setAttribute('aria-hidden','true');
+}
 
-function syncUIFromPrefs(){
-  const lang = loadPref(LS.lang, DEFAULTS.lang);
-  const cur  = loadPref(LS.currency, DEFAULTS.currency);
-  const dark = loadPref(LS.dark, DEFAULTS.dark);
-  const a11y = loadPref(LS.a11y, DEFAULTS.a11y);
+function syncSettingsUI(){
+  const lang = lsGet(LS_KEYS.lang, DEF.lang);
+  const cur  = lsGet(LS_KEYS.cur,  DEF.cur);
+  const dark = lsGet(LS_KEYS.dark, DEF.dark);
+  const a11y = lsGet(LS_KEYS.a11y, DEF.a11y);
 
-  const langRow = $('#p-settings .set-item[data-target="settings-language"] .value');
-  const curRow  = $('#p-settings .set-item[data-target="settings-currency"] .value');
-  if (langRow) langRow.textContent = lang;
-  if (curRow)  curRow.textContent  = cur;
+  const langLbl = document.getElementById('hlSetLangVal');
+  const curLbl  = document.getElementById('hlSetCurVal');
+  if (langLbl) langLbl.textContent = lang;
+  if (curLbl)  curLbl.textContent  = cur;
 
-  const darkChk = $('#toggleDark');
+  const darkChk = document.getElementById('hlSetDark');
   if (darkChk) darkChk.checked = (dark === 'on');
 
-  const a11yChk = $('#toggleA11y');
+  const a11yChk = document.getElementById('hlSetA11y');
   if (a11yChk) a11yChk.checked = (a11y === 'on');
 
-  applyDarkMode(dark);
+  applyDark(dark);
   document.documentElement.dataset.a11y = (a11y === 'on') ? 'on' : 'off';
 
-  markCurrentInPanel('#settings-language', lang);
-  markCurrentInPanel('#settings-currency', cur);
+  // 標記 sub 裡面選到哪一個
+  document.querySelectorAll('#hlSetSheet-lang .hl-sub__opt').forEach(btn=>{
+    btn.classList.toggle('is-current', btn.dataset.val === lang);
+  });
+  document.querySelectorAll('#hlSetSheet-currency .hl-sub__opt').forEach(btn=>{
+    btn.classList.toggle('is-current', btn.dataset.val === cur);
+  });
 }
 
-/* ---------- Drawer 開/關 ---------- */
-window.openSettingsPanel = function(){
-  const el = document.getElementById('p-settings');
-  if (!el) return;
-  el.classList.add('is-open');
-  el.hidden = false;
-  // 聚焦
-  const head = document.getElementById('h-settings');
-  head && head.focus?.({preventScroll:true});
-};
+function bindSettings(){
+  const box = document.getElementById('hlSettingsDrawer');
+  if (!box) return;
 
-window.closeSettingsPanel = function(){
-  const el = document.getElementById('p-settings');
-  if (!el) return;
-  el.classList.remove('is-open');
-  setTimeout(()=> {
-    el.hidden = true;
-  }, 280);
-  // 關所有三級
-  ['#settings-language','#settings-currency','#settings-privacy','#settings-policy'].forEach(id=>{
-    const page = $(id);
-    if (page){
-      page.classList.remove('active');
-      page.setAttribute('hidden','');
-    }
-  });
-};
-
-/* ---------- 第三級 ---------- */
-function openTertiary(id){
-  const page = document.getElementById(id); if (!page) return;
-  page.hidden = false;
-  page.classList.add('active');
-  page.querySelector('.settings-title')?.focus({preventScroll:true});
-}
-
-/* ---------- 綁事件 ---------- */
-function bindEvents(){
-  // Header 的設定鈕
-  $('#btnOpenSettings')?.addEventListener('click', ()=> window.openSettingsPanel());
-
-  // Drawer 裡的 ←
-  $('#btnSettingsBack')?.addEventListener('click', ()=> window.closeSettingsPanel());
-
-  // ⭐ 面板本體要擋掉點擊冒泡，避免被當成點到背景
-  const panel = document.querySelector('#p-settings .settings-panel-wrap');
-  if (panel){
-    panel.addEventListener('click', (e)=>{
-      e.stopPropagation();
-    });
-  }
-
-  // ⭐ 真的只有點到背景才關
-  const backdrop = document.querySelector('#p-settings .settings-backdrop');
-  if (backdrop){
-    backdrop.addEventListener('click', ()=> window.closeSettingsPanel());
-  }
-
-  // 二級 → 第三級
-  $$('#p-settings .set-item[data-target]').forEach(btn=>{
-    btn.addEventListener('click', ()=> openTertiary(btn.dataset.target));
+  // 背景 & 上方返回
+  box.querySelectorAll('[data-hl-set-close]').forEach(btn=>{
+    btn.addEventListener('click', closeDrawer);
   });
 
-  // 第三級返回
-  $$('.overlay-page.tertiary .sub-back').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      const page = e.target.closest('.overlay-page');
-      if (page){
-        page.classList.remove('active');
-        page.setAttribute('hidden','');
-        $('#h-settings')?.focus({preventScroll:true});
-      }
-    });
+  // 內部點擊不要關
+  box.querySelector('.hl-set__panel')?.addEventListener('click', e=> {
+    e.stopPropagation();
   });
 
-  // 語言
-  $$('#settings-language .option').forEach(btn=>{
+  // 真的點到 backdrop 才關
+  box.addEventListener('click', e=>{
+    if (e.target === box) closeDrawer();
+  });
+
+  // 二級 → 子頁
+  box.querySelectorAll('[data-hl-set-open]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      const val = btn.textContent.trim();
-      savePref(LS.lang, val);
-      syncUIFromPrefs();
+      const name = btn.getAttribute('data-hl-set-open');
+      openSheet(name);
     });
   });
 
-  // 幣別
-  $$('#settings-currency .option').forEach(btn=>{
+  // 子頁關閉
+  box.querySelectorAll('[data-hl-sub-close]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      const val = btn.textContent.trim();
-      savePref(LS.currency, val);
-      syncUIFromPrefs();
+      const s = btn.closest('.hl-sub');
+      if (s) closeSheet(s);
+    });
+  });
+
+  // 語言選擇
+  document.querySelectorAll('#hlSetSheet-lang .hl-sub__opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const val = btn.dataset.val;
+      lsSet(LS_KEYS.lang, val);
+      syncSettingsUI();
+      closeSheet(btn.closest('.hl-sub'));
+    });
+  });
+
+  // 貨幣
+  document.querySelectorAll('#hlSetSheet-currency .hl-sub__opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const val = btn.dataset.val;
+      lsSet(LS_KEYS.cur, val);
+      syncSettingsUI();
+      closeSheet(btn.closest('.hl-sub'));
     });
   });
 
   // Dark
-  $('#toggleDark')?.addEventListener('change', (e)=>{
+  document.getElementById('hlSetDark')?.addEventListener('change', e=>{
     const on = e.target.checked;
     const mode = on ? 'on' : 'system';
-    savePref(LS.dark, mode);
-    applyDarkMode(mode);
+    lsSet(LS_KEYS.dark, mode);
+    applyDark(mode);
   });
 
   // A11y
-  $('#toggleA11y')?.addEventListener('change', (e)=>{
+  document.getElementById('hlSetA11y')?.addEventListener('change', e=>{
     const on = e.target.checked ? 'on' : 'off';
-    savePref(LS.a11y, on);
-    document.documentElement.dataset.a11y = (on === 'on') ? 'on' : 'off';
+    lsSet(LS_KEYS.a11y, on);
+    document.documentElement.dataset.a11y = on;
   });
 
-  // ESC
-  window.addEventListener('keydown', (e)=>{
-    if (e.key !== 'Escape') return;
-
-    // 先關第 3 級
-    const openedT = $$('.overlay-page.tertiary.active');
-    if (openedT.length){
-      const page = openedT[openedT.length-1];
-      page.classList.remove('active');
-      page.setAttribute('hidden','');
-      $('#h-settings')?.focus({preventScroll:true});
-      return;
-    }
-
-    // 再關 drawer
-    const drawer = document.getElementById('p-settings');
-    if (drawer && !drawer.hidden){
-      window.closeSettingsPanel();
+  // Esc
+  window.addEventListener('keydown', e=>{
+    if (e.key === 'Escape'){
+      // 若子頁開著先關子頁
+      const opened = document.querySelector('.hl-sub.is-open');
+      if (opened){ closeSheet(opened); return; }
+      closeDrawer();
     }
   });
 
+  // ===== 外部入口 =====
+  // Header 那顆
+  document.getElementById('btnOpenSettings')?.addEventListener('click', openDrawer);
   // Profile 卡片上的齒輪
-  const cardBtn = document.getElementById('profileCardSettings');
-  if (cardBtn){
-    cardBtn.addEventListener('click', ()=> window.openSettingsPanel());
-  }
+  document.getElementById('profileCardSettings')?.addEventListener('click', openDrawer);
+  // Profile 列表「開啟設定」
+  document.getElementById('plOpenSettings')?.addEventListener('click', openDrawer);
 
-  // Profile 列表的「開啟設定」
-  const listBtn = document.getElementById('plOpenSettings');
-  if (listBtn){
-    listBtn.addEventListener('click', ()=> window.openSettingsPanel());
-  }
-
-  // 系統深色變化
-  matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', ()=>{
-    const dark = loadPref(LS.dark, DEFAULTS.dark);
-    if (dark === 'system') applyDarkMode('system');
-  });
-}
-
-/* ---------- 初始化 ---------- */
-function safeInit(){
-  if (!$('#p-settings')) return false;
-  syncUIFromPrefs();
-  bindEvents();
-  return true;
+  // tabbar.js 可能會呼叫 #settings
+  window.openSettingsPanel = openDrawer;
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{
-  if (safeInit()) return;
-  const obs = new MutationObserver(()=>{ if (safeInit()) obs.disconnect(); });
-  obs.observe(document.body, { childList:true, subtree:true });
+  bindSettings();
+  syncSettingsUI();
 });
-document.addEventListener('include:loaded', ()=> safeInit());
