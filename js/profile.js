@@ -83,8 +83,8 @@
 
 
   function openFeedback(){
-    alert('開啟意見回饋表單（demo）');
-  }
+  if (window.showPage) window.showPage('feedback');
+}
 
   function contactSupport(){
   showPage('contact');
