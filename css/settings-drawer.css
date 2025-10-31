@@ -194,3 +194,36 @@
     border-color: rgba(255,255,255,.10); color:#eef2f6;
   }
 }
+
+/* ===== Settings Drawer FIX: only interactive when open ===== */
+
+/* 預設：完全不吃事件、也不要遮住下面的東西 */
+.settings-drawer {
+  pointer-events: none;
+}
+
+/* 背景也不要擋，除非打開 */
+.settings-drawer .settings-backdrop {
+  pointer-events: none;
+}
+
+/* 打開時才開始吃事件 */
+.settings-drawer.is-open {
+  pointer-events: auto;
+}
+
+/* 打開時，面板和背景都可以點 */
+.settings-drawer.is-open .settings-panel-wrap {
+  pointer-events: auto;
+}
+.settings-drawer.is-open .settings-backdrop {
+  pointer-events: auto;
+}
+
+/* 不要讓舊的 overlay 動畫干擾 drawer */
+.settings-drawer.overlay-page {
+  opacity: 1;
+  transform: none;
+  background: transparent;
+  display: block;
+}
