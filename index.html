@@ -614,156 +614,163 @@
       <button type="button" class="hl-set__edit" id="hlSetEditProfile">Edit</button>
     </header>
 
-    <div class="hl-set__body" tabindex="-1">
+        <div class="hl-set__body" tabindex="-1">
       <!-- B. My stuff -->
       <section class="hl-set__section" aria-label="My stuff">
         <h2 class="hl-set__overline">My stuff</h2>
-        <button class="hl-set__item" id="hlGoFavorites">
-          <span class="l">My favorites</span>
-          <span class="v" id="hlFavCount">12 places</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item" id="hlGoReviews">
-          <span class="l">My reviews</span>
-          <span class="v">0 written</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item" id="hlGoTrips">
-          <span class="l">My trips / experiences</span>
-          <span class="v muted">Coming soon</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item" id="hlGoCoupons">
-          <span class="l">Coupons / Missions</span>
-          <span class="v muted">No coupons</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item" id="hlReportPlace">
-          <span class="l">Report a place</span>
-          <span class="v muted">Wrong hours, closed, move…</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item" id="hlFeedback">
-          <span class="l">Feedback to HeriLand</span>
-          <span class="v muted">Tell us what to improve</span>
-          <span class="c">›</span>
-        </button>
+        <div class="hl-set__card">
+          <button class="hl-set__item" id="hlGoFavorites">
+            <span class="l">My favorites</span>
+            <span class="v" id="hlFavCount">12 places</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item" id="hlGoReviews">
+            <span class="l">My reviews</span>
+            <span class="v">0 written</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item" id="hlGoTrips">
+            <span class="l">My trips / experiences</span>
+            <span class="v muted">Coming soon</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item" id="hlGoCoupons">
+            <span class="l">Coupons / Missions</span>
+            <span class="v muted">No coupons</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item" id="hlReportPlace">
+            <span class="l">Report a place</span>
+            <span class="v muted">Wrong hours, closed, move…</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item" id="hlFeedback">
+            <span class="l">Feedback to HeriLand</span>
+            <span class="v muted">Tell us what to improve</span>
+            <span class="c">›</span>
+          </button>
+        </div>
       </section>
 
       <!-- C. Preferences -->
       <section class="hl-set__section" aria-label="Preferences">
         <h2 class="hl-set__overline">Preferences</h2>
-        <button class="hl-set__item" data-hl-set-open="lang">
-          <span class="l">Language</span>
-          <span class="v" id="hlSetLangVal">English</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item" data-hl-set-open="currency">
-          <span class="l">Currency</span>
-          <span class="v" id="hlSetCurVal">MYR</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item" data-hl-set-open="theme">
-          <span class="l">Theme</span>
-          <span class="v" id="hlSetThemeVal">System</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item" data-hl-set-open="city">
-          <span class="l">Preferred city</span>
-          <span class="v" id="hlSetCityVal">Kuching</span>
-          <span class="c">›</span>
-        </button>
-
-        <div class="hl-set__item">
-          <span class="l">Notifications</span>
-          <label class="hl-switch">
-            <input type="checkbox" id="hlSetNotif">
-            <i></i>
-          </label>
+        <div class="hl-set__card">
+          <button class="hl-set__item" data-hl-set-open="lang">
+            <span class="l">Language</span>
+            <span class="v" id="hlSetLangVal">English</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item" data-hl-set-open="currency">
+            <span class="l">Currency</span>
+            <span class="v" id="hlSetCurVal">MYR</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item" data-hl-set-open="theme">
+            <span class="l">Theme</span>
+            <span class="v" id="hlSetThemeVal">System</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item" data-hl-set-open="city">
+            <span class="l">Preferred city</span>
+            <span class="v" id="hlSetCityVal">Kuching</span>
+            <span class="c">›</span>
+          </button>
+          <div class="hl-set__item">
+            <span class="l">Notifications</span>
+            <label class="hl-switch">
+              <input type="checkbox" id="hlSetNotif">
+              <i></i>
+            </label>
+          </div>
+          <div class="hl-set__item">
+            <span class="l">Offline mode</span>
+            <label class="hl-switch">
+              <input type="checkbox" id="hlSetOffline">
+              <i></i>
+            </label>
+          </div>
+          <button class="hl-set__item" id="hlOfflineClear">
+            <span class="l">Clear offline cache</span>
+            <span class="v muted">Free up space</span>
+            <span class="c">›</span>
+          </button>
         </div>
-
-        <div class="hl-set__item">
-          <span class="l">Offline mode</span>
-          <label class="hl-switch">
-            <input type="checkbox" id="hlSetOffline">
-            <i></i>
-          </label>
-        </div>
-
-        <button class="hl-set__item" id="hlOfflineClear">
-          <span class="l">Clear offline cache</span>
-          <span class="v muted">Free up space</span>
-          <span class="c">›</span>
-        </button>
       </section>
 
       <!-- D. Platform -->
       <section class="hl-set__section" aria-label="Platform">
         <h2 class="hl-set__overline">Platform</h2>
-        <button class="hl-set__item" id="hlAbout">
-          <span class="l">About HeriLand</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item" id="hlForMerchant">
-          <span class="l">For merchants / submit a place</span>
-          <span class="v muted">We help you list it</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item" id="hlTerms">
-          <span class="l">Terms & Privacy</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item" id="hlSupport">
-          <span class="l">Contact / WhatsApp us</span>
-          <span class="v muted">Partner / media / demo</span>
-          <span class="c">›</span>
-        </button>
+        <div class="hl-set__card">
+          <button class="hl-set__item" id="hlAbout">
+            <span class="l">About HeriLand</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item" id="hlForMerchant">
+            <span class="l">For merchants / submit a place</span>
+            <span class="v muted">We help you list it</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item" id="hlTerms">
+            <span class="l">Terms & Privacy</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item" id="hlSupport">
+            <span class="l">Contact / WhatsApp us</span>
+            <span class="v muted">Partner / media / demo</span>
+            <span class="c">›</span>
+          </button>
+        </div>
       </section>
 
       <!-- E. Account -->
       <section class="hl-set__section" aria-label="Account">
         <h2 class="hl-set__overline">Account</h2>
-        <button class="hl-set__item" id="hlRoleSwitch">
-          <span class="l">Role</span>
-          <span class="v" id="hlSetRoleVal">Guest</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item danger" id="hlSignInOut">
-          <span class="l" id="hlSignInOutTxt">Sign in / Create account</span>
-        </button>
+        <div class="hl-set__card">
+          <button class="hl-set__item" id="hlRoleSwitch">
+            <span class="l">Role</span>
+            <span class="v" id="hlSetRoleVal">Guest</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item danger" id="hlSignInOut">
+            <span class="l" id="hlSignInOutTxt">Sign in / Create account</span>
+          </button>
+        </div>
       </section>
 
       <!-- F. Developer Tools -->
       <section class="hl-set__section" aria-label="Developer tools">
         <h2 class="hl-set__overline">Developer tools</h2>
-        <button class="hl-set__item" id="hlDevToggleMock">
-          <span class="l">Use mock data</span>
-          <span class="v muted" id="hlDevMockState">off</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item" id="hlDevForceCity">
-          <span class="l">Force city for home/explore</span>
-          <span class="v muted" id="hlDevForceCityVal">auto</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item" id="hlDevResetHome">
-          <span class="l">Re-seed home demo data</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item" id="hlDevDump">
-          <span class="l">Show current localStorage</span>
-          <span class="c">›</span>
-        </button>
-        <button class="hl-set__item danger" id="hlDevClearAll">
-          <span class="l">Clear all HeriLand storage</span>
-        </button>
+        <div class="hl-set__card">
+          <button class="hl-set__item" id="hlDevToggleMock">
+            <span class="l">Use mock data</span>
+            <span class="v muted" id="hlDevMockState">off</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item" id="hlDevForceCity">
+            <span class="l">Force city for home/explore</span>
+            <span class="v muted" id="hlDevForceCityVal">auto</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item" id="hlDevResetHome">
+            <span class="l">Re-seed home demo data</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item" id="hlDevDump">
+            <span class="l">Show current localStorage</span>
+            <span class="c">›</span>
+          </button>
+          <button class="hl-set__item danger" id="hlDevClearAll">
+            <span class="l">Clear all HeriLand storage</span>
+          </button>
+        </div>
       </section>
 
       <div class="hl-set__footnote">
         HeriLand v1.0.0 • Sarawak build
       </div>
     </div>
-
+    
     <!-- Sub-sheets (for language / currency / theme / city / terms etc.) -->
     <div class="hl-sub" id="hlSub-lang" aria-hidden="true">
       <header class="hl-sub__head">
