@@ -328,7 +328,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
   });
 
   // 3) 從 Settings 頁的 "Edit" 叫這個
-  document.getElementById('hlSetEditProfile')?.addEventListener('click', ()=> window.openEditProfile());
+  document.getElementById('hlSetEditProfile')?.addEventListener('click', () => {
+  // 先關掉右側設定抽屜
+  hlCloseDrawer?.();
+  // 再開編輯頁
+  window.openEditProfile?.();
+});
+
 
   // 4) 開小 sheet
   ep.querySelectorAll('[data-ep-open]').forEach(btn=>{
