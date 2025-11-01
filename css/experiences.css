@@ -285,3 +285,72 @@
   .exp-topbar h1{ color:#f5f7fa; }
   .icon-btn{ color:#f1f5f9; }
 }
+
+.exp-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,.04);
+  padding: 14px 14px 10px;
+  margin: 0 10px 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.04);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.exp-main { flex: 1; }
+.exp-title { margin: 0 0 4px; font-weight: 700; }
+.exp-meta { margin: 0 0 2px; color: #6b7280; font-size: 13px; }
+.exp-price { margin: 4px 0 0; font-weight: 600; color: #14532d; }
+
+.exp-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.exp-btn-detail,
+.exp-btn-save {
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+.exp-btn-detail {
+  background: #e2e8f0;
+}
+.exp-btn-save {
+  background: #22c55e;
+  color: #fff;
+}
+.exp-btn-save.is-on {
+  background: #f97316;
+}
+
+/* 我的體驗頁 */
+#p-my-experiences .myexp-body {
+  padding: 10px 14px 80px;
+  display: grid;
+  gap: 10px;
+}
+.myexp-row {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,.03);
+  padding: 12px 12px 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+.myexp-row .m-title { font-weight: 700; }
+.myexp-row .m-meta { font-size: 12px; color: #6b7280; }
+.myexp-row .m-remove {
+  border: 0;
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
