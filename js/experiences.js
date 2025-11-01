@@ -1,239 +1,142 @@
-// js/experiences.js — 體驗行程列表 + 加到我的體驗
+// js/experiences.js — list + add to my experiences
 
-(function(){
-  const $  = (s, r=document) => r.querySelector(s);
-  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+document.addEventListener('DOMContentLoaded', () => {
+  const listWrap = document.getElementById('expList');
+  const btnBack  = document.getElementById('btnBackHome');
+  const detail   = document.getElementById('expDetail');
+  const btnCloseDetail = document.getElementById('btnCloseExp');
 
-  // 統一的儲存 key
-  const LS_MY_EXP = 'hl.user.experiences';
-
-  // demo 體驗資料（你可以之後換成 Supabase）
-  const EXP_DEMO = [
+  // demo 資料，你原本的可放別的地方
+  const EXP_DATA = [
     {
-      id: 'exp-heritage-walk',
+      id: 'exp-1',
       title: '老街文化走讀',
       city: 'Kuching',
-      dur:  '2hrs',
-      price:'RM68',
-      type: 'culture',
-      img:  'img/exp-heritage.jpg'
+      duration: '2hrs',
+      price: 'RM68',
+      cover: 'img/exp-1.jpg'
     },
     {
-      id: 'exp-batik-workshop',
+      id: 'exp-2',
       title: '砂拉越手作雨林蠟染',
       city: 'Kuching',
-      dur:  '1.5hrs',
-      price:'RM85',
-      type: 'culture',
-      img:  'img/exp-batik.jpg'
+      duration: '1.5hrs',
+      price: 'RM85',
+      cover: 'img/exp-2.jpg'
     },
     {
-      id: 'exp-kopitiam-food',
+      id: 'exp-3',
       title: '在地 Kopitiam 美食巡禮',
       city: 'Sibu',
-      dur:  '3hrs',
-      price:'RM55',
-      type: 'food',
-      img:  'img/exp-food.jpg'
-    },
-    {
-      id: 'exp-wetland-tour',
-      title: '濕地生態半日遊',
-      city: 'Kuching',
-      dur:  '4hrs',
-      price:'RM120',
-      type: 'outdoor',
-      img:  'img/exp-wetland.jpg'
-    },
-    {
-      id: 'exp-family-clay',
-      title: '親子陶土體驗',
-      city: 'Miri',
-      dur:  '2hrs',
-      price:'RM75',
-      type: 'family',
-      img:  'img/exp-clay.jpg'
+      duration: '3hrs',
+      price: 'RM55',
+      cover: 'img/exp-3.jpg'
     }
   ];
 
-  /* ---------- 小工具：讀/寫我的體驗 ---------- */
-  function loadMyExperiences(){
-    try {
-      const raw = localStorage.getItem(LS_MY_EXP);
-      return raw ? JSON.parse(raw) : [];
-    } catch(e){
-      return [];
-    }
-  }
-  function saveMyExperiences(list){
-    try {
-      localStorage.setItem(LS_MY_EXP, JSON.stringify(list));
-    } catch(e){}
-    // 通知外面（profile.js 會聽這個）
-    window.dispatchEvent(new CustomEvent('hl:myExpUpdated', {
-      detail: { list }
-    }));
-  }
-
-  // 把一筆 demo 換成真正要存的精簡物件
-  function toMyExp(exp){
-    return {
-      id:    exp.id,
-      title: exp.title,
-      city:  exp.city,
-      dur:   exp.dur,
-      price: exp.price
-    };
+  // 渲染清單
+  function renderList(data) {
+    if (!listWrap) return;
+    listWrap.innerHTML = data
+      .map(
+        (exp) => `
+        <article class="exp-card has-thumb" data-id="${exp.id}" data-city="${exp.city}" data-dur="${exp.duration}">
+          <div class="exp-thumb" style="background-image:url('${exp.cover || ''}')"></div>
+          <div class="exp-main">
+            <h3>${exp.title}</h3>
+            <p class="exp-sub">${exp.city} · ${exp.duration}</p>
+            <p class="exp-price">${exp.price}</p>
+          </div>
+          <div class="exp-actions">
+            <button class="exp-btn exp-detail-btn" data-detail="${exp.id}">詳情</button>
+            <button class="exp-btn exp-add-btn" data-add="${exp.id}">+ 加到我的體驗</button>
+          </div>
+        </article>
+      `
+      )
+      .join('');
   }
 
-  /* ---------- 畫清單 ---------- */
-  function renderExpList(filter='all'){
-    const wrap = $('#expList');
-    const empty = $('#expEmpty');
-    if (!wrap) return;
+  renderList(EXP_DATA);
 
-    // 目前已加入的，為了把按鈕狀態打開
-    const mine = loadMyExperiences();
-    const mineIds = new Set(mine.map(x=>x.id));
-
-    const data = EXP_DEMO.filter(exp => {
-      if (filter === 'all') return true;
-      return exp.type === filter;
-    });
-
-    if (!data.length){
-      wrap.innerHTML = '';
-      if (empty) empty.hidden = false;
-      return;
-    }
-    if (empty) empty.hidden = true;
-
-    wrap.innerHTML = data.map(exp=>{
-      const isAdded = mineIds.has(exp.id);
-      return `
-      <article class="exp-card has-thumb" data-exp-id="${exp.id}">
-        <div class="exp-thumb" style="background-image:url('${exp.img || ''}')"></div>
-        <div class="exp-main">
-          <h3>${exp.title}</h3>
-          <p class="exp-sub">${exp.city} · ${exp.dur}</p>
-          <p class="exp-price">${exp.price}</p>
-        </div>
-        <div class="exp-actions">
-          <button class="exp-btn exp-detail-btn" data-exp-detail="${exp.id}">詳情</button>
-          <button class="exp-btn exp-add-btn ${isAdded ? 'is-added':''}" data-exp-add="${exp.id}">
-            ${isAdded ? '已在我的體驗' : '+ 加到我的體驗'}
-          </button>
-        </div>
-      </article>
-      `;
-    }).join('');
-  }
-
-  /* ---------- 詳情滑出 ---------- */
-  function openExpDetail(expId){
-    const exp = EXP_DEMO.find(x=>x.id === expId);
-    const box = $('#expDetail');
-    const cont = $('#expContent');
-    if (!exp || !box || !cont) return;
-    cont.innerHTML = `
-      <div class="exp-detail__hero">
-        <div class="exp-detail__cover" style="background-image:url('${exp.img || ''}')"></div>
-        <div class="exp-detail__head">
-          <h2>${exp.title}</h2>
-          <p>${exp.city} · ${exp.dur}</p>
-          <p class="exp-detail__price">${exp.price}</p>
-        </div>
-      </div>
-      <div class="exp-detail__body">
-        <h3>活動介紹</h3>
-        <p>這裡是活動介紹 demo，之後你可以從資料庫帶出真正的說明。</p>
-        <h3>備註</h3>
-        <p>可客製、可團體。地點：${exp.city}</p>
-        <div class="exp-detail-actions">
-          <button class="btn" data-exp-add="${exp.id}">加入我的體驗</button>
-          <button class="btn primary" id="btnExpContact">聯繫客服</button>
-        </div>
-      </div>
-    `;
-    box.hidden = false;
-    box.classList.add('is-open');
-
-    // 在詳情裡面的「加入我的體驗」也要能用
-    cont.querySelector('[data-exp-add]')?.addEventListener('click', ()=>{
-      toggleMyExp(exp.id);
-      // 關掉後重新畫列表
-      box.classList.remove('is-open');
-      box.hidden = true;
-      renderExpList(getCurrentFilter());
-    });
-  }
-  function closeExpDetail(){
-    const box = $('#expDetail');
-    if (!box) return;
-    box.classList.remove('is-open');
-    box.hidden = true;
-  }
-
-  /* ---------- 加入 / 移除 我的體驗 ---------- */
-  function toggleMyExp(expId){
-    const exp = EXP_DEMO.find(x=>x.id === expId);
-    if (!exp) return;
-
-    const mine = loadMyExperiences();
-    const i = mine.findIndex(x=>x.id === expId);
-    if (i >= 0){
-      // 已存在 → 移除
-      mine.splice(i,1);
-    } else {
-      mine.push(toMyExp(exp));
-    }
-    saveMyExperiences(mine);
-  }
-
-  /* ---------- 取得目前 chip 的過濾值 ---------- */
-  function getCurrentFilter(){
-    const on = document.querySelector('.filters .chip.is-on');
-    return on ? on.dataset.filter : 'all';
-  }
-
-  /* ---------- 綁事件 ---------- */
-  document.addEventListener('DOMContentLoaded', ()=>{
-    // 初次畫
-    renderExpList();
-
-    // 篩選 chips
-    document.querySelectorAll('.filters .chip').forEach(chip=>{
-      chip.addEventListener('click', ()=>{
-        document.querySelectorAll('.filters .chip').forEach(c=> c.classList.remove('is-on'));
-        chip.classList.add('is-on');
-        renderExpList(chip.dataset.filter || 'all');
-      });
-    });
-
-    // 清單上的事件（代理）
-    $('#expList')?.addEventListener('click', (e)=>{
-      const btnDetail = e.target.closest('[data-exp-detail]');
-      const btnAdd    = e.target.closest('[data-exp-add]');
-      if (btnDetail){
-        const id = btnDetail.dataset.expDetail;
-        openExpDetail(id);
-      }
-      if (btnAdd){
-        const id = btnAdd.dataset.expAdd;
-        toggleMyExp(id);
-        // 重畫，讓按鈕狀態更新
-        renderExpList(getCurrentFilter());
-      }
-    });
-
-    // 詳情關閉
-    $('#btnCloseExp')?.addEventListener('click', closeExpDetail);
-
-    // 最上面的返回 → 回 home
-    $('#btnBackHome')?.addEventListener('click', ()=>{
-      if (window.showPage) window.showPage('home');
-      closeExpDetail();
-    });
+  // 返回按鈕
+  btnBack?.addEventListener('click', () => {
+    if (window.showPage) window.showPage('home');
   });
 
-})();
+  // 詳情關閉
+  btnCloseDetail?.addEventListener('click', () => {
+    detail?.classList.remove('is-open');
+    detail?.setAttribute('hidden', '');
+  });
+
+  // 事件代理：詳情 + 加入
+  listWrap?.addEventListener('click', (e) => {
+    const detailBtn = e.target.closest('[data-detail]');
+    const addBtn    = e.target.closest('[data-add]');
+
+    // 打開詳情
+    if (detailBtn) {
+      const id = detailBtn.dataset.detail;
+      const exp = EXP_DATA.find((x) => x.id === id);
+      if (!exp) return;
+      const content = document.getElementById('expContent');
+      if (content) {
+        content.innerHTML = `
+          <div class="exp-detail__hero">
+            <div class="exp-detail__cover" style="background-image:url('${exp.cover || ''}')"></div>
+            <div class="exp-detail__head">
+              <h2>${exp.title}</h2>
+              <p>${exp.city} · ${exp.duration}</p>
+              <p class="exp-detail__price">${exp.price}</p>
+            </div>
+          </div>
+          <div class="exp-detail__body">
+            <h3>體驗重點</h3>
+            <p>這裡放體驗的詳細說明、行程安排、集合地點等，之後可從後台帶資料。</p>
+          </div>
+        `;
+      }
+      detail?.classList.add('is-open');
+      detail?.removeAttribute('hidden');
+    }
+
+    // 加到我的體驗
+    if (addBtn) {
+      const id = addBtn.dataset.add;
+      const card = addBtn.closest('.exp-card');
+      const exp = EXP_DATA.find((x) => x.id === id);
+
+      // 組要存的物件
+      const item = {
+        id: exp?.id || id,
+        title: exp?.title || card?.querySelector('h3')?.textContent?.trim() || '未命名體驗',
+        city: exp?.city || card?.dataset.city || '',
+        duration: exp?.duration || card?.dataset.dur || '',
+        price: exp?.price || card?.querySelector('.exp-price')?.textContent?.trim() || ''
+      };
+
+      // 讀舊的
+      let old = [];
+      try {
+        old = JSON.parse(localStorage.getItem('hl.myExperiences') || '[]');
+      } catch (err) {
+        old = [];
+      }
+
+      // 不重複才加
+      const exists = old.some((x) => x.id === item.id);
+      if (!exists) {
+        old.push(item);
+        localStorage.setItem('hl.myExperiences', JSON.stringify(old));
+      }
+
+      // 切換按鈕樣式
+      addBtn.classList.add('is-added');
+      addBtn.textContent = '已加入';
+
+      // 通知 profile 重畫
+      window.dispatchEvent(new CustomEvent('hl:myExpChanged'));
+    }
+  });
+});
