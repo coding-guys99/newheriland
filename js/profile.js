@@ -32,78 +32,122 @@
     if (elAva)  elAva.textContent  = (avatar || 'H').toString().slice(0, 1).toUpperCase();
   }
 
+  // ===== 各頁導航（統一在這裡） =====
+  function openMyFavorites() {
+    if (window.showPage) window.showPage('saved');
+  }
+  function openMyReviews() {
+    if (window.showPage) window.showPage('reviews');
+  }
+  function openCoupons() {
+    alert('優惠券 / 任務功能尚未開放（demo）');
+  }
+  function openPhotoSubmit() {
+    if (window.showPage) window.showPage('photo-submit');
+  }
+  function openFeedback() {
+    if (window.showPage) window.showPage('feedback');
+  }
+  function contactSupport() {
+    if (window.showPage) window.showPage('contact');
+  }
+  function openMerchantJoin() {
+    if (window.showPage) window.showPage('merchant');
+  }
+  function openAbout() {
+    if (window.showPage) window.showPage('about');
+  }
+  // 🔴 重點：條款先走 overlay，再走 router
+  function openTerms() {
+    if (typeof window.hlOpenTerms === 'function') {
+      window.hlOpenTerms();       // 開 overlay
+    } else if (window.showPage) {
+      window.showPage('terms');   // 備援：有真正的 data-page="terms" 才會看到
+    } else {
+      alert('Terms page not available in this build.');
+    }
+  }
+  // rate 一樣防呆
+  function openRate() {
+    if (typeof window.openRateModal === 'function') {
+      window.openRateModal();
+    } else {
+      alert('Rate modal not loaded yet.');
+    }
+  }
+
   // ===== 綁定所有按鈕 =====
   function bindProfileActions() {
-    const btnGear   = document.getElementById('profileCardSettings');
-    const btnFavs   = document.getElementById('pQuickFavs');
-    const btnReviews= document.getElementById('pQuickReviews');
-    const btnCoupons= document.getElementById('pQuickCoupons');
-    const btnPost   = document.getElementById('pQuickPost');
-    const btnMyFavs = document.getElementById('pMyFavs');
-    const btnMyReviews = document.getElementById('pMyReviews');
-    const btnMyTrips   = document.getElementById('pMyTrips');
-    const btnPhotoSubmit = document.getElementById('pPhotoSubmit');
-    const btnFeedback = document.getElementById('pFeedback');
-    const btnContact  = document.getElementById('pContact');
-    const btnMerchant = document.getElementById('pForMerchant');
-    const btnAbout    = document.getElementById('pAboutHL');
-    const btnRate     = document.getElementById('pRateHL');
-    const btnTerms    = document.getElementById('pTerms');
-    const btnSettings = document.getElementById('plOpenSettings');
-    const btnLogout   = document.getElementById('pLogout');
+    const btnGear       = document.getElementById('profileCardSettings');
+    const btnFavs       = document.getElementById('pQuickFavs');
+    const btnReviews    = document.getElementById('pQuickReviews');
+    const btnCoupons    = document.getElementById('pQuickCoupons');
+    const btnPost       = document.getElementById('pQuickPost');
 
-    if (btnGear) btnGear.addEventListener('click', function(){
-      if (window.hlOpenDrawer) window.hlOpenDrawer();
-    });
+    const btnMyFavs     = document.getElementById('pMyFavs');
+    const btnMyReviews  = document.getElementById('pMyReviews');
+    const btnMyTrips    = document.getElementById('pMyTrips');
 
-    if (btnFavs) btnFavs.addEventListener('click', openMyFavorites);
+    const btnPhotoSubmit= document.getElementById('pPhotoSubmit');
+    const btnFeedback   = document.getElementById('pFeedback');
+    const btnContact    = document.getElementById('pContact');
+    const btnMerchant   = document.getElementById('pForMerchant');
+
+    const btnAbout      = document.getElementById('pAboutHL');
+    const btnRate       = document.getElementById('pRateHL');
+    const btnTerms      = document.getElementById('pTerms');
+    const btnSettings   = document.getElementById('plOpenSettings');
+    const btnLogout     = document.getElementById('pLogout');
+
+    // 卡片齒輪
+    if (btnGear) {
+      btnGear.addEventListener('click', function () {
+        if (window.hlOpenDrawer) window.hlOpenDrawer();
+      });
+    }
+
+    // 快捷四格
+    if (btnFavs)    btnFavs.addEventListener('click', openMyFavorites);
     if (btnReviews) btnReviews.addEventListener('click', openMyReviews);
     if (btnCoupons) btnCoupons.addEventListener('click', openCoupons);
-    if (btnPost) btnPost.addEventListener('click', openPhotoSubmit);
+    if (btnPost)    btnPost.addEventListener('click', openPhotoSubmit);
 
-    if (btnMyFavs) btnMyFavs.addEventListener('click', openMyFavorites);
+    // 「我的內容」三個
+    if (btnMyFavs)    btnMyFavs.addEventListener('click', openMyFavorites);
     if (btnMyReviews) btnMyReviews.addEventListener('click', openMyReviews);
-    if (btnMyTrips) btnMyTrips.addEventListener('click', function(){
+    if (btnMyTrips)   btnMyTrips.addEventListener('click', function () {
       if (window.showPage) window.showPage('my-experiences');
     });
 
+    // 平台互動
     if (btnPhotoSubmit) btnPhotoSubmit.addEventListener('click', openPhotoSubmit);
-    if (btnFeedback) btnFeedback.addEventListener('click', openFeedback);
-    if (btnContact)  btnContact.addEventListener('click', contactSupport);
-    if (btnMerchant) btnMerchant.addEventListener('click', openMerchantJoin);
+    if (btnFeedback)    btnFeedback.addEventListener('click', openFeedback);
+    if (btnContact)     btnContact.addEventListener('click', contactSupport);
+    if (btnMerchant)    btnMerchant.addEventListener('click', openMerchantJoin);
 
-    if (btnAbout) btnAbout.addEventListener('click', openAbout);
-    if (btnRate)  btnRate.addEventListener('click', function(){
-      if (window.openRateModal) window.openRateModal();
-    });
-    if (btnTerms) btnTerms.addEventListener('click', openTerms);
-    if (btnSettings) btnSettings.addEventListener('click', function(){
+    // 關於 / 評分 / 條款 / 設定
+    if (btnAbout)    btnAbout.addEventListener('click', openAbout);
+    if (btnRate)     btnRate.addEventListener('click', openRate);
+    if (btnTerms)    btnTerms.addEventListener('click', openTerms);
+    if (btnSettings) btnSettings.addEventListener('click', function () {
       if (window.hlOpenDrawer) window.hlOpenDrawer();
     });
 
-    if (btnLogout) btnLogout.addEventListener('click', doLogout);
+    // 登出
+    if (btnLogout) {
+      btnLogout.addEventListener('click', doLogout);
+    }
   }
 
-  // ===== 各頁導航 =====
-  function openMyFavorites(){ if (window.showPage) window.showPage('saved'); }
-  function openMyReviews(){ if (window.showPage) window.showPage('reviews'); }
-  function openCoupons(){ alert('優惠券 / 任務功能尚未開放（demo）'); }
-  function openPhotoSubmit(){ if (window.showPage) window.showPage('photo-submit'); }
-  function openFeedback(){ if (window.showPage) window.showPage('feedback'); }
-  function contactSupport(){ if (window.showPage) window.showPage('contact'); }
-  function openMerchantJoin(){ if (window.showPage) window.showPage('merchant'); }
-  function openAbout(){ if (window.showPage) window.showPage('about'); }
-  function openTerms(){ if (window.showPage) window.showPage('terms'); }
-
   // ===== 登出 =====
-  function doLogout(){
+  function doLogout() {
     const ok = confirm('確定要登出嗎？');
     if (!ok) return;
 
-    lsSet('hl.pref.name','Guest User');
-    lsSet('hl.pref.tagline','Discovering Sarawak');
-    lsSet('hl.pref.role','Guest');
-    lsSet('hl.pref.avatar','H');
+    lsSet('hl.pref.name', 'Guest User');
+    lsSet('hl.pref.tagline', 'Discovering Sarawak');
+    lsSet('hl.pref.role', 'Guest');
+    lsSet('hl.pref.avatar', 'H');
 
     if (window.hlSyncUI) window.hlSyncUI();
     fillProfileFromStorage();
@@ -115,7 +159,7 @@
   window.addEventListener('hl:userUpdated', fillProfileFromStorage);
 
   // ===== 初始化 =====
-  document.addEventListener('DOMContentLoaded', function(){
+  document.addEventListener('DOMContentLoaded', function () {
     fillProfileFromStorage();
     bindProfileActions();
   });
