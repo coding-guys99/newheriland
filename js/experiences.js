@@ -91,7 +91,6 @@
   function setMy(list){
     try { localStorage.setItem(EXP_KEY, JSON.stringify(list)); }
     catch(e){}
-    // 告訴 profile 那邊重畫
     window.dispatchEvent(new CustomEvent('hl:myExpChanged'));
   }
 
@@ -150,11 +149,11 @@
     const mine  = new Set(getMy());
     const isMine = mine.has(item.id);
 
-    const short  = item.shortDesc || '這個體驗還沒有補上描述。';
-    const detail = item.detail || '體驗內容待補，請以實際活動為準。';
-    const includes = item.includes || ['導覽服務', '當地嚮導'];
-    const meetup   = item.meetup   || '活動前一日會另行通知集合點。';
-    const notice   = item.notice   || '請穿著輕便服裝，攜帶飲水與防曬用品。';
+    const short   = item.shortDesc || '這個體驗還沒有補上描述。';
+    const detail  = item.detail || '體驗內容待補，請以實際活動為準。';
+    const includes= item.includes || ['導覽服務', '當地嚮導'];
+    const meetup  = item.meetup   || '活動前一日會另行通知集合點。';
+    const notice  = item.notice   || '請穿著輕便服裝，攜帶飲水與防曬用品。';
 
     cont.innerHTML = `
       <div class="exp-detail__hero">
@@ -194,7 +193,6 @@
       </button>
     `;
 
-    // 🔴 真正打開：有些全域樣式會把 overlay 關掉，所以這裡要兩招都下
     page.hidden = false;
     page.classList.add('is-open');
     page.style.display = 'block';
@@ -222,7 +220,8 @@
     }
     setMy(list);
     renderExperiences(currentFilter);
-    // 如果詳情頁開著，也更新按鈕
+
+    // 詳情頁同步
     const detailBtn = document.getElementById('btnExpAddFromDetail');
     if (detailBtn && detailBtn.dataset.add === id){
       const mine = new Set(getMy());
@@ -230,7 +229,19 @@
       detailBtn.textContent = isAdded ? '已加入我的體驗' : '＋ 加入我的體驗';
       detailBtn.disabled = isAdded;
     }
+
     alert(msg);
+  }
+
+  // ===== 返回處理（重點修這裡） =====
+  function goBackFromExperiences(){
+    // 有 router 就走 router
+    if (typeof window.showPage === 'function') {
+      window.showPage('home');
+    } else {
+      // 沒有就改 hash，至少有行為
+      location.hash = '#home';
+    }
   }
 
   // ===== 綁定 =====
@@ -251,7 +262,7 @@
       });
     });
 
-    // 列表代理：詳情 / 加入
+    // 列表代理
     document.getElementById('expList')?.addEventListener('click', (e)=>{
       const btn = e.target.closest('button');
       if (!btn) return;
@@ -275,15 +286,16 @@
       renderExperiences(currentFilter);
     });
 
-    // 返回 Home
-    document.getElementById('btnExpBack')?.addEventListener('click', ()=>{
-      if (window.showPage) window.showPage('home');
-    });
-
-    // 開設定
-    document.getElementById('btnExpSettings')?.addEventListener('click', ()=>{
-      if (window.hlOpenDrawer) window.hlOpenDrawer();
-    });
+    // ✅ 返回（第一次綁，若當下 DOM 裡就有）
+    document.getElementById('btnExpBack')?.addEventListener('click', goBackFromExperiences);
   });
 
-})();
+  // ✅ 再保一層：如果頁面是後面才 include 進來的，這個也抓得到
+  document.addEventListener('click', (e)=>{
+    const backBtn = e.target.closest('#btnExpBack');
+    if (backBtn) {
+      goBackFromExperiences();
+    }
+  });
+
+})(); 
