@@ -1,56 +1,104 @@
-/* ===== My Trips ===== */
-.trips-body {
-  padding: 1rem;
-}
+/* ===== My Experiences / 我的體驗 ===== */
 
-.trips-list {
+/* 外層容器（對應 #myExpBody） */
+.myexp-body {
+  padding: 1rem;
   display: grid;
   gap: 1rem;
 }
 
-.trip-card {
+/* 列表容器：如果你之後要做分組，也可以再包一層 */
+.myexp-list {
+  display: grid;
+  gap: 1rem;
+}
+
+/* 單張體驗卡片 */
+.myexp-card {
   background: var(--surface, #fff);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.05);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  border: 1px solid rgba(15,23,42,.035);
 }
 
-.trip-card img {
+/* 封面圖（如果之後有丟 img） */
+.myexp-card img {
   width: 100%;
   height: 140px;
   object-fit: cover;
+  display: block;
 }
 
-.trip-card .trip-info {
-  padding: .8rem 1rem;
+/* 內文區 */
+.myexp-card .myexp-info {
+  padding: .8rem 1rem .9rem;
 }
 
-.trip-card h3 {
+.myexp-card h3 {
   margin: 0;
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-size: 1.02rem;
+  font-weight: 650;
 }
 
-.trip-card p {
+.myexp-card p {
   margin: .25rem 0 0;
-  color: #555;
+  color: #64748b;
+  font-size: .85rem;
+}
+
+/* 小的 meta 行（時間、地點） */
+.myexp-meta {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+  margin-top: .5rem;
+  font-size: .75rem;
+  color: #94a3b8;
+}
+
+/* 空狀態（對應 #myExpEmpty） */
+#myExpEmpty.empty-state {
+  text-align: center;
+  padding: 2.4rem 1.2rem 3rem;
+}
+
+#myExpEmpty .empty-emoji {
+  font-size: 2.4rem;
+  margin-bottom: .5rem;
+}
+
+#myExpEmpty .empty-title {
+  font-weight: 700;
+  margin-bottom: .35rem;
+}
+
+#myExpEmpty .empty-sub {
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+
+/* 去看體驗按鈕 */
+#myExpGoExp {
+  border: 0;
+  background: #22c55e;
+  color: #fff;
+  border-radius: 999px;
+  padding: .55rem 1.1rem;
+  font-weight: 600;
   font-size: .9rem;
 }
 
-.trips-empty {
-  text-align: center;
-  padding: 2rem 1rem;
-  color: #666;
-}
-
-.btn-primary {
-  margin-top: 1rem;
-  padding: .6rem 1rem;
-  background: #22c55e;
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-size: 1rem;
+/* 深色模式 */
+@media (prefers-color-scheme: dark) {
+  .myexp-card {
+    background: rgba(15,23,42,.6);
+    border-color: rgba(148,163,184,.1);
+    box-shadow: 0 4px 16px rgba(0,0,0,.35);
+  }
+  .myexp-card p { color: #cbd5f5; }
+  .myexp-meta { color: #94a3b8; }
+  #myExpEmpty .empty-sub { color: #cbd5e1; }
 }
