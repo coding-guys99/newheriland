@@ -505,19 +505,22 @@
   </div>
 </section>
 
-<!-- ===== My Trips / Experiences ===== -->
-<section data-page="trips" aria-labelledby="h-trips" class="section" hidden>
+<!-- My Experiences / 我的體驗 -->
+<section data-page="my-experiences" id="p-my-experiences" class="section" hidden aria-labelledby="h-my-exp">
   <header class="subappbar">
-    <button class="icon-btn back" id="btnTripsBack" aria-label="Back">←</button>
-    <h1 id="h-trips">我的體驗 / 行程</h1>
+    <button class="icon-btn back" data-back-to="profile" aria-label="Back">←</button>
+    <h1 id="h-my-exp">我的體驗</h1>
   </header>
 
-  <div class="trips-body">
-    <div id="tripsList" class="trips-list"></div>
-    <div id="tripsEmpty" class="trips-empty" hidden>
-      <p>你還沒有加入任何體驗喔 🌿</p>
-      <button id="btnExploreTrips" class="btn-primary">去看看體驗行程</button>
-    </div>
+  <div class="myexp-body" id="myExpBody">
+    <!-- JS 會塞內容進來 -->
+  </div>
+
+  <div class="empty-state" id="myExpEmpty" hidden>
+    <div class="empty-emoji">🗓️</div>
+    <div class="empty-title">還沒有加入體驗</div>
+    <div class="empty-sub">到「體驗行程」頁點「＋」就會出現在這裡。</div>
+    <button class="err-retry" type="button" id="myExpGoExp">去看體驗</button>
   </div>
 </section>
 
