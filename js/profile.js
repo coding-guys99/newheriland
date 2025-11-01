@@ -102,10 +102,6 @@
     showPage('about');
   }
 
-  function openTerms(){
-    showPage('terms');
-  }
-
   function doLogout(){
     const ok = confirm('確定要登出嗎？');
     if (!ok) return;
