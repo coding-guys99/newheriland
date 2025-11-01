@@ -110,7 +110,9 @@
     $('#pMyFavs')?.addEventListener('click', () => openMyFavorites());
     $('#pMyReviews')?.addEventListener('click', () => openMyReviews());
     // 這裡原本 alert，我們改成真的頁面
-    $('#pMyTrips')?.addEventListener('click', () => openMyExperiences());
+    $('#pMyTrips')?.addEventListener('click', ()=> {
+  if (window.showPage) window.showPage('my-experiences');
+});
 
     // 4) 平台互動
     $('#pPhotoSubmit')?.addEventListener('click', () => openPhotoSubmit());
