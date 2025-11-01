@@ -1,0 +1,60 @@
+/* ===== Terms / Privacy Overlay ===== */
+.overlay-page.hl-terms {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: radial-gradient(circle at top, rgba(243,245,247,0.9), rgba(236,239,243,1));
+  backdrop-filter: blur(14px);
+  display: none;
+  grid-template-rows: auto 1fr;
+}
+.overlay-page.hl-terms.active { display: grid; }
+.overlay-page.hl-terms[hidden] { display: none !important; }
+
+.hl-terms__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px 8px;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(15,23,42,.05);
+}
+.hl-terms__title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: .1px;
+}
+.hl-terms__body {
+  overflow-y: auto;
+  padding: 16px 18px calc(30px + env(safe-area-inset-bottom));
+  color: #1f2937;
+  line-height: 1.65;
+}
+.hl-terms__body h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 20px 0 6px;
+}
+.hl-terms__body p,
+.hl-terms__body li {
+  font-size: 14px;
+  color: #374151;
+}
+.hl-terms__body ul {
+  padding-left: 18px;
+  margin-bottom: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .overlay-page.hl-terms {
+    background: radial-gradient(circle at top, rgba(15,23,42,.95), rgba(15,23,42,1));
+  }
+  .hl-terms__head {
+    background: rgba(15,23,42,.6);
+    border-bottom-color: rgba(255,255,255,.08);
+  }
+  .hl-terms__body { color: #e5e7eb; }
+  .hl-terms__body h2 { color: #f9fafb; }
+  .hl-terms__body p, .hl-terms__body li { color: #d1d5db; }
+}
