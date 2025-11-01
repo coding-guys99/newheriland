@@ -4,16 +4,14 @@
   const $  = (s,r=document)=>r.querySelector(s);
   const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
 
-  /* ======== 假資料（之後可換 Supabase） ======== */
   const EXPERIENCES = [
-    { id: 'exp-001', title: '老街文化走讀', city: 'Kuching', tag: 'culture', time: '2hrs', price: 'RM68', cover: 'img/exp1.jpg' },
-    { id: 'exp-002', title: '砂拉越手作雨林蠟染', city: 'Kuching', tag: 'culture', time: '1.5hrs', price: 'RM85', cover: 'img/exp2.jpg' },
-    { id: 'exp-003', title: '在地 Kopitiam 美食巡禮', city: 'Sibu', tag: 'food', time: '3hrs', price: 'RM55', cover: 'img/exp3.jpg' },
-    { id: 'exp-004', title: '濕地生態半日遊', city: 'Kuching', tag: 'outdoor', time: '4hrs', price: 'RM120', cover: 'img/exp4.jpg' },
-    { id: 'exp-005', title: '親子陶土體驗', city: 'Miri', tag: 'family', time: '2hrs', price: 'RM75', cover: 'img/exp5.jpg' }
+    { id: 'exp-001', title: '老街文化走讀', city: 'Kuching', tag: 'culture', time: '2hrs',   price: 'RM68',  cover: 'img/exp1.jpg' },
+    { id: 'exp-002', title: '砂拉越手作雨林蠟染', city: 'Kuching', tag: 'culture', time: '1.5hrs', price: 'RM85',  cover: 'img/exp2.jpg' },
+    { id: 'exp-003', title: '在地 Kopitiam 美食巡禮', city: 'Sibu',    tag: 'food',    time: '3hrs',  price: 'RM55',  cover: 'img/exp3.jpg' },
+    { id: 'exp-004', title: '濕地生態半日遊',   city: 'Kuching', tag: 'outdoor', time: '4hrs',  price: 'RM120', cover: 'img/exp4.jpg' },
+    { id: 'exp-005', title: '親子陶土體驗',     city: 'Miri',    tag: 'family',  time: '2hrs',  price: 'RM75',  cover: 'img/exp5.jpg' }
   ];
 
-  /* ======== localStorage I/O ======== */
   function getMy(){
     try { return JSON.parse(localStorage.getItem(EXP_KEY) || '[]'); }
     catch(e){ return []; }
@@ -21,19 +19,17 @@
   function setMy(list){
     try { localStorage.setItem(EXP_KEY, JSON.stringify(list)); }
     catch(e){}
-    // 通知 profile.js 更新
     window.dispatchEvent(new CustomEvent('hl:myExpChanged'));
   }
 
-  /* ======== 渲染主清單 ======== */
   let currentFilter = 'all';
   function renderExperiences(filter='all'){
-    const wrap = $('#expList');
+    const wrap  = $('#expList');
     const empty = $('#expEmpty');
     if (!wrap) return;
 
-    const myList = new Set(getMy());
-    const items = EXPERIENCES.filter(x => filter==='all' ? true : x.tag===filter);
+    const mine  = new Set(getMy());
+    const items = EXPERIENCES.filter(x => filter==='all' ? true : x.tag === filter);
 
     wrap.innerHTML = '';
     if (!items.length){
@@ -43,7 +39,7 @@
     empty.hidden = true;
 
     items.forEach(exp=>{
-      const isAdded = myList.has(exp.id);
+      const isAdded = mine.has(exp.id);
       const card = document.createElement('article');
       card.className = 'exp-card has-thumb';
       card.innerHTML = `
@@ -55,7 +51,7 @@
         </div>
         <div class="exp-actions">
           <button class="exp-btn exp-detail-btn" data-id="${exp.id}">詳情</button>
-          <button class="exp-btn exp-add-btn ${isAdded?'is-added':''}" data-add="${exp.id}">
+          <button class="exp-btn exp-add-btn ${isAdded ? 'is-added' : ''}" data-add="${exp.id}">
             ${isAdded ? '已加入（點可移除）' : '＋ 加入'}
           </button>
         </div>
@@ -64,15 +60,14 @@
     });
   }
 
-  /* ======== 詳情 Overlay ======== */
   function openDetail(id){
     const page = $('#expDetail');
     const cont = $('#expContent');
     const item = EXPERIENCES.find(x=>x.id===id);
     if (!page || !cont || !item) return;
 
-    const myList = new Set(getMy());
-    const isAdded = myList.has(item.id);
+    const mine = new Set(getMy());
+    const isAdded = mine.has(item.id);
 
     cont.innerHTML = `
       <div class="exp-detail__hero">
@@ -102,10 +97,9 @@
     page.hidden = true;
   }
 
-  /* ======== 加入 / 移除 ======== */
   function toggleMy(id){
     const list = getMy();
-    const idx = list.indexOf(id);
+    const idx  = list.indexOf(id);
     let msg = '';
     if (idx === -1){
       list.push(id);
@@ -116,23 +110,22 @@
     }
     setMy(list);
     renderExperiences(currentFilter);
-    renderDetailButtonState(id);
+    renderDetailBtn(id);
     alert(msg);
   }
 
-  /* ======== 詳情頁按鈕同步狀態 ======== */
-  function renderDetailButtonState(id){
-    const btn = $('#btnExpAddFromDetail');
+  function renderDetailBtn(id){
+    const btn = document.getElementById('btnExpAddFromDetail');
     if (!btn) return;
-    const myList = new Set(getMy());
-    const isAdded = myList.has(id);
+    const mine = new Set(getMy());
+    const isAdded = mine.has(id);
     btn.textContent = isAdded ? '已加入（點可移除）' : '＋ 加入我的體驗';
   }
 
-  /* ======== 綁定事件 ======== */
   document.addEventListener('DOMContentLoaded', ()=>{
-    const expMain = $('#expMain');
-    if (expMain) expMain.hidden = false; // 自動解除 hidden
+    // 解除 hidden
+    const expMain = document.getElementById('expMain');
+    if (expMain) expMain.hidden = false;
 
     renderExperiences('all');
 
@@ -146,31 +139,42 @@
       });
     });
 
-    // 列表代理：詳情 / 加入或移除
-    $('#expList')?.addEventListener('click', (e)=>{
+    // 列表點擊
+    document.getElementById('expList')?.addEventListener('click', (e)=>{
       const btn = e.target.closest('button');
       if (!btn) return;
-      if (btn.dataset.id) openDetail(btn.dataset.id);
+      if (btn.dataset.id)  openDetail(btn.dataset.id);
       if (btn.dataset.add) toggleMy(btn.dataset.add);
     });
 
     // 詳情關閉
-    $('#btnCloseExp')?.addEventListener('click', closeDetail);
+    document.getElementById('btnCloseExp')?.addEventListener('click', closeDetail);
 
-    // 詳情內「加入或移除」
+    // 詳情內加入/移除
     document.body.addEventListener('click', (e)=>{
       const btn = e.target.closest('#btnExpAddFromDetail');
       if (!btn) return;
       const id = btn.dataset.add;
       toggleMy(id);
-      renderDetailButtonState(id);
     });
 
     // 空狀態重整
-    $('#btnExpRetry')?.addEventListener('click', ()=> renderExperiences(currentFilter));
+    document.getElementById('btnExpRetry')?.addEventListener('click', ()=>{
+      renderExperiences(currentFilter);
+    });
 
-    // Profile 頁的「去看體驗」
-    $('#myExpGoExp')?.addEventListener('click', ()=> window.showPage?.('experiences'));
+    // ← 返回
+    document.getElementById('btnExpBack')?.addEventListener('click', ()=>{
+      if (window.showPage) {
+        window.showPage('home');
+      } else {
+        history.back();
+      }
+    });
+
+    // ⚙️ 開設定
+    document.getElementById('btnExpSettings')?.addEventListener('click', ()=>{
+      if (window.hlOpenDrawer) window.hlOpenDrawer();
+    });
   });
-
 })();
