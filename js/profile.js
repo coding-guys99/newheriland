@@ -54,7 +54,9 @@
     $('#pRateHL')?.addEventListener('click', ()=>{
   if (window.openRateModal) window.openRateModal();
 });
-    $('#pTerms')?.addEventListener('click', ()=> openTerms());
+    $('#pTerms')?.addEventListener('click', ()=>{
+  if (window.openTerms) window.openTerms();
+});
     $('#plOpenSettings')?.addEventListener('click', ()=>{
       if (window.hlOpenDrawer) window.hlOpenDrawer();
     });
