@@ -315,3 +315,62 @@
     border-color: rgba(255,255,255,.03);
   }
 }
+
+/* ===== prettier card tweaks ===== */
+.exp-list {
+  gap: 16px;
+}
+
+.exp-card.has-thumb {
+  align-items: stretch;
+  padding: 12px 12px 12px;
+  box-shadow: 0 14px 28px rgba(11,15,18,.04);
+  border-radius: 20px;
+  background: #fff;
+}
+
+.exp-main h3 {
+  font-size: 15.5px;
+  margin-bottom: 3px;
+}
+
+.exp-main .exp-sub {
+  font-size: 12.5px;
+  color: #6b7280;
+}
+
+.exp-main .exp-price {
+  margin-top: 4px;
+  font-weight: 700;
+  color: #15803d;
+}
+
+.exp-actions {
+  gap: 8px;
+  justify-content: center;
+}
+
+.exp-btn {
+  min-width: 88px;
+  text-align: center;
+}
+
+/* 狀態版，加了就像你現在 screenshot 那樣 */
+.exp-btn.exp-add-btn.is-added {
+  background: #ecfccb;
+  color: #166534;
+  border: 1px solid rgba(22,101,52,.12);
+  font-size: 12.5px;
+}
+
+/* 小螢幕時，把右邊按鈕排到下面，看起來不會擠 */
+@media (max-width: 460px) {
+  .exp-card.has-thumb {
+    grid-template-columns: 90px 1fr;
+  }
+  .exp-actions {
+    grid-column: 1 / -1;
+    grid-auto-flow: column;
+    justify-content: flex-start;
+  }
+}
