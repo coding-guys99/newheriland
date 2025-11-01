@@ -505,35 +505,20 @@
   </div>
 </section>
 
-<!-- 我的體驗頁 -->
-<section id="p-my-experiences"
-         class="page"
-         data-page="my-experiences"
-         hidden
-         aria-label="我的體驗">
-
-  <!-- 頂部 bar -->
-  <header class="subappbar exp-topbar">
-    <button class="icon-btn back" id="btnMyExpBack" aria-label="返回">←</button>
-    <h1>我的體驗</h1>
-    <div style="width:30px"></div> <!-- 佔位，讓標題置中 -->
+<!-- ===== My Trips / Experiences ===== -->
+<section data-page="trips" aria-labelledby="h-trips" class="section" hidden>
+  <header class="subappbar">
+    <button class="icon-btn back" id="btnTripsBack" aria-label="Back">←</button>
+    <h1 id="h-trips">我的體驗 / 行程</h1>
   </header>
 
-  <!-- 內容區 -->
-  <div class="myexp-body">
-    <!-- JS renderTrips() 會在這裡插入內容 -->
-  </div>
-
-  <!-- 空狀態樣式（profile.js 會自動切換） -->
-  <template id="tplEmptyMyExp">
-    <div class="empty-state">
-      <div class="empty-emoji">🗺️</div>
-      <div class="empty-title">目前還沒有加入體驗</div>
-      <div class="empty-sub">到「體驗行程」頁面按「+」即可收藏。</div>
-      <button id="btnExploreTrips" class="exp-btn exp-detail-btn" type="button">前往體驗行程</button>
+  <div class="trips-body">
+    <div id="tripsList" class="trips-list"></div>
+    <div id="tripsEmpty" class="trips-empty" hidden>
+      <p>你還沒有加入任何體驗喔 🌿</p>
+      <button id="btnExploreTrips" class="btn-primary">去看看體驗行程</button>
     </div>
-  </template>
-
+  </div>
 </section>
 
 <!-- Feedback -->
@@ -1512,6 +1497,6 @@
   <script type="module" src="js/merchant.js"></script>
   <script type="module" src="js/about.js"></script>
   <script type="module" src="js/terms.js"></script>
-  
+  <script type="module" src="js/trips.js"></script>
 </body>
 </html>
