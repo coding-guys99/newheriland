@@ -1,4 +1,4 @@
-/* experiences.css — HeriLand Experiences (enhanced for “Add to My Experiences”) */
+/* experiences.css — HeriLand Experiences (match JS structure) */
 
 :root {
   --exp-line: rgba(0,0,0,.08);
@@ -10,6 +10,7 @@
   display: block;
   padding-bottom: calc(70px + env(safe-area-inset-bottom));
   background: #f1f5f9;
+  min-height: 100vh;
 }
 
 /* ===== 頂部 bar ===== */
@@ -47,8 +48,8 @@
     background: color-mix(in srgb, #0b0f12 75%, transparent);
     border-bottom-color: rgba(255,255,255,.08);
   }
-  .exp-topbar h1 { color:#f5f7fa; }
-  .icon-btn { color:#f1f5f9; }
+  .exp-topbar h1 { color: #f5f7fa; }
+  .icon-btn { color: #f1f5f9; }
 }
 
 /* ===== 說明文字 ===== */
@@ -67,7 +68,7 @@
   overflow-x: auto;
   scrollbar-width: none;
 }
-.filters::-webkit-scrollbar { display:none; }
+.filters::-webkit-scrollbar { display: none; }
 .filters .chips {
   display: flex;
   gap: 6px;
@@ -89,36 +90,38 @@
   box-shadow: 0 6px 18px rgba(20,83,45,.25);
 }
 
-/* ===== 體驗清單卡 ===== */
+/* ===== 體驗清單卡（對 experiences.js） ===== */
 .exp-list {
   display: grid;
   gap: 14px;
   padding: 10px 12px 90px;
 }
-.exp-card.has-thumb {
+
+/* JS 產的是 .exp-card（沒有 .has-thumb） */
+.exp-card {
   background: #fff;
   border-radius: var(--exp-radius);
   border: 1px solid rgba(0,0,0,.02);
   box-shadow: 0 16px 35px rgba(0,0,0,.03);
-  padding: 10px;
+  padding: 10px 12px;
   display: grid;
-  grid-template-columns: 110px 1fr auto;
+  grid-template-columns: 1fr auto;
   gap: 12px;
   align-items: center;
   position: relative;
 }
-.exp-thumb {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  border-radius: 14px;
-  background: #e2e8f0 center/cover no-repeat;
+
+/* 內文區 */
+.exp-main {
+  min-width: 0;
 }
+.exp-main .exp-title,
 .exp-main h3 {
   margin: 0 0 4px;
   font-weight: 700;
   font-size: 15px;
 }
-.exp-main .exp-sub {
+.exp-main .exp-meta {
   margin: 0 0 6px;
   color: #6b7280;
   font-size: 13px;
@@ -129,34 +132,37 @@
   font-weight: 700;
 }
 
-/* ===== 新增按鈕區 ===== */
+/* 右側按鈕區：JS 用的是 .exp-btn-detail、.exp-btn-save */
 .exp-actions {
   display: grid;
   gap: 6px;
+  justify-items: end;
 }
-.exp-btn {
+.exp-btn-detail,
+.exp-btn-save {
   border: none;
   border-radius: 999px;
   padding: 6px 12px 7px;
   font-weight: 600;
   font-size: 13px;
   cursor: pointer;
-  background: #e5e7eb;
   white-space: nowrap;
   transition: background .2s ease, transform .2s ease;
 }
-.exp-btn:active { transform: scale(.95); }
-
-.exp-detail-btn {
+.exp-btn-detail {
   background: #dbeafe;
   color: #0f172a;
 }
-.exp-add-btn {
+.exp-btn-save {
   background: #22c55e;
   color: #fff;
 }
-.exp-add-btn:hover { background: #16a34a; }
-.exp-add-btn.is-added {
+.exp-btn-save:hover { background: #16a34a; }
+.exp-btn-detail:active,
+.exp-btn-save:active { transform: scale(.97); }
+
+/* JS 會加這個：.exp-btn-save.is-on */
+.exp-btn-save.is-on {
   background: #ecfccb;
   color: #166534;
   cursor: default;
@@ -170,7 +176,7 @@
 }
 .empty-emoji { font-size: 40px; margin-bottom: 6px; }
 
-/* ===== 詳情 Overlay ===== */
+/* ===== 詳情 Overlay（JS 會加 active，不是 is-open） ===== */
 #expDetail {
   position: fixed;
   inset: 0;
@@ -180,8 +186,12 @@
   transform: translateX(100%);
   transition: transform .18s ease-out;
 }
-#expDetail.is-open { transform: translateX(0); }
-#expDetail[hidden] { display: block; }
+#expDetail.active {
+  transform: translateX(0);
+}
+#expDetail[hidden] {
+  display: block;
+}
 
 #expDetail .subappbar {
   background: #fff;
@@ -236,7 +246,8 @@
   font-weight: 700;
 }
 
-/* ===== 詳情底部加入按鈕 ===== */
+/* 詳情底部加入按鈕（若你有生成） */
+.exp-btn-primary,
 #btnExpAddFromDetail {
   display: block;
   width: 100%;
@@ -253,10 +264,12 @@
   box-shadow: 0 8px 20px rgba(34,197,94,.35);
   transition: background .2s ease, transform .2s ease;
 }
+.exp-btn-primary:hover,
 #btnExpAddFromDetail:hover { background: #16a34a; }
+.exp-btn-primary:active,
 #btnExpAddFromDetail:active { transform: scale(.97); }
 
-/* ===== 我的體驗頁 ===== */
+/* ===== profile 那邊的「我的體驗」也放在這裡，保持一支 CSS ===== */
 #p-my-experiences .myexp-body {
   padding: 10px 14px 80px;
   display: grid;
@@ -287,12 +300,12 @@
 /* ===== 暗色模式 ===== */
 @media (prefers-color-scheme: dark) {
   #expMain { background: #0f172a; }
-  .exp-list .exp-card.has-thumb {
+  .exp-list .exp-card {
     background: rgba(15,23,42,.7);
     border-color: rgba(255,255,255,.03);
   }
-  .exp-main h3 { color: #e2e8f0; }
-  .exp-main .exp-sub { color: #94a3b8; }
+  .exp-main .exp-title { color: #e2e8f0; }
+  .exp-main .exp-meta { color: #94a3b8; }
   .exp-content { background: rgba(15,23,42,.5); }
   .exp-detail__hero,
   .exp-detail__body { background: rgba(15,23,42,1); }
