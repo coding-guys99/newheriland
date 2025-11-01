@@ -98,10 +98,6 @@
     showPage('about');
   }
 
-  function rateApp(){
-    showPage('rateapp');
-  }
-
   function openTerms(){
     showPage('terms');
   }
