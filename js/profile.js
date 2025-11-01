@@ -39,9 +39,7 @@
     // 3) 「我的內容」三個
     $('#pMyFavs')?.addEventListener('click', ()=> openMyFavorites());
     $('#pMyReviews')?.addEventListener('click', ()=> openMyReviews());
-    $('#pMyTrips')?.addEventListener('click', ()=> {
-      alert('行程 / 體驗功能尚未開放（demo）');
-    });
+    $('#pMyTrips')?.addEventListener('click', ()=> showPage('trips'));
 
     // 4) 平台互動
     $('#pPhotoSubmit')?.addEventListener('click', ()=> openPhotoSubmit());
