@@ -1,250 +1,18 @@
-/* experiences.css — HeriLand Experiences (match deals overlay style) */
+/* experiences.css — HeriLand Experiences (clean merged) */
 
 :root{
   --exp-line: rgba(0,0,0,.08);
-  --exp-radius: 14px;
+  --exp-radius: 18px;
 }
 
+/* ===== 體驗行程主頁容器 ===== */
 #expMain{
-  padding: 6px 10px calc(70px + env(safe-area-inset-bottom));
-  display: grid;
-  gap: 8px;
+  display: block;
+  padding-bottom: calc(70px + env(safe-area-inset-bottom));
+  background: #f1f5f9;
 }
 
-.exp-head h1{
-  margin: 4px 0 2px;
-  font-weight: 800;
-  font-size: 20px;
-}
-.exp-head .exp-sub{
-  margin: 0;
-  color: #6b7280;
-  font-size: 13px;
-}
-
-/* 清單 */
-.exp-list{
-  display: grid;
-  gap: 10px;
-}
-
-/* 卡片：1) Hero 小圖 2) 文字 3) CTA 列 */
-.exp-card{
-  display: grid;
-  grid-template-columns: 104px 1fr;
-  gap: 10px;
-  background: #fff;
-  border: 1px solid var(--exp-line);
-  border-radius: var(--exp-radius);
-  box-shadow: 0 10px 26px rgba(0,0,0,.08);
-  overflow: hidden;
-}
-.exp-thumb{
-  width: 104px;
-  background: #e5e7eb center/cover no-repeat;
-}
-.exp-body{
-  padding: 10px 12px 10px 2px;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 4px;
-}
-.exp-title{
-  margin: 0;
-  font-size: 15px;
-  font-weight: 800;
-  color: #111;
-}
-.exp-meta{
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  font-size: 12px;
-  color: #475569;
-}
-.exp-summary{
-  font-size: 12px;
-  color: #6b7280;
-  line-height: 1.4;
-}
-.exp-foot{
-  display:flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  margin-top: 4px;
-}
-.exp-tag{
-  display:inline-flex;
-  align-items:center;
-  gap:4px;
-  background: #f3f4f6;
-  border-radius: 999px;
-  padding: 3px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #0f172a;
-}
-.exp-cta{
-  appearance:none;
-  border: 1px solid rgba(0,0,0,.06);
-  background: linear-gradient(180deg,#fff,#fafafa);
-  border-radius: 999px;
-  padding: 5px 10px;
-  font-weight: 700;
-  font-size: 12px;
-  cursor: pointer;
-}
-.exp-cta:active{ transform: translateY(1px); }
-
-/* 詳情 overlay（跟 deals 一致） */
-#expDetail.overlay-page{
-  display: grid;
-  grid-template-rows: auto 1fr;
-  background: color-mix(in srgb, rgba(10,12,16,.42) 100%, transparent);
-  -webkit-backdrop-filter: blur(8px) saturate(120%);
-  backdrop-filter: blur(8px) saturate(120%);
-}
-#expDetail .subappbar{
-  background: color-mix(in srgb, #ffffff 92%, transparent);
-  border-bottom: 1px solid rgba(0,0,0,.06);
-}
-
-#expContent.exp-content{
-  margin: 70px 12px 14px;
-  background: color-mix(in srgb, #ffffff 82%, transparent);
-  border: 1px solid rgba(255,255,255,.35);
-  border-radius: 16px;
-  box-shadow: 0 18px 50px rgba(0,0,0,.28);
-  padding: 12px 12px calc(16px + env(safe-area-inset-bottom));
-  overflow: auto;
-  max-height: calc(100dvh - 110px);
-  overscroll-behavior: contain;
-}
-
-/* Hero */
-.exp-hero{
-  position: relative;
-  height: 210px;
-  border-radius: 14px;
-  background: #e5e7eb center/cover no-repeat;
-  overflow: hidden;
-  box-shadow: 0 10px 28px rgba(0,0,0,.12);
-}
-.exp-hero::after{
-  content:"";
-  position:absolute;
-  inset:auto 0 0 0;
-  height: 42%;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.22) 60%, rgba(0,0,0,.35) 100%);
-}
-
-/* 文字 */
-.exp-title-lg{
-  margin: 10px 2px 4px;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: .01em;
-}
-.exp-meta-lg{
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin: 4px 2px 8px;
-  font-size: 13px;
-  color: #475569;
-}
-.exp-badge{
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: #fef9c3;
-  color: #92400e;
-  border-radius: 999px;
-  padding: 3px 10px 4px;
-  font-weight: 700;
-  font-size: 12px;
-}
-.exp-badge.city{
-  background: #e2ecff;
-  color: #1d4ed8;
-}
-.exp-desc{
-  margin: 4px 0 8px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: #404040;
-}
-.exp-section-title{
-  margin: 12px 0 4px;
-  font-weight: 700;
-  font-size: 13px;
-  color: #111;
-}
-.exp-points{
-  display: grid;
-  gap: 4px;
-  font-size: 13px;
-  color: #475569;
-}
-.exp-points li{
-  list-style: none;
-  display: flex;
-  gap: 6px;
-  align-items: flex-start;
-}
-.exp-points li::before{
-  content: "•";
-  color: #2e5e4e;
-  font-weight: 900;
-  line-height: 1.1;
-  margin-top: 2px;
-}
-
-/* CTA 列 */
-.exp-detail-actions{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 12px;
-}
-.exp-detail-actions .btn{
-  appearance:none;
-  border: 1px solid rgba(0,0,0,.05);
-  border-radius: 12px;
-  padding: 11px 12px;
-  font-weight: 800;
-  background: color-mix(in srgb, #ffffff 86%, transparent);
-  cursor: pointer;
-}
-.exp-detail-actions .btn.primary{
-  background: linear-gradient(180deg, #2E5E4E, #244a3e);
-  color: #fff;
-  border-color: #2E5E4E;
-  box-shadow: 0 8px 22px rgba(46,94,78,.35);
-}
-
-/* 暗色保護 */
-@media (prefers-color-scheme: dark){
-  .exp-card{
-    background: color-mix(in srgb, #0b0f12 78%, transparent);
-    border-color: rgba(255,255,255,.08);
-  }
-  .exp-title{ color: #f5f7fa; }
-  .exp-summary, .exp-meta{ color: #cbd5e1; }
-  #expContent.exp-content{
-    background: color-mix(in srgb, #0b0f12 74%, transparent);
-    border-color: rgba(255,255,255,.18);
-  }
-  .exp-desc{ color: #e2e8f0; }
-  .exp-detail-actions .btn{
-    background: color-mix(in srgb, #0b0f12 70%, transparent);
-    border-color: rgba(255,255,255,.12);
-    color: #eef2f6;
-  }
-}
-
-/* ===== 體驗行程 Header：返回 + 標題 + 設定 ===== */
+/* ===== 頂部 bar：返回 + 標題 + 設定 ===== */
 .exp-topbar{
   position: sticky;
   top: 0;
@@ -253,19 +21,17 @@
   align-items: center;
   justify-content: space-between;
   height: 52px;
-  padding: 0 10px;
+  padding: 0 12px 0 8px;
   background: color-mix(in srgb, #ffffff 92%, transparent);
-  border-bottom: 1px solid rgba(0,0,0,.08);
+  border-bottom: 1px solid rgba(0,0,0,.04);
   -webkit-backdrop-filter: blur(10px) saturate(120%);
   backdrop-filter: blur(10px) saturate(120%);
 }
-
 .exp-topbar h1{
   font-weight: 800;
   font-size: 17px;
-  letter-spacing: .5px;
+  letter-spacing: .4px;
 }
-
 .icon-btn{
   background: none;
   border: none;
@@ -274,7 +40,6 @@
   line-height: 1;
   padding: 6px;
 }
-
 .icon-btn:active{ transform: translateY(1px); }
 
 @media (prefers-color-scheme: dark){
@@ -286,54 +51,190 @@
   .icon-btn{ color:#f1f5f9; }
 }
 
-.exp-card {
-  background: #fff;
-  border-radius: 14px;
-  border: 1px solid rgba(0,0,0,.04);
-  padding: 14px 14px 10px;
-  margin: 0 10px 12px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.04);
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
+/* ===== 頂部說明 ===== */
+.exp-head{
+  padding: 6px 12px 2px;
 }
-.exp-main { flex: 1; }
-.exp-title { margin: 0 0 4px; font-weight: 700; }
-.exp-meta { margin: 0 0 2px; color: #6b7280; font-size: 13px; }
-.exp-price { margin: 4px 0 0; font-weight: 600; color: #14532d; }
+.exp-head .exp-sub{
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
 
-.exp-actions {
+/* ===== 篩選 chips ===== */
+.filters{
+  padding: 4px 8px 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.filters::-webkit-scrollbar{ display:none; }
+.filters .chips{
   display: flex;
-  flex-direction: column;
   gap: 6px;
 }
-.exp-btn-detail,
-.exp-btn-save {
+.filters .chip{
   border: 0;
+  background: #e2e8f0;
+  color: #0f172a;
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: 6px 12px 7px;
   font-weight: 600;
   font-size: 13px;
   cursor: pointer;
+  white-space: nowrap;
 }
-.exp-btn-detail {
-  background: #e2e8f0;
+.filters .chip.is-on{
+  background: #14532d;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(20,83,45,.25);
 }
-.exp-btn-save {
+
+/* ===== 體驗清單（有圖版） ===== */
+.exp-list{
+  display: grid;
+  gap: 14px;
+  padding: 10px 12px 90px;
+}
+.exp-card.has-thumb{
+  background: #fff;
+  border-radius: var(--exp-radius);
+  border: 1px solid rgba(0,0,0,.02);
+  box-shadow: 0 16px 35px rgba(0,0,0,.03);
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 110px 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+.exp-thumb{
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  background: #e2e8f0 center/cover no-repeat;
+}
+.exp-main h3{
+  margin: 0 0 4px;
+  font-weight: 700;
+  font-size: 15px;
+}
+.exp-main .exp-sub{
+  margin: 0 0 6px;
+  color: #6b7280;
+  font-size: 13px;
+}
+.exp-main .exp-price{
+  margin: 0;
+  color: #166534;
+  font-weight: 700;
+}
+.exp-actions{
+  display: grid;
+  gap: 6px;
+}
+.exp-btn{
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px 7px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  background: #e5e7eb;
+  white-space: nowrap;
+}
+.exp-detail-btn{
+  background: #dbeafe;
+  color: #0f172a;
+}
+.exp-add-btn{
   background: #22c55e;
   color: #fff;
 }
-.exp-btn-save.is-on {
-  background: #f97316;
+.exp-add-btn.is-added{
+  background: #ecfccb;
+  color: #166534;
 }
 
-/* 我的體驗頁 */
-#p-my-experiences .myexp-body {
+/* ===== 空狀態 ===== */
+.empty-state{
+  text-align: center;
+  padding: 40px 16px;
+  color: #94a3b8;
+}
+.empty-emoji{ font-size: 40px; margin-bottom: 6px; }
+
+/* ===== 詳情 Overlay（滑出） ===== */
+#expDetail{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.12);
+  backdrop-filter: blur(2px);
+  z-index: 1400;
+  transform: translateX(100%);
+  transition: transform .18s ease-out;
+}
+#expDetail.is-open{ transform: translateX(0); }
+#expDetail[hidden]{ display: block; }
+
+#expDetail .subappbar{
+  background: #fff;
+  border-bottom: 1px solid rgba(15,23,42,.03);
+}
+.exp-content{
+  background: #f8fafc;
+  height: calc(100% - 52px);
+  overflow-y: auto;
+  padding: 14px 14px 40px;
+}
+
+/* 詳情內部卡片 */
+.exp-detail__hero{
+  background: #fff;
+  border-radius: 16px;
+  margin-bottom: 14px;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(15,23,42,.03);
+}
+.exp-detail__cover{
+  height: 180px;
+  background-size: cover;
+  background-position: center;
+}
+.exp-detail__head{
+  padding: 12px 14px 12px;
+}
+.exp-detail__head h2{
+  margin: 0 0 4px;
+}
+.exp-detail__head p{
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+.exp-detail__price{
+  margin-top: 8px;
+  color: #166534;
+  font-weight: 700;
+}
+.exp-detail__body{
+  background: #fff;
+  border-radius: 16px;
+  padding: 12px 14px 28px;
+  line-height: 1.6;
+  box-shadow: 0 12px 30px rgba(15,23,42,.02);
+}
+.exp-detail__body h3{
+  margin-top: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ===== 我的體驗頁（profile 那一頁用） ===== */
+#p-my-experiences .myexp-body{
   padding: 10px 14px 80px;
   display: grid;
   gap: 10px;
 }
-.myexp-row {
+.myexp-row{
   background: #fff;
   border-radius: 14px;
   border: 1px solid rgba(0,0,0,.03);
@@ -343,9 +244,9 @@
   gap: 10px;
   align-items: center;
 }
-.myexp-row .m-title { font-weight: 700; }
-.myexp-row .m-meta { font-size: 12px; color: #6b7280; }
-.myexp-row .m-remove {
+.myexp-row .m-title{ font-weight: 700; }
+.myexp-row .m-meta{ font-size: 12px; color: #6b7280; }
+.myexp-row .m-remove{
   border: 0;
   background: #fee2e2;
   color: #b91c1c;
@@ -355,105 +256,23 @@
   cursor: pointer;
 }
 
-/* 體驗清單的卡片 */
-.exp-list {
-  display: grid;
-  gap: 14px;
-  padding: 12px 12px 88px;
-}
-.exp-card {
-  background: #fff;
-  border-radius: 18px;
-  padding: 14px 14px 12px;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  box-shadow: 0 18px 35px rgba(0,0,0,.03);
-}
-.exp-meta h3 {
-  margin: 0 0 4px;
-  font-weight: 700;
-}
-.exp-sub {
-  margin: 0 0 6px;
-  color: #6b7280;
-  font-size: 13px;
-}
-.exp-price {
-  color: #166534;
-  font-weight: 700;
-}
-.exp-actions {
-  display: grid;
-  gap: 8px;
-}
-.exp-btn {
-  border: none;
-  border-radius: 999px;
-  padding: 6px 12px 7px;
-  font-weight: 600;
-  cursor: pointer;
-  background: #e5e7eb;
-}
-.exp-detail-btn {
-  background: #dbeafe;
-  color: #0f172a;
-}
-.exp-add-btn {
-  background: #22c55e;
-  color: #fff;
-}
-.exp-add-btn.is-added {
-  background: #e5e7eb;
-  color: #0f172a;
-}
-
-/* ===== 體驗詳情 Overlay ===== */
-#expDetail {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.12);
-  backdrop-filter: blur(2px);
-  z-index: 1400;
-  transform: translateX(100%);
-  transition: transform .2s ease-out;
-  /* 不能 display:none 不然 transition 沒效果，hidden 交給 JS 控制 */
-}
-#expDetail.is-open {
-  transform: translateX(0);
-}
-#expDetail[hidden] {
-  display: block;  /* 讓 hidden 只是給 JS 判斷，畫面還是能做動畫 */
-}
-#expDetail .subappbar {
-  background: #fff;
-  border-bottom: 1px solid rgba(15,23,42,.03);
-}
-.exp-content {
-  background: #f8fafc;
-  height: calc(100% - 52px);
-  overflow-y: auto;
-  padding: 14px 14px 40px;
-}
-.exp-detail__hero {
-  background: #fff;
-  border-radius: 16px;
-  padding: 14px 14px 10px;
-  margin-bottom: 12px;
-  box-shadow: 0 12px 30px rgba(15,23,42,.03);
-}
-.exp-detail__hero h2 {
-  margin: 0 0 6px;
-}
-.exp-detail__price {
-  color: #166534;
-  font-weight: 700;
-  margin-top: 6px;
-}
-.exp-detail__body {
-  background: #fff;
-  border-radius: 16px;
-  padding: 12px 14px 30px;
-  line-height: 1.6;
-  box-shadow: 0 12px 30px rgba(15,23,42,.02);
+/* ===== 暗色模式 ===== */
+@media (prefers-color-scheme: dark){
+  #expMain{ background: #0f172a; }
+  .exp-list .exp-card.has-thumb{
+    background: rgba(15,23,42,.7);
+    border-color: rgba(255,255,255,.03);
+  }
+  .exp-main h3{ color: #e2e8f0; }
+  .exp-main .exp-sub{ color: #94a3b8; }
+  .exp-content{ background: rgba(15,23,42,.5); }
+  .exp-detail__hero,
+  .exp-detail__body{
+    background: rgba(15,23,42,1);
+  }
+  .exp-detail__body{ color: #e2e8f0; }
+  .myexp-row{
+    background: rgba(15,23,42,.7);
+    border-color: rgba(255,255,255,.03);
+  }
 }
