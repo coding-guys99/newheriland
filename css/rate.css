@@ -3,10 +3,21 @@
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.5);
-  display: grid;
+  /* 🔴 預設要關掉 */
+  display: none;
   place-items: center;
   z-index: 2000;
   backdrop-filter: blur(6px);
+}
+
+/* 有 hidden 一定關掉，防止別的樣式蓋掉 */
+.modal-backdrop[hidden] {
+  display: none !important;
+}
+
+/* JS 打開的時候加這個 */
+.modal-backdrop.is-open {
+  display: grid !important;
 }
 
 .modal-box {
@@ -21,7 +32,7 @@
 }
 @keyframes modalPop {
   from { transform: scale(.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  to   { transform: scale(1);  opacity: 1; }
 }
 .modal-img {
   width: 100px;
