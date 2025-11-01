@@ -5,12 +5,67 @@
   const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
 
   const EXPERIENCES = [
-    { id: 'exp-001', title: '老街文化走讀', city: 'Kuching', tag: 'culture', time: '2hrs',   price: 'RM68',  cover: 'img/exp1.jpg' },
-    { id: 'exp-002', title: '砂拉越手作雨林蠟染', city: 'Kuching', tag: 'culture', time: '1.5hrs', price: 'RM85',  cover: 'img/exp2.jpg' },
-    { id: 'exp-003', title: '在地 Kopitiam 美食巡禮', city: 'Sibu',    tag: 'food',    time: '3hrs',  price: 'RM55',  cover: 'img/exp3.jpg' },
-    { id: 'exp-004', title: '濕地生態半日遊',   city: 'Kuching', tag: 'outdoor', time: '4hrs',  price: 'RM120', cover: 'img/exp4.jpg' },
-    { id: 'exp-005', title: '親子陶土體驗',     city: 'Miri',    tag: 'family',  time: '2hrs',  price: 'RM75',  cover: 'img/exp5.jpg' }
-  ];
+  {
+    id: 'exp-001',
+    title: '老街文化走讀',
+    city: 'Kuching',
+    tag: 'culture',
+    tagLabel: '文化走讀',
+    time: '2hrs',
+    price: 'RM68',
+    shortDesc: '跟著在地導覽，聽老店故事、拍彩牆。',
+    detail: '這裡可以寫比較長的介紹……',
+    cover: 'img/exp1.jpg'
+  },
+  {
+    id: 'exp-002',
+    title: '砂拉越手作雨林蠟染',
+    city: 'Kuching',
+    tag: 'culture',
+    tagLabel: '手作體驗',
+    time: '1.5hrs',
+    price: 'RM85',
+    shortDesc: '自己做一塊帶回家的蠟染作品。',
+    detail: '……',
+    cover: 'img/exp2.jpg'
+  },
+  {
+    id: 'exp-003',
+    title: '在地 Kopitiam 美食巡禮',
+    city: 'Sibu',
+    tag: 'food',
+    tagLabel: '在地美食',
+    time: '3hrs',
+    price: 'RM55',
+    shortDesc: '三家店一路吃，還會講菜的背景。',
+    detail: '……',
+    cover: 'img/exp3.jpg'
+  },
+  {
+    id: 'exp-004',
+    title: '濕地生態半日遊',
+    city: 'Kuching',
+    tag: 'outdoor',
+    tagLabel: '戶外體驗',
+    time: '4hrs',
+    price: 'RM120',
+    shortDesc: '賞鳥、走木棧道，適合親子輕鬆走。',
+    detail: '……',
+    cover: 'img/exp4.jpg'
+  },
+  {
+    id: 'exp-005',
+    title: '親子陶土體驗',
+    city: 'Miri',
+    tag: 'family',
+    tagLabel: '親子友善',
+    time: '2hrs',
+    price: 'RM75',
+    shortDesc: '老師帶著小朋友一起捏、燒、上色。',
+    detail: '……',
+    cover: 'img/exp5.jpg'
+  }
+];
 
   function getMy(){
     try { return JSON.parse(localStorage.getItem(EXP_KEY) || '[]'); }
