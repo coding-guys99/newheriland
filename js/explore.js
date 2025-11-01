@@ -700,6 +700,14 @@ document.addEventListener('DOMContentLoaded', () => {
           hoursList && (hoursList.innerHTML = '');
         }
       }
+      
+      // ====== ⭐ 在這裡加留言 ======
+    currentDetailMerchantId = m.id;
+    const cmList = await fetchComments(m.id);
+    renderComments(cmList);
+    wireCommentForm(m.id);
+    // ====== ⭐ 到這裡 ======
+
 
       // related
       const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
@@ -802,3 +810,202 @@ document.addEventListener('DOMContentLoaded', () => {
     if (HAS_DETAIL) handleHash();
   })();
 });
+
+// ====== Comments (detail page) with identity & local fallback ======
+const CM_LS_KEY = 'hl.comments';
+let currentDetailMerchantId = null;
+
+// 取得現在用戶身分（沿用你 profile 的 key）
+function getCurrentUser() {
+  let name = 'Guest';
+  let avatar = 'G';
+  let role = 'Guest';
+  try {
+    name   = localStorage.getItem('hl.pref.name')    || 'Guest';
+    avatar = localStorage.getItem('hl.pref.avatar')  || name.slice(0,1) || 'G';
+    role   = localStorage.getItem('hl.pref.role')    || 'Guest';
+  } catch (_) {}
+  return { name, avatar, role };
+}
+
+async function fetchComments(merchantId){
+  // 1) 試 Supabase
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('merchant_comments')
+        .select('*')
+        .eq('merchant_id', merchantId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      // 統一格式
+      return (data || []).map(row => ({
+        id: row.id,
+        merchant_id: row.merchant_id,
+        author: row.author || 'Guest',
+        avatar: row.avatar || (row.author ? row.author.slice(0,1) : 'G'),
+        body: row.body || '',
+        created_at: row.created_at
+      }));
+    } catch (err) {
+      console.warn('[comments] supabase failed, fallback to localStorage', err);
+    }
+  }
+  // 2) fallback: localStorage
+  try {
+    const all = JSON.parse(localStorage.getItem(CM_LS_KEY) || '{}');
+    return (all[merchantId] || []);
+  } catch (_) {
+    return [];
+  }
+}
+
+async function saveComment(merchantId, payload){
+  const nowIso = new Date().toISOString();
+  // 1) Supabase 優先
+  if (supabase) {
+    try {
+      const { error } = await supabase
+        .from('merchant_comments')
+        .insert({
+          merchant_id: merchantId,
+          author: payload.author,
+          avatar: payload.avatar,
+          body: payload.body,
+          created_at: nowIso
+        });
+      if (!error) return true;
+    } catch (err) {
+      console.warn('[comments] supabase insert failed, use local', err);
+    }
+  }
+  // 2) fallback: local
+  try {
+    const all = JSON.parse(localStorage.getItem(CM_LS_KEY) || '{}');
+    const list = all[merchantId] || [];
+    list.unshift({
+      id: 'local-' + Date.now(),
+      merchant_id: merchantId,
+      author: payload.author,
+      avatar: payload.avatar,
+      body: payload.body,
+      created_at: nowIso
+    });
+    all[merchantId] = list;
+    localStorage.setItem(CM_LS_KEY, JSON.stringify(all));
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+async function deleteComment(merchantId, commentId){
+  // 1) Supabase
+  if (supabase && !commentId.startsWith('local-')) {
+    try {
+      const { error } = await supabase
+        .from('merchant_comments')
+        .delete()
+        .eq('id', commentId)
+        .eq('merchant_id', merchantId);
+      if (!error) return true;
+    } catch (err) {
+      console.warn('[comments] delete supabase failed, use local', err);
+    }
+  }
+  // 2) local fallback
+  try {
+    const all = JSON.parse(localStorage.getItem(CM_LS_KEY) || '{}');
+    const list = all[merchantId] || [];
+    const next = list.filter(c => c.id !== commentId);
+    all[merchantId] = next;
+    localStorage.setItem(CM_LS_KEY, JSON.stringify(all));
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function renderComments(list){
+  const box = document.getElementById('commentsList');
+  const { name:curName } = getCurrentUser();
+  if (!box) return;
+  if (!list.length) {
+    box.innerHTML = `<p class="cm-empty">還沒有留言，留下第一則吧！</p>`;
+    return;
+  }
+  box.innerHTML = list.map(c => {
+    const when = c.created_at ? new Date(c.created_at).toLocaleString() : '';
+    const who = c.author && c.author.trim() ? c.author.trim() : 'Guest';
+    const ava = c.avatar && c.avatar.trim() ? c.avatar.trim().slice(0,1).toUpperCase() : who.slice(0,1).toUpperCase();
+    // 只有自己的留言才給刪
+    const canDel = (who === curName);
+    return `
+      <div class="cm-item" data-id="${c.id}">
+        <div class="cm-avatar">${ava}</div>
+        <div class="cm-bodybox">
+          <div class="cm-head">
+            <span class="cm-name">${who}</span>
+            <span class="cm-time">${when}</span>
+          </div>
+          <div class="cm-text">${(c.body || '').replace(/</g,'&lt;')}</div>
+        </div>
+        ${canDel ? `<button class="cm-delete" type="button" aria-label="刪除留言">✕</button>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  // 綁刪除
+  box.querySelectorAll('.cm-delete').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const item = btn.closest('.cm-item');
+      const cid = item?.dataset.id;
+      if (!cid || !currentDetailMerchantId) return;
+      const ok = confirm('要刪除這則留言嗎？');
+      if (!ok) return;
+      const done = await deleteComment(currentDetailMerchantId, cid);
+      if (done) {
+        const fresh = await fetchComments(currentDetailMerchantId);
+        renderComments(fresh);
+      }
+    });
+  });
+}
+
+function wireCommentForm(merchantId){
+  const form = document.getElementById('commentForm');
+  const guestHint = document.getElementById('cmGuestHint');
+  const { name, avatar, role } = getCurrentUser();
+
+  // 如果是 Guest，就提示，但還是可以送（你要鎖就把下面那行打開）
+  if (guestHint) {
+    const isGuest = !role || role === 'Guest';
+    guestHint.hidden = !isGuest;
+    // 若你真的要鎖訪客 → 把下面兩行打開
+    // if (isGuest && form) form.querySelector('button[type="submit"]').disabled = true;
+  }
+
+  // 表單填上現在名字
+  const inputName = document.getElementById('cmAuthor');
+  if (inputName) inputName.value = name || 'Guest';
+
+  if (!form) return;
+  form.onsubmit = async (e)=>{
+    e.preventDefault();
+    const author = (document.getElementById('cmAuthor')?.value || name || 'Guest').trim();
+    const body   = (document.getElementById('cmBody')?.value || '').trim();
+    if (!body) return;
+    const ok = await saveComment(merchantId, {
+      author,
+      avatar: avatar || author.slice(0,1).toUpperCase(),
+      body
+    });
+    if (ok) {
+      const fresh = await fetchComments(merchantId);
+      renderComments(fresh);
+      document.getElementById('cmBody').value = '';
+    } else {
+      alert('留言失敗，請稍後再試');
+    }
+  };
+}
