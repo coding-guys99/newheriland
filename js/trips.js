@@ -1,39 +1,52 @@
-// js/trips.js — 我的體驗頁
-document.addEventListener('DOMContentLoaded', ()=>{
-  const listBox  = document.getElementById('tripsList');
-  const emptyBox = document.getElementById('tripsEmpty');
-  const btnBack  = document.getElementById('btnTripsBack');
-  const btnExplore = document.getElementById('btnExploreTrips');
+// js/my-experiences.js — 我的體驗頁
+document.addEventListener('DOMContentLoaded', () => {
+  const bodyBox   = document.getElementById('myExpBody');
+  const emptyBox  = document.getElementById('myExpEmpty');
+  const btnGoExp  = document.getElementById('myExpGoExp');
 
-  function renderTrips(){
-    const trips = JSON.parse(localStorage.getItem('hl.my.trips') || '[]');
-    listBox.innerHTML = '';
-    if (trips.length === 0){
+  // 渲染「我的體驗」清單
+  function renderMyExperiences() {
+    const exps = JSON.parse(localStorage.getItem('hl.my.experiences') || '[]');
+    bodyBox.innerHTML = '';
+
+    if (!exps.length) {
       emptyBox.hidden = false;
       return;
     }
+
     emptyBox.hidden = true;
 
-    trips.forEach(t=>{
+    exps.forEach(exp => {
       const card = document.createElement('div');
-      card.className = 'trip-card';
+      card.className = 'myexp-card';
       card.innerHTML = `
-        <img src="${t.img || 'img/placeholder-trip.jpg'}" alt="">
-        <div class="trip-info">
-          <h3>${t.name || '未命名體驗'}</h3>
-          <p>${t.desc || '無描述'}</p>
+        <img src="${exp.img || 'img/placeholder-trip.jpg'}" alt="">
+        <div class="myexp-info">
+          <h3>${exp.name || '未命名體驗'}</h3>
+          <p>${exp.desc || '無描述'}</p>
+          <div class="myexp-meta">
+            <span>📍 ${exp.city || '未知地點'}</span>
+            <span>🕒 ${exp.date || '待定日期'}</span>
+          </div>
         </div>
       `;
-      listBox.appendChild(card);
+      bodyBox.appendChild(card);
     });
   }
 
-  btnBack?.addEventListener('click', ()=> showPage('profile'));
-  btnExplore?.addEventListener('click', ()=> showPage('home'));
+  // 返回 Profile（這個按鈕已經有 data-back-to，不一定要 JS 控制，但保留以防萬一）
+  document.querySelector('[data-back-to="profile"]')?.addEventListener('click', () => {
+    showPage('profile');
+  });
+
+  // 去「體驗行程」頁
+  btnGoExp?.addEventListener('click', () => {
+    showPage('experiences');
+  });
 
   // 初始化
-  renderTrips();
+  renderMyExperiences();
 
-  // 讓外部可呼叫刷新
-  window.refreshTrips = renderTrips;
+  // 給外部頁面用（例如加入新體驗後重新整理）
+  window.refreshMyExperiences = renderMyExperiences;
 });
