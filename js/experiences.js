@@ -121,35 +121,65 @@
 }
 
   function openDetail(id){
-    const page = $('#expDetail');
-    const cont = $('#expContent');
-    const item = EXPERIENCES.find(x=>x.id===id);
-    if (!page || !cont || !item) return;
+  const page = document.getElementById('expDetail');
+  const cont = document.getElementById('expContent');
+  const item = EXPERIENCES.find(x => x.id === id);
+  if (!page || !cont || !item) return;
 
-    const mine = new Set(getMy());
-    const isAdded = mine.has(item.id);
+  const mySet  = new Set(getMy());
+  const isMine = mySet.has(item.id);
 
-    cont.innerHTML = `
-      <div class="exp-detail__hero">
-        <div class="exp-detail__cover" style="background-image:url(${item.cover || 'img/placeholder.jpg'})"></div>
-        <div class="exp-detail__head">
-          <h2>${item.title}</h2>
-          <p>${item.city} · ${item.time}</p>
-          <div class="exp-detail__price">${item.price}</div>
-        </div>
+  // 有就用，沒有就空字串
+  const short  = item.shortDesc || '這個體驗還沒有補上描述。';
+  const detail = item.detail || '體驗內容待補，請以實際活動為準。';
+  const include = item.includes || ['導覽服務', '當地嚮導'];
+  const meet    = item.meetup   || '活動前一日會另行通知集合點。';
+  const notice  = item.notice   || '請穿著輕便服裝，攜帶飲水與防曬用品。';
+
+  cont.innerHTML = `
+    <div class="exp-detail__hero">
+      <div class="exp-detail__cover" style="background-image:url(${item.cover || 'img/placeholder.jpg'})"></div>
+      <div class="exp-detail__head">
+        <h2>${item.title}</h2>
+        <p class="exp-detail__meta">${item.city} · ${item.time} · <strong>${item.price}</strong></p>
+        <p class="exp-detail__short">${short}</p>
       </div>
-      <div class="exp-detail__body">
-        <h3>體驗介紹</h3>
-        <p>（這裡可放行程介紹、集合地點、注意事項...）</p>
-      </div>
-      <button id="btnExpAddFromDetail" data-add="${item.id}">
-        ${isAdded ? '已加入（點可移除）' : '＋ 加入我的體驗'}
-      </button>
-    `;
-    page.hidden = false;
-    page.classList.add('active');
-  }
+    </div>
 
+    <div class="exp-detail__body">
+      <h3>體驗介紹</h3>
+      <p>${detail}</p>
+
+      <div class="exp-detail__group">
+        <h4>活動包含</h4>
+        <ul class="exp-detail__list">
+          ${include.map(s => `<li>${s}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="exp-detail__group">
+        <h4>集合地點</h4>
+        <p>${meet}</p>
+      </div>
+
+      <div class="exp-detail__group">
+        <h4>注意事項</h4>
+        <p>${notice}</p>
+      </div>
+    </div>
+
+    <button id="btnExpAddFromDetail"
+            data-add="${item.id}"
+            class="${isMine ? 'is-added' : ''}"
+            ${isMine ? 'disabled' : ''}>
+      ${isMine ? '已加入我的體驗' : '＋ 加入我的體驗'}
+    </button>
+  `;
+
+  page.hidden = false;
+  page.classList.add('is-open');
+}
+  
   function closeDetail(){
     const page = $('#expDetail');
     if (!page) return;
