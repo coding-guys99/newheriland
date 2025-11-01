@@ -505,23 +505,35 @@
   </div>
 </section>
 
-<!-- My Experiences / 我的體驗 -->
-<section data-page="my-experiences" id="p-my-experiences" class="section" hidden aria-labelledby="h-my-exp">
-  <header class="subappbar">
-    <button class="icon-btn back" data-back-to="profile" aria-label="Back">←</button>
-    <h1 id="h-my-exp">我的體驗</h1>
+<!-- 我的體驗頁 -->
+<section id="p-my-experiences"
+         class="page"
+         data-page="my-experiences"
+         hidden
+         aria-label="我的體驗">
+
+  <!-- 頂部 bar -->
+  <header class="subappbar exp-topbar">
+    <button class="icon-btn back" id="btnMyExpBack" aria-label="返回">←</button>
+    <h1>我的體驗</h1>
+    <div style="width:30px"></div> <!-- 佔位，讓標題置中 -->
   </header>
 
-  <div class="myexp-body" id="myExpBody">
-    <!-- JS 會塞內容進來 -->
+  <!-- 內容區 -->
+  <div class="myexp-body">
+    <!-- JS renderTrips() 會在這裡插入內容 -->
   </div>
 
-  <div class="empty-state" id="myExpEmpty" hidden>
-    <div class="empty-emoji">🗓️</div>
-    <div class="empty-title">還沒有加入體驗</div>
-    <div class="empty-sub">到「體驗行程」頁點「＋」就會出現在這裡。</div>
-    <button class="err-retry" type="button" id="myExpGoExp">去看體驗</button>
-  </div>
+  <!-- 空狀態樣式（profile.js 會自動切換） -->
+  <template id="tplEmptyMyExp">
+    <div class="empty-state">
+      <div class="empty-emoji">🗺️</div>
+      <div class="empty-title">目前還沒有加入體驗</div>
+      <div class="empty-sub">到「體驗行程」頁面按「+」即可收藏。</div>
+      <button id="btnExploreTrips" class="exp-btn exp-detail-btn" type="button">前往體驗行程</button>
+    </div>
+  </template>
+
 </section>
 
 <!-- Feedback -->
