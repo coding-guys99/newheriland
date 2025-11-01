@@ -91,6 +91,7 @@
   function setMy(list){
     try { localStorage.setItem(EXP_KEY, JSON.stringify(list)); }
     catch(e){}
+    // 告訴 profile 那邊重畫
     window.dispatchEvent(new CustomEvent('hl:myExpChanged'));
   }
 
@@ -233,15 +234,22 @@
     alert(msg);
   }
 
-  // ===== 返回處理（重點修這裡） =====
+  // ===== 返回處理（支援 SPA + 獨立頁） =====
   function goBackFromExperiences(){
-    // 有 router 就走 router
+    // 1) SPA 模式
     if (typeof window.showPage === 'function') {
       window.showPage('home');
-    } else {
-      // 沒有就改 hash，至少有行為
-      location.hash = '#home';
+      return;
     }
+
+    // 2) 有前一頁，通常是從 index 點進來的
+    if (document.referrer && document.referrer !== '') {
+      history.back();
+      return;
+    }
+
+    // 3) 直接打開這頁 → 導回首頁
+    location.href = 'index.html';
   }
 
   // ===== 綁定 =====
@@ -286,16 +294,19 @@
       renderExperiences(currentFilter);
     });
 
-    // ✅ 返回（第一次綁，若當下 DOM 裡就有）
+    // ✅ 返回（DOM 一載入就綁）
     document.getElementById('btnExpBack')?.addEventListener('click', goBackFromExperiences);
+
+    // ⚙️ 開設定
+    document.getElementById('btnExpSettings')?.addEventListener('click', ()=>{
+      if (window.hlOpenDrawer) window.hlOpenDrawer();
+    });
   });
 
-  // ✅ 再保一層：如果頁面是後面才 include 進來的，這個也抓得到
+  // ✅ 全域保底：如果 header 是動態插入的，這個也會抓到
   document.addEventListener('click', (e)=>{
     const backBtn = e.target.closest('#btnExpBack');
-    if (backBtn) {
-      goBackFromExperiences();
-    }
+    if (backBtn) goBackFromExperiences();
   });
 
-})(); 
+})();
