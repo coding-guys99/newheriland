@@ -1,20 +1,18 @@
-// js/group.js — 多人推薦：資料、篩選、清單、詳情（standalone 版）
+// group.js — 多人推薦：資料、篩選、清單、詳情
 
-// 小工具（module scope，不會汙染別頁）
+// 小工具
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-/* -------------------------------------------------------------------------- */
-/* 1. 假資料（之後可換 Supabase）                                             */
-/* -------------------------------------------------------------------------- */
+// 假資料（之後可換成 Supabase）
 const GROUPS = [
   {
     id: 'friends-cafe-art',
     title: '三五好友｜咖啡散步 + 市集 + 小展覽',
     city: 'kuching',
     people_min: 3, people_max: 5,
-    slot: 'afternoon',
-    budget: '$$',
+    slot: 'afternoon',         // morning / afternoon / evening / fullday
+    budget: '$$',              // $, $$, $$$
     cover: 'https://picsum.photos/800/450?gp1',
     tags: ['friends','walk','indoor'],
     metrics: { favorites: 42, completions: 18 },
@@ -77,29 +75,20 @@ const GROUPS = [
   }
 ];
 
-/* -------------------------------------------------------------------------- */
-/* 2. 狀態                                                                     */
-/* -------------------------------------------------------------------------- */
+// 狀態
 const state = {
-  people: 'any',
-  slot:   'any',
-  budget: 'any',
-  city:   'any',
+  people: 'any',   // 'any' | '2-3' | '3-5' | '6-10' | '10+'
+  slot: 'any',     // 'any' | 'morning' | 'afternoon' | 'evening' | 'fullday'
+  budget: 'any',   // 'any' | '$' | '$$' | '$$$'
+  city: 'any',     // 'any' | 'kuching' | 'sibu' | 'miri' | 'mukah'
 };
 
-/* -------------------------------------------------------------------------- */
-/* 3. 篩選                                                                    */
-/* -------------------------------------------------------------------------- */
+// 篩選
 function fitsPeople(g){
   if (state.people === 'any') return true;
-  if (state.people === '10+') {
-    return g.people_max >= 10;
-  }
-  const [a, b] = state.people.split('-').map(n => +n);
-  // g 的範圍要跟使用者選的有交集
+  const [a,b] = state.people === '10+' ? [10, 999] : state.people.split('-').map(n=>+n);
   return g.people_min <= b && g.people_max >= a;
 }
-
 function applyFilter(list){
   return list.filter(g=>{
     if (!fitsPeople(g)) return false;
@@ -110,97 +99,71 @@ function applyFilter(list){
   });
 }
 
-/* -------------------------------------------------------------------------- */
-/* 4. 排序：完成數 * 2 + 收藏 + 一點點隨機                                     */
-/* -------------------------------------------------------------------------- */
+// 排序（MVP 規則）— 完成數*2 + 收藏 + 輕微隨機抖動
 function score(g){
-  const base = (g.metrics?.completions || 0) * 2 + (g.metrics?.favorites || 0);
-  return base + Math.random() * 0.5;
+  const s = (g.metrics?.completions||0)*2 + (g.metrics?.favorites||0);
+  const jitter = Math.random()*0.5;
+  return s + jitter;
 }
 
-/* -------------------------------------------------------------------------- */
-/* 5. 清單卡                                                                 */
-/* -------------------------------------------------------------------------- */
-const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
-function labelSlot(k){
-  return k==='morning'  ? '上午'
-       : k==='afternoon'? '下午'
-       : k==='evening'  ? '晚上'
-       : k==='fullday'  ? '整日'
-       : '—';
-}
-
+// 清單卡 HTML
 function cardHTML(g){
-  const quick = (g.stops || [])
-    .slice(0,3)
-    .map(s => `<span class="stop-pill">${s.title}</span>`)
-    .join('');
-
+  const quick = (g.stops||[]).slice(0,3).map(s=>`<span class="stop-pill">${s.title}</span>`).join('');
   return `
-    <article class="gp-card" aria-label="${g.title}">
-      <div class="gp-thumb" style="background-image:url('${g.cover}')"></div>
-      <div class="gp-body">
-        <h3 class="gp-title">${g.title}</h3>
-        <div class="gp-meta">
-          <span>👥 ${g.people_min}–${g.people_max} 人</span>
-          <span>🕒 ${labelSlot(g.slot)}</span>
-          <span>💲 ${g.budget}</span>
-          <span>📍 ${cap(g.city)}</span>
-        </div>
-        <div class="gp-quickstops">${quick}</div>
-        <div class="gp-foot">
-          <button class="gp-cta" type="button" data-id="${g.id}">查看行程</button>
-          <span class="gp-stats">❤️ ${g.metrics?.favorites || 0}・✅ ${g.metrics?.completions || 0}</span>
-        </div>
+  <article class="gp-card" aria-label="${g.title}">
+    <div class="gp-thumb" style="background-image:url('${g.cover}')"></div>
+    <div class="gp-body">
+      <h3 class="gp-title">${g.title}</h3>
+      <div class="gp-meta">
+        <span>👥 ${g.people_min}–${g.people_max} 人</span>
+        <span>🕒 ${labelSlot(g.slot)}</span>
+        <span>💲 ${g.budget}</span>
+        <span>📍 ${cap(g.city)}</span>
       </div>
-    </article>
-  `;
+      <div class="gp-quickstops">${quick}</div>
+      <div class="gp-foot">
+        <button class="gp-cta" data-id="${g.id}">查看行程</button>
+        <span class="gp-stats">❤️ ${g.metrics.favorites}・✅ ${g.metrics.completions}</span>
+      </div>
+    </div>
+  </article>`;
+}
+const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
+function labelSlot(k){
+  return k==='morning'?'上午' : k==='afternoon'?'下午' : k==='evening'?'晚上' : k==='fullday'?'整日' : '—';
 }
 
-/* -------------------------------------------------------------------------- */
-/* 6. 渲染清單                                                                */
-/* -------------------------------------------------------------------------- */
+// 渲染清單
 function renderList(){
-  const box   = $('#gpList');
-  const empty = $('#gpEmpty');
+  const box = $('#gpList'); const empty = $('#gpEmpty');
   if (!box) return;
-
-  const list = applyFilter([...GROUPS]).sort((a,b)=> score(b) - score(a));
-
+  const list = applyFilter([...GROUPS]).sort((a,b)=> score(b)-score(a));
   if (!list.length){
     box.innerHTML = '';
-    if (empty) empty.hidden = false;
+    empty.hidden = false;
     return;
   }
-  if (empty) empty.hidden = true;
-
+  empty.hidden = true;
   box.setAttribute('aria-busy','true');
   box.innerHTML = list.map(cardHTML).join('');
   box.removeAttribute('aria-busy');
 }
 
-/* -------------------------------------------------------------------------- */
-/* 7. 詳情 Overlay                                                            */
-/* -------------------------------------------------------------------------- */
+// 詳情
 function openDetail(id){
-  const g = GROUPS.find(x => x.id === id);
+  const g = GROUPS.find(x=>x.id===id);
   if (!g) return;
-
-  const panel = $('#gpDetail');
-  const cont  = $('#gpContent');
-  const title = $('#gpTitle');
-
-  if (title) title.textContent = '行程詳情';
-
-  const steps = (g.stops || []).map((s,i)=>`
+  const panel = $('#gpDetail'); const cont = $('#gpContent');
+  $('#gpTitle').textContent = '行程詳情';
+  const steps = (g.stops||[]).map((s,i)=>`
     <div class="ti">
       <span class="dot" aria-hidden="true"></span>
       <div class="content">
         <div class="title">Step ${i+1}｜${s.title}</div>
-        <p class="note">${s.note || ''}</p>
+        <p class="note">${s.note||''}</p>
       </div>
     </div>
-    ${i < g.stops.length - 1 ? '<span class="line" aria-hidden="true"></span>' : ''}
+    ${i<g.stops.length-1?'<span class="line" aria-hidden="true"></span>':''}
   `).join('');
 
   cont.innerHTML = `
@@ -212,11 +175,9 @@ function openDetail(id){
       <span>💲 ${g.budget}</span>
       <span>📍 ${cap(g.city)}</span>
     </div>
-    <p style="margin:.2rem 0 .4rem">${g.summary || ''}</p>
+    <p style="margin:.2rem 0 .4rem">${g.summary||''}</p>
 
-    <div class="timeline">
-      ${steps}
-    </div>
+    <div class="timeline">${steps}</div>
 
     <div class="gp-actions">
       <button class="btn" data-fav>收藏</button>
@@ -224,103 +185,75 @@ function openDetail(id){
     </div>
   `;
 
-  // 🔴 這三行跟 deals 一樣，確保它真的顯示
   panel.hidden = false;
   panel.classList.add('active');
-  panel.style.display = 'grid';
-
-  // 🔒 鎖 body 捲動
   document.body.classList.add('no-scroll');
 
-  // 內部按鈕
   cont.querySelector('[data-fav]')?.addEventListener('click', ()=>{
+    // MVP：先本地提示即可；之後接 Supabase events
     alert('已收藏（示意）');
   });
   cont.querySelector('[data-clone]')?.addEventListener('click', ()=>{
     alert('已複製成我的行程（示意）');
   });
 }
-
 function closeDetail(){
   const panel = $('#gpDetail');
   if (!panel) return;
   panel.classList.remove('active');
-  panel.hidden = true;
-  panel.style.display = 'none';
+  panel.setAttribute('hidden','');
   document.body.classList.remove('no-scroll');
 }
 
-/* -------------------------------------------------------------------------- */
-/* 8. 篩選綁定                                                                */
-/* -------------------------------------------------------------------------- */
+// 綁定
 function bindFilters(){
-  // 把「同一組的」chips 都寫在一條 selector 裡
+  // 單選 chips 群組：點誰就誰 is-on，並設 aria-selected
   function makeSingle(selector, onPick){
     $$(selector).forEach(btn=>{
       btn.addEventListener('click', ()=>{
-        const all = $$(selector);
-        all.forEach(b=>{
-          const on = b === btn;
+        const wrapBtns = $$(selector);
+        wrapBtns.forEach(b=>{
+          const on = b===btn;
           b.classList.toggle('is-on', on);
-          b.setAttribute('aria-selected', on ? 'true' : 'false');
+          b.setAttribute('aria-selected', on?'true':'false');
         });
         onPick(btn);
         renderList();
       });
     });
   }
-
-  makeSingle('#groupMain [data-people]', btn => state.people = btn.dataset.people);
-  makeSingle('#groupMain [data-slot]',   btn => state.slot   = btn.dataset.slot);
-  makeSingle('#groupMain [data-budget]', btn => state.budget = btn.dataset.budget);
-  makeSingle('#groupMain [data-city]',   btn => state.city   = btn.dataset.city);
+  makeSingle('#groupMain [data-people]', (btn)=> state.people = btn.dataset.people);
+  makeSingle('#groupMain [data-slot]',   (btn)=> state.slot   = btn.dataset.slot);
+  makeSingle('#groupMain [data-budget]', (btn)=> state.budget = btn.dataset.budget);
+  makeSingle('#groupMain [data-city]',   (btn)=> state.city   = btn.dataset.city);
 }
 
-/* -------------------------------------------------------------------------- */
-/* 9. 清單、返回、overlay 的事件                                              */
-/* -------------------------------------------------------------------------- */
 function bindListActions(){
-  // 清單 → 詳情
   $('#gpList')?.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.gp-cta');
-    if (!btn) return;
+    const btn = e.target.closest('.gp-cta'); if (!btn) return;
     e.stopPropagation();
     openDetail(btn.dataset.id);
   });
-
-  // 詳情關閉
   $('#btnCloseGp')?.addEventListener('click', closeDetail);
-
-  // 清除篩選
   $('#btnGpRetry')?.addEventListener('click', ()=>{
-    state.people = 'any';
-    state.slot   = 'any';
-    state.budget = 'any';
-    state.city   = 'any';
-
-    // 把所有 chips 變回預設
-    ['people','slot','budget','city'].forEach(type=>{
-      $(`#groupMain [data-${type}].is-on`)?.classList.remove('is-on');
-      $(`#groupMain [data-${type}].is-on`)?.removeAttribute('aria-selected');
-      const def = $(`#groupMain [data-${type}="any"]`);
-      if (def){
-        def.classList.add('is-on');
-        def.setAttribute('aria-selected','true');
-      }
+    // 清篩選回預設
+    state.people='any'; state.slot='any'; state.budget='any'; state.city='any';
+    ['[data-people]','[data-slot]','[data-budget]','[data-city]'].forEach(sel=>{
+      const btns = $(`#groupMain ${sel}.is-on`)?.parentElement?.querySelectorAll(sel) || [];
+      btns.forEach(b=>{ b.classList.remove('is-on'); b.removeAttribute('aria-selected'); });
     });
-
+    // 重設 chips UI
+    ['[data-people="any"]','[data-slot="any"]','[data-budget="any"]','[data-city="any"]'].forEach(q=>{
+      const b = $(`#groupMain ${q}`); if (b){ b.classList.add('is-on'); b.setAttribute('aria-selected','true'); }
+    });
     renderList();
   });
 
-  // ← 返回首頁（這頁是獨立 HTML，所以直接導回 index）
-  $('#btnBackHome')?.addEventListener('click', ()=>{
-    window.location.href = 'index.html#home';
-  });
+  // 返回首頁（或history.back）
+  $('#btnBackHome')?.addEventListener('click', ()=> location.href='index.html#home');
 }
 
-/* -------------------------------------------------------------------------- */
-/* 10. 啟動                                                                    */
-/* -------------------------------------------------------------------------- */
+// 啟動
 document.addEventListener('DOMContentLoaded', ()=>{
   bindFilters();
   bindListActions();
