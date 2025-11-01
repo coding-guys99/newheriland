@@ -71,14 +71,29 @@
 .deal-list .skeleton-list .sk-row{ height: 96px; border-radius: var(--deal-radius); }
 
 /* ========== Detail Overlay (單層玻璃 + 玻璃卡) ========== */
-#dealDetail.overlay-page{
-  display:grid;
-  grid-template-rows:auto 1fr; /* header / content */
+/* 預設關閉 */
+#dealDetail.overlay-page {
+  display: none;  /* ← 改這裡：預設不要顯示 */
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
   background: color-mix(in srgb, rgba(10,12,16,.42) 100%, transparent);
   -webkit-backdrop-filter: blur(8px) saturate(120%);
   backdrop-filter: blur(8px) saturate(120%);
-  overscroll-behavior: contain; /* 阻斷外層回彈 */
+  overscroll-behavior: contain;
+  grid-template-rows: auto 1fr;
 }
+
+/* 打開才顯示 */
+#dealDetail.overlay-page.active {
+  display: grid;
+}
+
+/* 如果 JS 有設 hidden，就一定要藏 */
+#dealDetail[hidden] {
+  display: none !important;
+}
+
 #dealDetail .subappbar{
   position: sticky; top: 0; z-index: 3;
   background: color-mix(in srgb, #ffffff 92%, transparent);
