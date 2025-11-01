@@ -418,3 +418,44 @@
     color: #cbd5f5;
   }
 }
+
+/* 詳情裡的短描述 */
+.exp-detail__short {
+  margin-top: 6px;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* 區塊群組 */
+.exp-detail__group {
+  margin-top: 14px;
+}
+.exp-detail__group h4 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.exp-detail__list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 3px;
+  color: #475569;
+  font-size: 13px;
+}
+
+/* 詳情底部按鈕的「已加入」狀態 */
+#btnExpAddFromDetail.is-added {
+  background: #ecfccb;
+  color: #166534;
+  box-shadow: none;
+  cursor: default;
+}
+
+@media (prefers-color-scheme: dark) {
+  .exp-detail__short { color: #cbd5f5; }
+  .exp-detail__group h4 { color: #e2e8f0; }
+  .exp-detail__list { color: #cbd5f5; }
+}
