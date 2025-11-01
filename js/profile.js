@@ -51,7 +51,9 @@
 
     // 5) 下方 4 格卡
     $('#pAboutHL')?.addEventListener('click', ()=> openAbout());
-    $('#pRateHL')?.addEventListener('click', ()=> rateApp());
+    $('#pRateHL')?.addEventListener('click', ()=>{
+  if (window.openRateModal) window.openRateModal();
+});
     $('#pTerms')?.addEventListener('click', ()=> openTerms());
     $('#plOpenSettings')?.addEventListener('click', ()=>{
       if (window.hlOpenDrawer) window.hlOpenDrawer();
