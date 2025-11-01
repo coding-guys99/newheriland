@@ -39,7 +39,9 @@
     // 3) 「我的內容」三個
     $('#pMyFavs')?.addEventListener('click', ()=> openMyFavorites());
     $('#pMyReviews')?.addEventListener('click', ()=> openMyReviews());
-    $('#pMyTrips')?.addEventListener('click', ()=> showPage('trips'));
+    $('#pMyTrips')?.addEventListener('click', ()=> {
+  if (window.showPage) window.showPage('my-experiences');
+});
 
     // 4) 平台互動
     $('#pPhotoSubmit')?.addEventListener('click', ()=> openPhotoSubmit());
