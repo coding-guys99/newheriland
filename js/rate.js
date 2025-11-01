@@ -1,28 +1,48 @@
-function rateApp(){
-  const modal = document.getElementById('rateAppModal');
-  if (!modal) return;
-  modal.hidden = false;
+// js/rate.js
+document.addEventListener('DOMContentLoaded', () => {
+  const modal   = document.getElementById('rateAppModal');
+  const btnYes  = document.getElementById('btnRateYes');
+  const btnNo   = document.getElementById('btnRateCancel');
 
-  const btnYes = document.getElementById('btnRateYes');
-  const btnCancel = document.getElementById('btnRateCancel');
+  // 真正開啟
+  function openRateModal() {
+    if (!modal) return;
+    modal.hidden = false;
+  }
 
-  const iosUrl = 'https://apps.apple.com/app/idXXXXXXXX'; // ←換成你的 App Store 連結
-  const androidUrl = 'https://play.google.com/store/apps/details?id=com.heriland.app'; // ←換成你的 Google Play 連結
-  const webFallback = 'https://heriland.app';
-
-  const ua = navigator.userAgent || navigator.vendor || window.opera;
-  const isIOS = /iPhone|iPad|iPod/i.test(ua);
-  const isAndroid = /Android/i.test(ua);
-
-  btnYes.onclick = ()=>{
-    if (isIOS) window.open(iosUrl, '_blank');
-    else if (isAndroid) window.open(androidUrl, '_blank');
-    else window.open(webFallback, '_blank');
+  // 關閉
+  function closeRateModal() {
+    if (!modal) return;
     modal.hidden = true;
-  };
+  }
 
-  btnCancel.onclick = ()=> modal.hidden = true;
-  modal.addEventListener('click', e=>{
-    if (e.target === modal) modal.hidden = true;
-  });
-}
+  // 點背景也關
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeRateModal();
+      }
+    });
+  }
+
+  // 去商店
+  if (btnYes) {
+    btnYes.addEventListener('click', () => {
+      // 這裡先做 demo，用你的實際商店連結再換
+      // iOS / Android 判斷之後可以再加
+      window.open('https://example.com/heriland-app', '_blank');
+      closeRateModal();
+    });
+  }
+
+  // 下次再說
+  if (btnNo) {
+    btnNo.addEventListener('click', () => {
+      closeRateModal();
+    });
+  }
+
+  // 🔴 最重要這兩行：把函式丟回全域，給 profile.js 用
+  window.openRateModal = openRateModal;
+  window.closeRateModal = closeRateModal;
+});
