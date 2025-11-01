@@ -67,14 +67,19 @@
 .gp-cta:active{ transform: translateY(1px); }
 
 /* 骨架 */
-.gp-list .skeleton-list .sk-row{ height: 96px; border-radius: var(--gp-radius); }
+.gp-list .skeleton-list .sk-row{
+  height: 96px;
+  border-radius: var(--gp-radius);
+}
 
 /* 詳情 overlay（玻璃卡） */
 #gpDetail.overlay-page{
-  display:grid; grid-template-rows:auto 1fr;
+  display: grid;
+  grid-template-rows: auto 1fr;
   background: color-mix(in srgb, rgba(10,12,16,.42) 100%, transparent);
   -webkit-backdrop-filter: blur(8px) saturate(120%);
   backdrop-filter: blur(8px) saturate(120%);
+  overscroll-behavior: contain;
 }
 #gpContent.gp-content{
   margin: 72px 12px 14px;
@@ -99,45 +104,111 @@
   content:""; position:absolute; inset:auto 0 0 0; height:42%;
   background:linear-gradient(180deg, transparent, rgba(0,0,0,.28));
 }
-.gp-h1{ margin:10px 2px 2px; font-size:20px; font-weight:800; }
-.gp-submeta{ display:flex; flex-wrap:wrap; gap:10px 12px; color:#475569; font-size:14px; margin:6px 2px 10px; }
+.gp-h1{
+  margin:10px 2px 2px;
+  font-size:20px;
+  font-weight:800;
+}
+.gp-submeta{
+  display:flex; flex-wrap:wrap; gap:10px 12px;
+  color:#475569; font-size:14px;
+  margin:6px 2px 10px;
+}
 
 /* 時間軸 */
 .timeline{
-  margin-top:8px; display:grid; gap:10px;
+  margin-top:8px;
+  display:grid;
+  gap:10px;
 }
 .ti{
-  display:grid; grid-template-columns: 20px 1fr; gap:10px; align-items:start;
+  display:grid;
+  grid-template-columns: 20px 1fr;
+  gap:10px;
+  align-items:start;
 }
-.ti .dot{ width:12px; height:12px; border-radius:999px; background:#2E5E4E; margin-top:6px; }
-.ti .line{ grid-column:1; justify-self:center; width:2px; min-height:20px; background:#cbd5e1; }
+.ti .dot{
+  width:12px; height:12px;
+  border-radius:999px;
+  background:#2E5E4E;
+  margin-top:6px;
+}
+/* 修正：線條是 .ti 的兄弟節點，不在 .ti 內 */
+.ti + .line{
+  grid-column:1;
+  justify-self:center;
+  width:2px;
+  min-height:20px;
+  background:#cbd5e1;
+}
 .ti .content{
-  background:#fff; border:1px solid rgba(0,0,0,.08); border-radius:12px; padding:10px 12px;
+  background:#fff;
+  border:1px solid rgba(0,0,0,.08);
+  border-radius:12px;
+  padding:10px 12px;
   box-shadow: 0 8px 22px rgba(0,0,0,.08);
 }
-.ti .title{ font-weight:800; margin:0 0 4px; }
-.ti .note{ color:#6b7280; font-size:13px; margin:0; }
+.ti .title{
+  font-weight:800;
+  margin:0 0 4px;
+}
+.ti .note{
+  color:#6b7280;
+  font-size:13px;
+  margin:0;
+}
 
 /* CTA 列 */
 .gp-actions{
-  display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px;
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+  margin-top:12px;
 }
 .gp-actions .btn{
-  appearance:none; border:1px solid rgba(0,0,0,.1);
-  background:#fff; border-radius:12px; padding:10px 12px; font-weight:800; cursor:pointer;
+  appearance:none;
+  border:1px solid rgba(0,0,0,.1);
+  background:#fff;
+  border-radius:12px;
+  padding:10px 12px;
+  font-weight:800;
+  cursor:pointer;
 }
-.gp-actions .btn.primary{ background:#2E5E4E; color:#fff; border-color:#2E5E4E; }
+.gp-actions .btn.primary{
+  background:#2E5E4E;
+  color:#fff;
+  border-color:#2E5E4E;
+}
 
 /* 暗色保護 */
 @media (prefers-color-scheme: dark){
-  .gp-card{ background: color-mix(in srgb, #0b0f12 78%, transparent); border-color: rgba(255,255,255,.08); box-shadow: 0 10px 28px rgba(0,0,0,.5); }
+  .gp-card{
+    background: color-mix(in srgb, #0b0f12 78%, transparent);
+    border-color: rgba(255,255,255,.08);
+    box-shadow: 0 10px 28px rgba(0,0,0,.5);
+  }
   .gp-title{ color:#f5f7fa; }
   .gp-meta, .gp-quickstops{ color:#cbd5e1; }
   .gp-thumb, .gp-hero{ background-color: #1f2937; }
-  #gpContent.gp-content{ background: color-mix(in srgb, #0b0f12 74%, transparent); border-color: rgba(255,255,255,.18); box-shadow: 0 20px 60px rgba(0,0,0,.6); }
-  .ti .content{ background: color-mix(in srgb, #0b0f12 76%, transparent); border-color: rgba(255,255,255,.12); }
-  .gp-actions .btn{ background: color-mix(in srgb, #0b0f12 70%, transparent); border-color: rgba(255,255,255,.12); color:#eef2f6; }
+  #gpContent.gp-content{
+    background: color-mix(in srgb, #0b0f12 74%, transparent);
+    border-color: rgba(255,255,255,.18);
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  }
+  .ti .content{
+    background: color-mix(in srgb, #0b0f12 76%, transparent);
+    border-color: rgba(255,255,255,.12);
+  }
+  .gp-actions .btn{
+    background: color-mix(in srgb, #0b0f12 70%, transparent);
+    border-color: rgba(255,255,255,.12);
+    color:#eef2f6;
+  }
 }
 
 /* 鎖背景滾動 */
-body.no-scroll{ height:100vh; overflow:hidden !important; touch-action:none; }
+body.no-scroll{
+  height:100vh;
+  overflow:hidden !important;
+  touch-action:none;
+}
