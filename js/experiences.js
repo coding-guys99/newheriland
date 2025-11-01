@@ -78,42 +78,47 @@
   }
 
   let currentFilter = 'all';
-  function renderExperiences(filter='all'){
-    const wrap  = $('#expList');
-    const empty = $('#expEmpty');
-    if (!wrap) return;
+  function renderExperiences(filter = 'all') {
+  const wrap  = document.getElementById('expList');
+  const empty = document.getElementById('expEmpty');
+  if (!wrap) return;
 
-    const mine  = new Set(getMy());
-    const items = EXPERIENCES.filter(x => filter==='all' ? true : x.tag === filter);
+  const mySet = new Set(getMy());
+  const items = EXPERIENCES.filter(x => filter === 'all' ? true : x.tag === filter);
 
-    wrap.innerHTML = '';
-    if (!items.length){
-      empty.hidden = false;
-      return;
-    }
-    empty.hidden = true;
+  wrap.innerHTML = '';
 
-    items.forEach(exp=>{
-      const isAdded = mine.has(exp.id);
-      const card = document.createElement('article');
-      card.className = 'exp-card has-thumb';
-      card.innerHTML = `
-        <div class="exp-thumb" style="background-image:url(${exp.cover || 'img/placeholder.jpg'})"></div>
-        <div class="exp-main">
-          <h3>${exp.title}</h3>
-          <p class="exp-sub">${exp.city} · ${exp.time}</p>
-          <p class="exp-price">${exp.price}</p>
-        </div>
-        <div class="exp-actions">
-          <button class="exp-btn exp-detail-btn" data-id="${exp.id}">詳情</button>
-          <button class="exp-btn exp-add-btn ${isAdded ? 'is-added' : ''}" data-add="${exp.id}">
-            ${isAdded ? '已加入（點可移除）' : '＋ 加入'}
-          </button>
-        </div>
-      `;
-      wrap.appendChild(card);
-    });
+  if (!items.length) {
+    empty.hidden = false;
+    return;
   }
+  empty.hidden = true;
+
+  items.forEach(exp => {
+    const isAdded = mySet.has(exp.id);
+    const card = document.createElement('article');
+    card.className = 'exp-card has-thumb';
+    card.innerHTML = `
+      <div class="exp-thumb" style="background-image:url(${exp.cover || 'img/placeholder.jpg'})"></div>
+      <div class="exp-main">
+        <div class="exp-tagline">
+          <span class="exp-pill">${exp.tagLabel || exp.tag || '體驗'}</span>
+          <span class="exp-meta">${exp.city} · ${exp.time}</span>
+        </div>
+        <h3>${exp.title}</h3>
+        <p class="exp-short">${exp.shortDesc || ''}</p>
+        <p class="exp-price">${exp.price}</p>
+      </div>
+      <div class="exp-actions">
+        <button class="exp-btn exp-detail-btn" data-id="${exp.id}">詳情</button>
+        <button class="exp-btn exp-add-btn ${isAdded ? 'is-added' : ''}" data-add="${exp.id}">
+          ${isAdded ? '已加入（點可移除）' : '＋ 加入'}
+        </button>
+      </div>
+    `;
+    wrap.appendChild(card);
+  });
+}
 
   function openDetail(id){
     const page = $('#expDetail');
