@@ -7,21 +7,21 @@ document.addEventListener('DOMContentLoaded', () => {
   function openRateModal() {
     if (!modal) return;
     modal.hidden = false;
+    modal.classList.add('is-open');   // ✅ 新增：讓 CSS 生效
   }
 
   function closeRateModal() {
     if (!modal) return;
+    modal.classList.remove('is-open'); // ✅ 拿掉顯示用 class
     modal.hidden = true;
   }
 
-  // 點背景也關
   if (modal) {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) closeRateModal();
     });
   }
 
-  // 去商店（之後換成實際連結）
   if (btnYes) {
     btnYes.addEventListener('click', () => {
       window.open('https://example.com/heriland-app', '_blank');
@@ -29,12 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 下次再說
   if (btnNo) {
     btnNo.addEventListener('click', closeRateModal);
   }
 
-  // ⭕ 用 globalThis 而不是 window，保證 module 或非 module 都能取到
+  // 讓 profile.js 可用
   globalThis.openRateModal = openRateModal;
   globalThis.closeRateModal = closeRateModal;
 });
