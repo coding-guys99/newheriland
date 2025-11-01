@@ -176,7 +176,7 @@
 }
 .empty-emoji { font-size: 40px; margin-bottom: 6px; }
 
-/* ===== 詳情 Overlay（JS 會加 active，不是 is-open） ===== */
+/* ===== 詳情 Overlay ===== */
 #expDetail {
   position: fixed;
   inset: 0;
@@ -185,12 +185,18 @@
   z-index: 1400;
   transform: translateX(100%);
   transition: transform .18s ease-out;
+  display: none;              /* 預設不顯示 */
 }
-#expDetail.active {
+
+/* JS 會加這個 */
+#expDetail.is-open {
   transform: translateX(0);
+  display: block !important;  /* 把可能的全域樣式蓋掉 */
 }
+
+/* 如果還有 hidden，就也要隱藏 */
 #expDetail[hidden] {
-  display: block;
+  display: none !important;
 }
 
 #expDetail .subappbar {
