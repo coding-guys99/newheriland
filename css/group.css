@@ -71,12 +71,17 @@
 /* 骨架 */
 .gp-list .skeleton-list .sk-row{ height: 96px; border-radius: var(--gp-radius); }
 
-/* 詳情 overlay（玻璃卡） */
-#gpDetail.overlay-page{
-  display:grid; grid-template-rows:auto 1fr;
-  background: color-mix(in srgb, rgba(10,12,16,.42) 100%, transparent);
-  -webkit-backdrop-filter: blur(8px) saturate(120%);
-  backdrop-filter: blur(8px) saturate(120%);
+/* 預設關掉 */
+#gpDetail.overlay-page {
+  display: none;
+}
+/* 打開才顯示 */
+#gpDetail.overlay-page.active {
+  display: grid;
+}
+/* 有 hidden 就一定藏 */
+#gpDetail[hidden] {
+  display: none !important;
 }
 #gpContent.gp-content{
   margin: 72px 12px 14px;
