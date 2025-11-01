@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="css/reviews.css">
     <link rel="stylesheet" href="css/merchant.css">
   <link rel="stylesheet" href="css/about.css">
+  <link rel="stylesheet" href="css/rate.css">
 </head>
 <body>
 
@@ -1406,6 +1407,19 @@
     </div>
   </div>
 </div>
+
+<!-- Rate App modal -->
+<div id="rateAppModal" class="modal-backdrop" hidden>
+  <div class="modal-box">
+    <img src="img/rate-illustration.png" alt="Rate illustration" class="modal-img">
+    <h2>覺得 HeriLand 好用嗎？</h2>
+    <p>如果喜歡，給我們一點鼓勵吧 🌟</p>
+    <div class="modal-actions">
+      <button id="btnRateYes" class="btn-primary">好啊，前往商店</button>
+      <button id="btnRateCancel" class="btn-secondary">下次再說</button>
+    </div>
+  </div>
+</div>
   
 
   <!-- 底部導覽：由 partial 注入 -->
@@ -1430,5 +1444,6 @@
   <script type="module" src="js/reviews.js"></script>
   <script type="module" src="js/merchant.js"></script>
   <script type="module" src="js/about.js"></script>
+  <script type="module" src="js/rate.js"></script>
 </body>
 </html>
