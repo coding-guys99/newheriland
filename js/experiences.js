@@ -1,220 +1,239 @@
-// js/experiences.js — 體驗行程（有圖版）
+// js/experiences.js — 體驗行程列表 + 加到我的體驗
 
-const HL_EXPERIENCES = [
-  {
-    id: 'exp-1',
-    title: '老街文化走讀',
-    city: 'Kuching',
-    dur: '2hrs',
-    price: 'RM68',
-    cat: 'culture',
-    cover: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800&auto=format&fit=crop&q=60',
-    desc: '跟著在地導覽員走一圈老城區，認識華人、馬來與原住民文化的交會。'
-  },
-  {
-    id: 'exp-2',
-    title: '砂拉越手作雨林蠟染',
-    city: 'Kuching',
-    dur: '1.5hrs',
-    price: 'RM85',
-    cat: 'culture',
-    cover: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop&q=60',
-    desc: '體驗傳統蠟染工藝，完成一塊可以帶回家的作品。'
-  },
-  {
-    id: 'exp-3',
-    title: '在地 Kopitiam 美食巡禮',
-    city: 'Sibu',
-    dur: '3hrs',
-    price: 'RM55',
-    cat: 'food',
-    cover: 'https://images.unsplash.com/photo-1599597431699-891ef22913b2?w=800&auto=format&fit=crop&q=60',
-    desc: '一次吃完幾家在地人會去的 Kopitiam，配在地飲品。'
-  },
-  {
-    id: 'exp-4',
-    title: '濕地生態半日遊',
-    city: 'Kuching',
-    dur: '4hrs',
-    price: 'RM120',
-    cat: 'outdoor',
-    cover: 'https://images.unsplash.com/photo-1567606603165-bf0b9abc3d31?w=800&auto=format&fit=crop&q=60',
-    desc: '進入濕地保護區，看猴子、鳥類，適合親子。'
-  },
-  {
-    id: 'exp-5',
-    title: '親子陶土體驗',
-    city: 'Miri',
-    dur: '2hrs',
-    price: 'RM75',
-    cat: 'family',
-    cover: 'https://images.unsplash.com/photo-1602446808181-a6654313283c?w=800&auto=format&fit=crop&q=60',
-    desc: '親子一起做陶，老師會幫忙燒製。'
+(function(){
+  const $  = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+  // 統一的儲存 key
+  const LS_MY_EXP = 'hl.user.experiences';
+
+  // demo 體驗資料（你可以之後換成 Supabase）
+  const EXP_DEMO = [
+    {
+      id: 'exp-heritage-walk',
+      title: '老街文化走讀',
+      city: 'Kuching',
+      dur:  '2hrs',
+      price:'RM68',
+      type: 'culture',
+      img:  'img/exp-heritage.jpg'
+    },
+    {
+      id: 'exp-batik-workshop',
+      title: '砂拉越手作雨林蠟染',
+      city: 'Kuching',
+      dur:  '1.5hrs',
+      price:'RM85',
+      type: 'culture',
+      img:  'img/exp-batik.jpg'
+    },
+    {
+      id: 'exp-kopitiam-food',
+      title: '在地 Kopitiam 美食巡禮',
+      city: 'Sibu',
+      dur:  '3hrs',
+      price:'RM55',
+      type: 'food',
+      img:  'img/exp-food.jpg'
+    },
+    {
+      id: 'exp-wetland-tour',
+      title: '濕地生態半日遊',
+      city: 'Kuching',
+      dur:  '4hrs',
+      price:'RM120',
+      type: 'outdoor',
+      img:  'img/exp-wetland.jpg'
+    },
+    {
+      id: 'exp-family-clay',
+      title: '親子陶土體驗',
+      city: 'Miri',
+      dur:  '2hrs',
+      price:'RM75',
+      type: 'family',
+      img:  'img/exp-clay.jpg'
+    }
+  ];
+
+  /* ---------- 小工具：讀/寫我的體驗 ---------- */
+  function loadMyExperiences(){
+    try {
+      const raw = localStorage.getItem(LS_MY_EXP);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){
+      return [];
+    }
   }
-];
-
-// === 我的體驗 ===
-function getMyExperiences() {
-  try {
-    return JSON.parse(localStorage.getItem('hl.my.exps') || '[]');
-  } catch(e){
-    return [];
+  function saveMyExperiences(list){
+    try {
+      localStorage.setItem(LS_MY_EXP, JSON.stringify(list));
+    } catch(e){}
+    // 通知外面（profile.js 會聽這個）
+    window.dispatchEvent(new CustomEvent('hl:myExpUpdated', {
+      detail: { list }
+    }));
   }
-}
-function saveMyExperiences(arr) {
-  try {
-    localStorage.setItem('hl.my.exps', JSON.stringify(arr));
-  } catch(e){}
-}
 
-// === 清單渲染（有圖）===
-function renderExperiences(filter = 'all') {
-  const box = document.getElementById('expList');
-  const empty = document.getElementById('expEmpty');
-  if (!box) return;
-
-  const list = HL_EXPERIENCES.filter(exp => {
-    if (filter === 'all') return true;
-    return exp.cat === filter;
-  });
-
-  const myExpIds = getMyExperiences();
-
-  if (!list.length) {
-    box.innerHTML = '';
-    if (empty) empty.hidden = false;
-    return;
+  // 把一筆 demo 換成真正要存的精簡物件
+  function toMyExp(exp){
+    return {
+      id:    exp.id,
+      title: exp.title,
+      city:  exp.city,
+      dur:   exp.dur,
+      price: exp.price
+    };
   }
-  if (empty) empty.hidden = true;
 
-  box.innerHTML = list.map(exp => {
-    const isAdded = myExpIds.includes(exp.id);
-    return `
-      <article class="exp-card has-thumb" data-id="${exp.id}">
-        <div class="exp-thumb" style="background-image:url('${exp.cover || ''}');"></div>
+  /* ---------- 畫清單 ---------- */
+  function renderExpList(filter='all'){
+    const wrap = $('#expList');
+    const empty = $('#expEmpty');
+    if (!wrap) return;
+
+    // 目前已加入的，為了把按鈕狀態打開
+    const mine = loadMyExperiences();
+    const mineIds = new Set(mine.map(x=>x.id));
+
+    const data = EXP_DEMO.filter(exp => {
+      if (filter === 'all') return true;
+      return exp.type === filter;
+    });
+
+    if (!data.length){
+      wrap.innerHTML = '';
+      if (empty) empty.hidden = false;
+      return;
+    }
+    if (empty) empty.hidden = true;
+
+    wrap.innerHTML = data.map(exp=>{
+      const isAdded = mineIds.has(exp.id);
+      return `
+      <article class="exp-card has-thumb" data-exp-id="${exp.id}">
+        <div class="exp-thumb" style="background-image:url('${exp.img || ''}')"></div>
         <div class="exp-main">
-          <h3 class="exp-t">${exp.title}</h3>
+          <h3>${exp.title}</h3>
           <p class="exp-sub">${exp.city} · ${exp.dur}</p>
           <p class="exp-price">${exp.price}</p>
         </div>
         <div class="exp-actions">
-          <button type="button"
-                  class="exp-btn exp-detail-btn"
-                  data-id="${exp.id}">詳情</button>
-          <button type="button"
-                  class="exp-btn exp-add-btn ${isAdded ? 'is-added' : ''}"
-                  data-id="${exp.id}">
-            ${isAdded ? '已加入' : '+ 加到我的體驗'}
+          <button class="exp-btn exp-detail-btn" data-exp-detail="${exp.id}">詳情</button>
+          <button class="exp-btn exp-add-btn ${isAdded ? 'is-added':''}" data-exp-add="${exp.id}">
+            ${isAdded ? '已在我的體驗' : '+ 加到我的體驗'}
           </button>
         </div>
       </article>
-    `;
-  }).join('');
-}
+      `;
+    }).join('');
+  }
 
-function openExperienceDetail(id){
-  const data = HL_EXPERIENCES.find(x => x.id === id);
-  if (!data) return;
-  const sheet = document.getElementById('expDetail');
-  const body  = document.getElementById('expContent');
-  if (!sheet || !body) return;
-
-  body.innerHTML = `
-    <div class="exp-detail__hero">
-      <div class="exp-detail__cover" style="background-image:url('${data.cover || ''}');"></div>
-      <div class="exp-detail__head">
-        <h2>${data.title}</h2>
-        <p>${data.city} · ${data.dur}</p>
-        <p class="exp-detail__price">${data.price}</p>
+  /* ---------- 詳情滑出 ---------- */
+  function openExpDetail(expId){
+    const exp = EXP_DEMO.find(x=>x.id === expId);
+    const box = $('#expDetail');
+    const cont = $('#expContent');
+    if (!exp || !box || !cont) return;
+    cont.innerHTML = `
+      <div class="exp-detail__hero">
+        <div class="exp-detail__cover" style="background-image:url('${exp.img || ''}')"></div>
+        <div class="exp-detail__head">
+          <h2>${exp.title}</h2>
+          <p>${exp.city} · ${exp.dur}</p>
+          <p class="exp-detail__price">${exp.price}</p>
+        </div>
       </div>
-    </div>
-    <div class="exp-detail__body">
-      <h3>行程介紹</h3>
-      <p>${data.desc || '這個行程還沒有詳細說明。'}</p>
-    </div>
-  `;
+      <div class="exp-detail__body">
+        <h3>活動介紹</h3>
+        <p>這裡是活動介紹 demo，之後你可以從資料庫帶出真正的說明。</p>
+        <h3>備註</h3>
+        <p>可客製、可團體。地點：${exp.city}</p>
+        <div class="exp-detail-actions">
+          <button class="btn" data-exp-add="${exp.id}">加入我的體驗</button>
+          <button class="btn primary" id="btnExpContact">聯繫客服</button>
+        </div>
+      </div>
+    `;
+    box.hidden = false;
+    box.classList.add('is-open');
 
-  sheet.hidden = false;
-  requestAnimationFrame(()=> {
-    sheet.classList.add('is-open');
+    // 在詳情裡面的「加入我的體驗」也要能用
+    cont.querySelector('[data-exp-add]')?.addEventListener('click', ()=>{
+      toggleMyExp(exp.id);
+      // 關掉後重新畫列表
+      box.classList.remove('is-open');
+      box.hidden = true;
+      renderExpList(getCurrentFilter());
+    });
+  }
+  function closeExpDetail(){
+    const box = $('#expDetail');
+    if (!box) return;
+    box.classList.remove('is-open');
+    box.hidden = true;
+  }
+
+  /* ---------- 加入 / 移除 我的體驗 ---------- */
+  function toggleMyExp(expId){
+    const exp = EXP_DEMO.find(x=>x.id === expId);
+    if (!exp) return;
+
+    const mine = loadMyExperiences();
+    const i = mine.findIndex(x=>x.id === expId);
+    if (i >= 0){
+      // 已存在 → 移除
+      mine.splice(i,1);
+    } else {
+      mine.push(toMyExp(exp));
+    }
+    saveMyExperiences(mine);
+  }
+
+  /* ---------- 取得目前 chip 的過濾值 ---------- */
+  function getCurrentFilter(){
+    const on = document.querySelector('.filters .chip.is-on');
+    return on ? on.dataset.filter : 'all';
+  }
+
+  /* ---------- 綁事件 ---------- */
+  document.addEventListener('DOMContentLoaded', ()=>{
+    // 初次畫
+    renderExpList();
+
+    // 篩選 chips
+    document.querySelectorAll('.filters .chip').forEach(chip=>{
+      chip.addEventListener('click', ()=>{
+        document.querySelectorAll('.filters .chip').forEach(c=> c.classList.remove('is-on'));
+        chip.classList.add('is-on');
+        renderExpList(chip.dataset.filter || 'all');
+      });
+    });
+
+    // 清單上的事件（代理）
+    $('#expList')?.addEventListener('click', (e)=>{
+      const btnDetail = e.target.closest('[data-exp-detail]');
+      const btnAdd    = e.target.closest('[data-exp-add]');
+      if (btnDetail){
+        const id = btnDetail.dataset.expDetail;
+        openExpDetail(id);
+      }
+      if (btnAdd){
+        const id = btnAdd.dataset.expAdd;
+        toggleMyExp(id);
+        // 重畫，讓按鈕狀態更新
+        renderExpList(getCurrentFilter());
+      }
+    });
+
+    // 詳情關閉
+    $('#btnCloseExp')?.addEventListener('click', closeExpDetail);
+
+    // 最上面的返回 → 回 home
+    $('#btnBackHome')?.addEventListener('click', ()=>{
+      if (window.showPage) window.showPage('home');
+      closeExpDetail();
+    });
   });
-}
 
-function closeExperienceDetail(){
-  const sheet = document.getElementById('expDetail');
-  if (!sheet) return;
-  sheet.classList.remove('is-open');
-  setTimeout(()=> {
-    sheet.hidden = true;
-  }, 180);
-}
-
-function bindExpPage(){
-  // 返回
-  const backBtn = document.getElementById('btnBackHome');
-  if (backBtn){
-    backBtn.addEventListener('click', ()=>{
-      if (window.showPage) {
-        window.showPage('home');
-      } else {
-        history.back();
-      }
-    });
-  }
-
-  // 篩選
-  document.querySelectorAll('.filters .chip').forEach(chip=>{
-    chip.addEventListener('click', ()=>{
-      document.querySelectorAll('.filters .chip').forEach(c=> c.classList.remove('is-on'));
-      chip.classList.add('is-on');
-      const filter = chip.dataset.filter || 'all';
-      renderExperiences(filter);
-    });
-  });
-
-  // 清單行為
-  const list = document.getElementById('expList');
-  if (list){
-    list.addEventListener('click', (e)=>{
-      const detailBtn = e.target.closest('.exp-detail-btn');
-      const addBtn    = e.target.closest('.exp-add-btn');
-
-      if (detailBtn){
-        openExperienceDetail(detailBtn.dataset.id);
-        return;
-      }
-      if (addBtn){
-        const id = addBtn.dataset.id;
-        const mine = getMyExperiences();
-        if (!mine.includes(id)){
-          mine.push(id);
-          saveMyExperiences(mine);
-          addBtn.classList.add('is-added');
-          addBtn.textContent = '已加入';
-        }
-      }
-    });
-  }
-
-  // 關詳情
-  const closeBtn = document.getElementById('btnCloseExp');
-  if (closeBtn){
-    closeBtn.addEventListener('click', closeExperienceDetail);
-  }
-  const detail = document.getElementById('expDetail');
-  if (detail){
-    detail.addEventListener('click', (e)=>{
-      if (e.target === detail){
-        closeExperienceDetail();
-      }
-    });
-  }
-}
-
-// init
-document.addEventListener('DOMContentLoaded', ()=>{
-  if (document.getElementById('expList')){
-    renderExperiences('all');
-    bindExpPage();
-  }
-});
+})();
