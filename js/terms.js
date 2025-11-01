@@ -4,17 +4,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnBack = document.getElementById('btnTermsBack');
 
   function openTerms() {
+    if (!terms) return;
     terms.hidden = false;
     terms.classList.add('active');
     document.body.style.overflow = 'hidden';
   }
 
   function closeTerms() {
+    if (!terms) return;
     terms.classList.remove('active');
     terms.hidden = true;
     document.body.style.overflow = '';
   }
 
   btnBack?.addEventListener('click', closeTerms);
-  globalThis.openTerms = openTerms;
+
+  // 將函式暴露給全域，給 profile.js 用
+  window.openTerms = openTerms;
 });
