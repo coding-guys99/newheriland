@@ -329,32 +329,38 @@
   </div>
 </section>
 
-    <!-- Comments -->
-<section class="d-card" id="commentsCard">
-  <h2 class="d-h2">Comments</h2>
+        <!-- Comments preview (new) -->
+    <section class="d-card d-comments" id="detailCommentsCard">
+      <div class="d-head-row">
+        <h2 class="d-h2">評價</h2>
+        <span id="cmtSummary" class="cmt-summary">尚無留言</span>
+      </div>
+      <div id="cmtPreview" class="cmt-preview cmt-empty">
+        還沒有留言，歡迎搶頭香！
+      </div>
+      <button id="btnShowComments" class="btn-line" type="button">
+        查看全部留言
+      </button>
+    </section>
 
-  <!-- 未登入提示：JS 會判斷要不要顯示 -->
-  <div id="cmGuestHint" class="cm-hint" hidden>
-    目前以訪客身分瀏覽，請先到「Profile」設定你的名字再留言。
-  </div>
-
-  <div id="commentsList" class="cm-list" aria-live="polite">
-    <p class="cm-empty">還沒有留言，留下第一則吧！</p>
-  </div>
-
-  <form id="commentForm" class="cm-form" autocomplete="off">
-    <label class="cm-field">
-      <span class="cm-label">你的名字</span>
-      <!-- 這裡還是保留，讓他能改名字 -->
-      <input id="cmAuthor" name="author" type="text" placeholder="Guest" />
-    </label>
-    <label class="cm-field">
-      <span class="cm-label">留言內容</span>
-      <textarea id="cmBody" name="body" rows="3" required placeholder="寫點你對這家店的感想、推薦的餐點、去的時間…"></textarea>
-    </label>
-    <button type="submit" class="btn primary">送出留言</button>
-  </form>
-</section>
+    <!-- All comments sheet -->
+    <section id="cmtSheet" class="overlay-sheet" hidden aria-label="留言列表與新增留言">
+      <div class="sheet">
+        <header class="sheet-head">
+          <h3 class="sheet-title">留言</h3>
+          <button id="btnCmtClose" class="icon-btn" aria-label="關閉">✕</button>
+        </header>
+        <div id="cmtList" class="sheet-body cmt-list">
+          <!-- JS 注入所有留言 -->
+        </div>
+        <footer class="sheet-foot cmt-foot">
+          <div class="cmt-input">
+            <input id="cmtText" type="text" maxlength="240" placeholder="留下你的想法（匿名）…" autocomplete="off">
+          </div>
+          <button id="btnCmtSend" class="btn primary" type="button">送出</button>
+        </footer>
+      </div>
+    </section>
 
     <!-- Related -->
     <section class="d-card">
