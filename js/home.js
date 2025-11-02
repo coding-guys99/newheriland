@@ -1,4 +1,7 @@
 // ===================== Home (Landing) =====================
+// 這支要用 <script type="module" src="js/home.js"></script>
+import { supabase } from './app.js';
+
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
@@ -10,14 +13,9 @@ const HOME_DATA = Object.assign({
     { ico:'👥', label:'多人推薦', href:'group.html' },
     { ico:'🛍️', label:'精選店家', href:'featured.html' },
     { ico:'🌿', label:'體驗行程', href:'experiences.html' },
- //==   { ico:'🧭', label:'新上架',   href:'newly.html' },
- //==   { ico:'💬', label:'在地討論', href:'#saved' },
- //==   { ico:'💡', label:'投稿店家', href:'#add' },
   ],
+  // 這裡保留當 fallback
   hero: [
-    { img:'https://picsum.photos/1200/600?1', title:'Mid-Autumn Specials', href:'#explore?collection=mid-autumn' },
-    { img:'https://picsum.photos/1200/600?2', title:'Sarawak Food Week',   href:'#explore?collection=food' },
-    { img:'https://picsum.photos/1200/600?3', title:'Hidden Gems',          href:'#explore?tag=Instagram' },
     { img:'https://picsum.photos/1200/600?1', title:'Mid-Autumn Specials', href:'#explore?collection=mid-autumn' },
     { img:'https://picsum.photos/1200/600?2', title:'Sarawak Food Week',   href:'#explore?collection=food' },
     { img:'https://picsum.photos/1200/600?3', title:'Hidden Gems',          href:'#explore?tag=Instagram' },
@@ -66,23 +64,89 @@ function renderFeatures(){
      </a>`).join('');
 }
 
-function renderHero(){
-  const track = $('#heroTrack'), dots = $('#heroDots'); if(!track||!dots) return;
-  track.innerHTML = HOME_DATA.hero.map(h =>
+/* -------------------- hero 專用：先去 Supabase 抓 -------------------- */
+async function fetchHeroFromSupabase(){
+  try {
+    const { data, error } = await supabase
+      .from('hl_banners')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (error) throw error;
+    if (!data || !data.length) {
+      return HOME_DATA.hero; // 沒資料就用原本假資料
+    }
+
+    // 把資料轉成前端原本吃的格式
+    return data.map(b => {
+      // 把 target_type 轉成真正的 href
+      let href = '#';
+      if (b.target_type === 'url') {
+        href = b.target_value || '#';
+      } else if (b.target_type === 'city') {
+        href = `#explore?city=${encodeURIComponent(b.target_value || '')}`;
+      } else if (b.target_type === 'experience') {
+        href = `#experience/${b.target_value}`;
+      } else if (b.target_type === 'merchant') {
+        href = `#merchant/${b.target_value}`;
+      }
+      return {
+        img: b.image_url,
+        title: b.title,
+        href
+      };
+    });
+
+  } catch (err) {
+    console.warn('fetchHeroFromSupabase failed, use fallback', err);
+    return HOME_DATA.hero;
+  }
+}
+
+async function renderHero(){
+  const track = $('#heroTrack'), dots = $('#heroDots'); 
+  if(!track || !dots) return;
+
+  // 1) 先去抓真的資料
+  const heroData = await fetchHeroFromSupabase();
+
+  // 2) 塞進 DOM
+  track.innerHTML = heroData.map(h =>
     `<a class="hero" href="${h.href}" role="listitem">
-       <img src="${h.img}" alt="">
-       <div class="hero-txt">${h.title}</div>
+       <img src="${h.img}" alt="${h.title || ''}">
+       <div class="hero-txt">${h.title || ''}</div>
      </a>`).join('');
-  dots.innerHTML = HOME_DATA.hero.map((_,i)=>
-    `<button type="button" ${i===0 ? 'aria-current="true"' : ''}></button>`
+
+  dots.innerHTML = heroData.map((_,i)=>
+    `<button type="button" ${i===0 ? 'aria-current="true"' : ''} data-idx="${i}"></button>`
   ).join('');
+
+  // 3) 原本的 scroll → dot 邏輯還是保留
   const updateDots = ()=>{
     const w = track.clientWidth || 1;
-    const idx = Math.round(track.scrollLeft / (w * 0.85 + 10)); // 85% 寬 + gap
+    const gap = 10;
+    const cardW = w * 0.85 + gap;     // 你原本算 85% 的那個
+    const idx = Math.round(track.scrollLeft / cardW);
     [...dots.children].forEach((b,i)=> b.setAttribute('aria-current', i===idx ? 'true':'false'));
   };
   track.addEventListener('scroll', ()=> requestAnimationFrame(updateDots));
+
+  // 4) 點 dot 可以跳到對應卡片
+  [...dots.children].forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const i = Number(btn.dataset.idx || 0);
+      const w = track.clientWidth || 1;
+      const gap = 10;
+      const cardW = w * 0.85 + gap;
+      track.scrollTo({
+        left: i * cardW,
+        behavior: 'smooth'
+      });
+    });
+  });
 }
+/* -------------------- /hero -------------------- */
 
 function renderCombo(){
   const left = $('#comboLeft'), cdots = $('#comboDots'), right = $('#comboRight');
@@ -158,14 +222,14 @@ function renderGoods(){
     </a>`).join('');
 }
 
-document.addEventListener('DOMContentLoaded', ()=>{
+document.addEventListener('DOMContentLoaded', async ()=>{
   if (!document.querySelector('[data-page="home"]')) return;
 
   // 搜尋只是導向 Explore（之後可換成真正搜尋）
   $('#homeSearchBtn')?.addEventListener('click', ()=> location.hash = '#explore');
 
   renderFeatures();
-  renderHero();
+  await renderHero();     // 👈 hero 要等它抓資料
   renderCombo();
   renderCities();
   renderAd();
