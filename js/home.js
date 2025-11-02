@@ -56,7 +56,7 @@ const HOME_DATA = Object.assign({
   ],
 }, window.HOME_DATA || {});
 
-/* -------------------- features 專用：從 Supabase 抓 -------------------- */
+/* -------------------- features：從 Supabase 抓 -------------------- */
 async function fetchFeaturesFromSupabase(){
   try {
     const { data, error } = await supabase
@@ -92,16 +92,7 @@ async function renderFeatures(){
 }
 /* -------------------- /features -------------------- */
 
-
-function renderFeatures(){
-  const box = $('#homeFeatures'); if(!box) return;
-  box.innerHTML = HOME_DATA.features.map(f =>
-    `<a class="feat" href="${f.href}">
-      <i>${f.ico}</i><span class="txt">${f.label}</span>
-     </a>`).join('');
-}
-
-/* -------------------- hero 專用：先去 Supabase 抓 -------------------- */
+/* -------------------- hero：從 Supabase 抓 -------------------- */
 async function fetchHeroFromSupabase(){
   try {
     const { data, error } = await supabase
@@ -115,9 +106,7 @@ async function fetchHeroFromSupabase(){
       return HOME_DATA.hero; // 沒資料就用原本假資料
     }
 
-    // 把資料轉成前端原本吃的格式
     return data.map(b => {
-      // 把 target_type 轉成真正的 href
       let href = '#';
       if (b.target_type === 'url') {
         href = b.target_value || '#';
@@ -134,7 +123,6 @@ async function fetchHeroFromSupabase(){
         href
       };
     });
-
   } catch (err) {
     console.warn('fetchHeroFromSupabase failed, use fallback', err);
     return HOME_DATA.hero;
@@ -145,10 +133,8 @@ async function renderHero(){
   const track = $('#heroTrack'), dots = $('#heroDots'); 
   if(!track || !dots) return;
 
-  // 1) 先去抓真的資料
   const heroData = await fetchHeroFromSupabase();
 
-  // 2) 塞進 DOM
   track.innerHTML = heroData.map(h =>
     `<a class="hero" href="${h.href}" role="listitem">
        <img src="${h.img}" alt="${h.title || ''}">
@@ -159,17 +145,15 @@ async function renderHero(){
     `<button type="button" ${i===0 ? 'aria-current="true"' : ''} data-idx="${i}"></button>`
   ).join('');
 
-  // 3) 原本的 scroll → dot 邏輯還是保留
   const updateDots = ()=>{
     const w = track.clientWidth || 1;
     const gap = 10;
-    const cardW = w * 0.85 + gap;     // 你原本算 85% 的那個
+    const cardW = w * 0.85 + gap;
     const idx = Math.round(track.scrollLeft / cardW);
     [...dots.children].forEach((b,i)=> b.setAttribute('aria-current', i===idx ? 'true':'false'));
   };
   track.addEventListener('scroll', ()=> requestAnimationFrame(updateDots));
 
-  // 4) 點 dot 可以跳到對應卡片
   [...dots.children].forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const i = Number(btn.dataset.idx || 0);
@@ -185,7 +169,7 @@ async function renderHero(){
 }
 /* -------------------- /hero -------------------- */
 
-/* -------------------- combo left 專用 -------------------- */
+/* -------------------- combo left：從 Supabase 抓 -------------------- */
 async function fetchComboLeftFromSupabase(){
   try {
     const { data, error } = await supabase
@@ -195,7 +179,7 @@ async function fetchComboLeftFromSupabase(){
       .order('sort_order', { ascending: true });
 
     if (error) throw error;
-    if (!data?.length) return HOME_DATA.comboLeft;  // fallback
+    if (!data?.length) return HOME_DATA.comboLeft;
 
     return data.map(row => ({
       img: row.image_url,
@@ -227,7 +211,6 @@ async function renderCombo(){
       `<button type="button" ${i===0 ? 'aria-current="true"' : ''} data-idx="${i}"></button>`
     ).join('');
 
-    // 滾動 → 更新 dots
     const update = ()=>{
       const w = left.clientWidth || 1;
       const idx = Math.round(left.scrollLeft / (w));
@@ -235,7 +218,6 @@ async function renderCombo(){
     };
     left.addEventListener('scroll', ()=> requestAnimationFrame(update));
 
-    // 點 dot → 滾到對應張
     [...cdots.children].forEach(btn => {
       btn.addEventListener('click', ()=>{
         const i = Number(btn.dataset.idx || 0);
@@ -248,7 +230,7 @@ async function renderCombo(){
     });
   }
 
-  // 右邊列表（先保持吃假資料）
+  // 右邊列表（先保持吃假資料，下一步再搬 supabase）
   if (right) {
     right.innerHTML = HOME_DATA.comboRight.map(r =>
       `<a href="${r.href}">
@@ -312,12 +294,11 @@ function renderGoods(){
 document.addEventListener('DOMContentLoaded', async ()=>{
   if (!document.querySelector('[data-page="home"]')) return;
 
-  // 搜尋只是導向 Explore（之後可換成真正搜尋）
   $('#homeSearchBtn')?.addEventListener('click', ()=> location.hash = '#explore');
 
   await renderFeatures();
-  await renderHero();     // 👈 hero 要等它抓資料
-  await renderCombo(); 
+  await renderHero();
+  await renderCombo();
   renderCities();
   renderAd();
   renderCollections();
