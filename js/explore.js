@@ -701,12 +701,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
       
-      // ====== ⭐ 在這裡加留言 ======
-    currentDetailMerchantId = m.id;
-    const cmList = await fetchComments(m.id);
-    renderComments(cmList);
-    wireCommentForm(m.id);
-    // ====== ⭐ 到這裡 ======
+          // ===== Comments (per merchant) =====
+    const comments = loadComments(m.id);
+    renderCmtPreview(comments);
+
+    // 綁「查看全部留言」
+    const btnShowComments = document.getElementById('btnShowComments');
+    const btnCmtClose = document.getElementById('btnCmtClose');
+    const btnCmtSend = document.getElementById('btnCmtSend');
+    const cmtInput = document.getElementById('cmtText');
+
+    btnShowComments?.addEventListener('click', ()=>{
+      renderCmtSheet(comments);
+      openCmtSheet();
+    }, { once: true }); // 第一次打開綁一次就好
+
+    btnCmtClose?.addEventListener('click', closeCmtSheet);
+    document.getElementById('cmtSheet')?.addEventListener('click', (e)=>{
+      if (e.target.id === 'cmtSheet') closeCmtSheet();
+    });
+
+    btnCmtSend?.addEventListener('click', ()=>{
+      const text = (cmtInput?.value || '').trim();
+      if (!text) return;
+      // 給一個隨機匿名名
+      const nick = localStorage.getItem('hl.user.nick') || '旅人';
+      const item = { text, nick, ts: Date.now() };
+      comments.unshift(item);               // 新的在最上面
+      saveComments(m.id, comments);         // 存回 localStorage
+      renderCmtPreview(comments);           // 更新詳情頁一則
+      renderCmtSheet(comments);             // 更新列表
+      cmtInput.value = '';
+    });
 
 
       // related
@@ -811,201 +837,107 @@ document.addEventListener('DOMContentLoaded', () => {
   })();
 });
 
-// ====== Comments (detail page) with identity & local fallback ======
-const CM_LS_KEY = 'hl.comments';
-let currentDetailMerchantId = null;
+// === Comments (local, per merchant) =====================
+const CMT_KEY_PREFIX = 'HL_CMTS_';
 
-// 取得現在用戶身分（沿用你 profile 的 key）
-function getCurrentUser() {
-  let name = 'Guest';
-  let avatar = 'G';
-  let role = 'Guest';
-  try {
-    name   = localStorage.getItem('hl.pref.name')    || 'Guest';
-    avatar = localStorage.getItem('hl.pref.avatar')  || name.slice(0,1) || 'G';
-    role   = localStorage.getItem('hl.pref.role')    || 'Guest';
-  } catch (_) {}
-  return { name, avatar, role };
+function cmtKey(id){
+  return CMT_KEY_PREFIX + id;
 }
 
-async function fetchComments(merchantId){
-  // 1) 試 Supabase
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('merchant_comments')
-        .select('*')
-        .eq('merchant_id', merchantId)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      // 統一格式
-      return (data || []).map(row => ({
-        id: row.id,
-        merchant_id: row.merchant_id,
-        author: row.author || 'Guest',
-        avatar: row.avatar || (row.author ? row.author.slice(0,1) : 'G'),
-        body: row.body || '',
-        created_at: row.created_at
-      }));
-    } catch (err) {
-      console.warn('[comments] supabase failed, fallback to localStorage', err);
-    }
-  }
-  // 2) fallback: localStorage
+function loadComments(merchId){
   try {
-    const all = JSON.parse(localStorage.getItem(CM_LS_KEY) || '{}');
-    return (all[merchantId] || []);
-  } catch (_) {
+    const raw = localStorage.getItem(cmtKey(merchId));
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch(e){
     return [];
   }
 }
 
-async function saveComment(merchantId, payload){
-  const nowIso = new Date().toISOString();
-  // 1) Supabase 優先
-  if (supabase) {
-    try {
-      const { error } = await supabase
-        .from('merchant_comments')
-        .insert({
-          merchant_id: merchantId,
-          author: payload.author,
-          avatar: payload.avatar,
-          body: payload.body,
-          created_at: nowIso
-        });
-      if (!error) return true;
-    } catch (err) {
-      console.warn('[comments] supabase insert failed, use local', err);
-    }
-  }
-  // 2) fallback: local
+function saveComments(merchId, list){
   try {
-    const all = JSON.parse(localStorage.getItem(CM_LS_KEY) || '{}');
-    const list = all[merchantId] || [];
-    list.unshift({
-      id: 'local-' + Date.now(),
-      merchant_id: merchantId,
-      author: payload.author,
-      avatar: payload.avatar,
-      body: payload.body,
-      created_at: nowIso
-    });
-    all[merchantId] = list;
-    localStorage.setItem(CM_LS_KEY, JSON.stringify(all));
-    return true;
-  } catch (_) {
-    return false;
-  }
+    localStorage.setItem(cmtKey(merchId), JSON.stringify(list));
+  } catch(e){}
 }
 
-async function deleteComment(merchantId, commentId){
-  // 1) Supabase
-  if (supabase && !commentId.startsWith('local-')) {
-    try {
-      const { error } = await supabase
-        .from('merchant_comments')
-        .delete()
-        .eq('id', commentId)
-        .eq('merchant_id', merchantId);
-      if (!error) return true;
-    } catch (err) {
-      console.warn('[comments] delete supabase failed, use local', err);
-    }
+function maskName(nick){
+  // 如果是兩個中文字 → 留第一個 + **
+  if (/^[\u4e00-\u9fa5]{2,3}$/.test(nick)) {
+    return nick[0] + ' **';
   }
-  // 2) local fallback
-  try {
-    const all = JSON.parse(localStorage.getItem(CM_LS_KEY) || '{}');
-    const list = all[merchantId] || [];
-    const next = list.filter(c => c.id !== commentId);
-    all[merchantId] = next;
-    localStorage.setItem(CM_LS_KEY, JSON.stringify(all));
-    return true;
-  } catch (_) {
-    return false;
-  }
+  // 其它就留前 1~2 字
+  return (nick || 'Guest').slice(0, 1).toUpperCase() + ' ***';
 }
 
-function renderComments(list){
-  const box = document.getElementById('commentsList');
-  const { name:curName } = getCurrentUser();
-  if (!box) return;
-  if (!list.length) {
-    box.innerHTML = `<p class="cm-empty">還沒有留言，留下第一則吧！</p>`;
+function renderCmtPreview(comments){
+  const card = document.getElementById('detailCommentsCard');
+  const summary = document.getElementById('cmtSummary');
+  const preview = document.getElementById('cmtPreview');
+  if (!card || !summary || !preview) return;
+
+  if (!comments.length){
+    summary.textContent = '尚無留言';
+    preview.classList.add('cmt-empty');
+    preview.innerHTML = '還沒有留言，歡迎搶頭香！';
     return;
   }
-  box.innerHTML = list.map(c => {
-    const when = c.created_at ? new Date(c.created_at).toLocaleString() : '';
-    const who = c.author && c.author.trim() ? c.author.trim() : 'Guest';
-    const ava = c.avatar && c.avatar.trim() ? c.avatar.trim().slice(0,1).toUpperCase() : who.slice(0,1).toUpperCase();
-    // 只有自己的留言才給刪
-    const canDel = (who === curName);
+
+  const first = comments[0];
+  const name = maskName(first.nick || '旅人');
+  const dt = new Date(first.ts || Date.now());
+  const dateStr = dt.toLocaleDateString('zh-TW');
+
+  summary.textContent = `${comments.length} 則留言`;
+  preview.classList.remove('cmt-empty');
+  preview.innerHTML = `
+    <div class="cmt-preview-user">
+      <div class="cmt-avatar">${name.slice(0,1)}</div>
+      <div>
+        <div class="cmt-name">${name}</div>
+        <div class="cmt-date">${dateStr}</div>
+      </div>
+    </div>
+    <div class="cmt-text">${first.text}</div>
+  `;
+}
+
+function renderCmtSheet(comments){
+  const list = document.getElementById('cmtList');
+  if (!list) return;
+  if (!comments.length){
+    list.innerHTML = `<div class="cmt-item">還沒有留言，當第一個吧 🥳</div>`;
+    return;
+  }
+  list.innerHTML = comments.map(c=>{
+    const name = maskName(c.nick || '旅人');
+    const dt = new Date(c.ts || Date.now());
+    const timeStr = dt.toLocaleString('zh-TW', {year:'numeric', month:'2-digit', day:'2-digit'});
     return `
-      <div class="cm-item" data-id="${c.id}">
-        <div class="cm-avatar">${ava}</div>
-        <div class="cm-bodybox">
-          <div class="cm-head">
-            <span class="cm-name">${who}</span>
-            <span class="cm-time">${when}</span>
-          </div>
-          <div class="cm-text">${(c.body || '').replace(/</g,'&lt;')}</div>
+      <div class="cmt-item">
+        <div class="top">
+          <div class="cmt-avatar">${name.slice(0,1)}</div>
+          <div class="name">${name}</div>
+          <div class="time">${timeStr}</div>
         </div>
-        ${canDel ? `<button class="cm-delete" type="button" aria-label="刪除留言">✕</button>` : ''}
+        <div class="body">${c.text}</div>
       </div>
     `;
   }).join('');
-
-  // 綁刪除
-  box.querySelectorAll('.cm-delete').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const item = btn.closest('.cm-item');
-      const cid = item?.dataset.id;
-      if (!cid || !currentDetailMerchantId) return;
-      const ok = confirm('要刪除這則留言嗎？');
-      if (!ok) return;
-      const done = await deleteComment(currentDetailMerchantId, cid);
-      if (done) {
-        const fresh = await fetchComments(currentDetailMerchantId);
-        renderComments(fresh);
-      }
-    });
-  });
 }
 
-function wireCommentForm(merchantId){
-  const form = document.getElementById('commentForm');
-  const guestHint = document.getElementById('cmGuestHint');
-  const { name, avatar, role } = getCurrentUser();
+function openCmtSheet(){
+  const sheet = document.getElementById('cmtSheet');
+  if (!sheet) return;
+  sheet.hidden = false;
+  requestAnimationFrame(()=> sheet.classList.add('active'));
+  document.body.classList.add('no-scroll');
+}
 
-  // 如果是 Guest，就提示，但還是可以送（你要鎖就把下面那行打開）
-  if (guestHint) {
-    const isGuest = !role || role === 'Guest';
-    guestHint.hidden = !isGuest;
-    // 若你真的要鎖訪客 → 把下面兩行打開
-    // if (isGuest && form) form.querySelector('button[type="submit"]').disabled = true;
-  }
-
-  // 表單填上現在名字
-  const inputName = document.getElementById('cmAuthor');
-  if (inputName) inputName.value = name || 'Guest';
-
-  if (!form) return;
-  form.onsubmit = async (e)=>{
-    e.preventDefault();
-    const author = (document.getElementById('cmAuthor')?.value || name || 'Guest').trim();
-    const body   = (document.getElementById('cmBody')?.value || '').trim();
-    if (!body) return;
-    const ok = await saveComment(merchantId, {
-      author,
-      avatar: avatar || author.slice(0,1).toUpperCase(),
-      body
-    });
-    if (ok) {
-      const fresh = await fetchComments(merchantId);
-      renderComments(fresh);
-      document.getElementById('cmBody').value = '';
-    } else {
-      alert('留言失敗，請稍後再試');
-    }
-  };
+function closeCmtSheet(){
+  const sheet = document.getElementById('cmtSheet');
+  if (!sheet) return;
+  sheet.classList.remove('active');
+  setTimeout(()=>{ sheet.hidden = true; }, 140);
+  document.body.classList.remove('no-scroll');
 }
