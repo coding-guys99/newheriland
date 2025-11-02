@@ -330,25 +330,31 @@
 </section>
 
     <!-- Comments -->
-    <section class="d-card" id="commentsCard">
-      <h2 class="d-h2">Comments</h2>
-      <div id="commentsList" class="cm-list" aria-live="polite">
-        <!-- JS render comments here -->
-        <p class="cm-empty">還沒有留言，留下第一則吧！</p>
-      </div>
+<section class="d-card" id="commentsCard">
+  <h2 class="d-h2">Comments</h2>
 
-      <form id="commentForm" class="cm-form" autocomplete="off">
-        <label class="cm-field">
-          <span class="cm-label">你的名字</span>
-          <input id="cmAuthor" name="author" type="text" placeholder="Guest" />
-        </label>
-        <label class="cm-field">
-          <span class="cm-label">留言內容</span>
-          <textarea id="cmBody" name="body" rows="3" required placeholder="寫點你對這家店的感想、推薦的餐點、去的時間…"></textarea>
-        </label>
-        <button type="submit" class="btn primary">送出留言</button>
-      </form>
-    </section>
+  <!-- 未登入提示：JS 會判斷要不要顯示 -->
+  <div id="cmGuestHint" class="cm-hint" hidden>
+    目前以訪客身分瀏覽，請先到「Profile」設定你的名字再留言。
+  </div>
+
+  <div id="commentsList" class="cm-list" aria-live="polite">
+    <p class="cm-empty">還沒有留言，留下第一則吧！</p>
+  </div>
+
+  <form id="commentForm" class="cm-form" autocomplete="off">
+    <label class="cm-field">
+      <span class="cm-label">你的名字</span>
+      <!-- 這裡還是保留，讓他能改名字 -->
+      <input id="cmAuthor" name="author" type="text" placeholder="Guest" />
+    </label>
+    <label class="cm-field">
+      <span class="cm-label">留言內容</span>
+      <textarea id="cmBody" name="body" rows="3" required placeholder="寫點你對這家店的感想、推薦的餐點、去的時間…"></textarea>
+    </label>
+    <button type="submit" class="btn primary">送出留言</button>
+  </form>
+</section>
 
     <!-- Related -->
     <section class="d-card">
