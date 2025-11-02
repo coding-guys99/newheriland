@@ -56,6 +56,43 @@ const HOME_DATA = Object.assign({
   ],
 }, window.HOME_DATA || {});
 
+/* -------------------- features 專用：從 Supabase 抓 -------------------- */
+async function fetchFeaturesFromSupabase(){
+  try {
+    const { data, error } = await supabase
+      .from('hl_features')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (error) throw error;
+    if (!data?.length) return HOME_DATA.features;
+
+    return data.map(f => ({
+      ico: f.icon,
+      label: f.label,
+      href: f.href
+    }));
+  } catch (err) {
+    console.warn('fetchFeaturesFromSupabase failed, use fallback', err);
+    return HOME_DATA.features;
+  }
+}
+
+async function renderFeatures(){
+  const box = $('#homeFeatures');
+  if(!box) return;
+
+  const features = await fetchFeaturesFromSupabase();
+
+  box.innerHTML = features.map(f =>
+    `<a class="feat" href="${f.href}">
+       <i>${f.ico}</i><span class="txt">${f.label}</span>
+     </a>`).join('');
+}
+/* -------------------- /features -------------------- */
+
+
 function renderFeatures(){
   const box = $('#homeFeatures'); if(!box) return;
   box.innerHTML = HOME_DATA.features.map(f =>
@@ -228,7 +265,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   // 搜尋只是導向 Explore（之後可換成真正搜尋）
   $('#homeSearchBtn')?.addEventListener('click', ()=> location.hash = '#explore');
 
-  renderFeatures();
+  await renderFeatures();
   await renderHero();     // 👈 hero 要等它抓資料
   renderCombo();
   renderCities();
