@@ -264,13 +264,50 @@ async function renderCombo(){
 }
 /* -------------------- /combo left + right -------------------- */
 
-function renderCities(){
-  const row = $('#cityRow'); if(!row) return;
-  row.innerHTML = HOME_DATA.cities.map(c =>
-    `<a class="card" href="${c.href}">
-       <img src="${c.img}" alt=""><div class="ttl">${c.name}</div>
-     </a>`).join('');
+/* -------------------- cities：從 Supabase 抓 -------------------- */
+async function fetchCitiesFromSupabase(){
+  try {
+    const { data, error } = await supabase
+      .from('hl_cities')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (error) throw error;
+    if (!data?.length) return HOME_DATA.cities;   // fallback
+
+    return data.map(c => {
+      // 有寫 href 就用資料庫的，沒寫就自己拼
+      const href = c.href && c.href.trim()
+        ? c.href
+        : `#explore?city=${encodeURIComponent(c.slug || '')}`;
+
+      return {
+        name: c.name,
+        img: c.image_url,
+        href
+      };
+    });
+  } catch (err) {
+    console.warn('fetchCitiesFromSupabase failed, use fallback', err);
+    return HOME_DATA.cities;
+  }
 }
+
+async function renderCities(){
+  const row = $('#cityRow');
+  if (!row) return;
+
+  const cities = await fetchCitiesFromSupabase();
+
+  row.innerHTML = cities.map(c =>
+    `<a class="card" href="${c.href}">
+       <img src="${c.img}" alt="${c.name}">
+       <div class="ttl">${c.name}</div>
+     </a>`
+  ).join('');
+}
+/* -------------------- /cities -------------------- */
 
 function renderAd(){
   const a = $('#adSlot'); if(!a) return;
@@ -321,7 +358,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   await renderFeatures();
   await renderHero();
   await renderCombo();
-  renderCities();
+  await renderCities();
   renderAd();
   renderCollections();
   renderGroups();
