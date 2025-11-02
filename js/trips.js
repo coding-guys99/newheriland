@@ -135,7 +135,7 @@
       window.showPage('experiences.html');
     } else {
       // 分頁版就導回 index
-      location.href = 'index.html#experiences';
+      location.href = 'experiences.html';
     }
   });
 
