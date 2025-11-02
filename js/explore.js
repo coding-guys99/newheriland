@@ -701,38 +701,67 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
       
-          // ===== Comments (per merchant) =====
-    const comments = loadComments(m.id);
+      // ===== Comments (per merchant) =====
+const comments = loadComments(m.id);
+renderCmtPreview(comments);
+
+const btnShowComments = document.getElementById('btnShowComments');
+const btnCmtClose     = document.getElementById('btnCmtClose');
+const btnCmtSend      = document.getElementById('btnCmtSend');
+const cmtInput        = document.getElementById('cmtText');
+const cmtSheet        = document.getElementById('cmtSheet');
+
+// 打開：每次都覆蓋，這樣關掉再開也OK
+if (btnShowComments) {
+  btnShowComments.onclick = () => {
+    renderCmtSheet(comments);  // 先用最新的陣列畫一次
+    openCmtSheet();
+  };
+}
+
+// 關閉：按X
+if (btnCmtClose) {
+  btnCmtClose.onclick = () => {
+    closeCmtSheet();
+  };
+}
+
+// 關閉：點遮罩
+if (cmtSheet) {
+  cmtSheet.onclick = (e) => {
+    if (e.target === cmtSheet) {
+      closeCmtSheet();
+    }
+  };
+}
+
+// 送出留言
+if (btnCmtSend) {
+  btnCmtSend.onclick = () => {
+    const text = (cmtInput?.value || '').trim();
+    if (!text) return;
+
+    // 匿名暱稱，可之後再做「設定裡自訂名稱」
+    const nick = localStorage.getItem('hl.user.nick') || '旅人';
+
+    const item = {
+      text,
+      nick,
+      ts: Date.now()
+    };
+
+    // 新的放最前面
+    comments.unshift(item);
+    saveComments(m.id, comments);
+
+    // 更新詳情頁那一條
     renderCmtPreview(comments);
+    // 如果面板開著，也更新
+    renderCmtSheet(comments);
 
-    // 綁「查看全部留言」
-    const btnShowComments = document.getElementById('btnShowComments');
-    const btnCmtClose = document.getElementById('btnCmtClose');
-    const btnCmtSend = document.getElementById('btnCmtSend');
-    const cmtInput = document.getElementById('cmtText');
-
-    btnShowComments?.addEventListener('click', ()=>{
-      renderCmtSheet(comments);
-      openCmtSheet();
-    }, { once: true }); // 第一次打開綁一次就好
-
-    btnCmtClose?.addEventListener('click', closeCmtSheet);
-    document.getElementById('cmtSheet')?.addEventListener('click', (e)=>{
-      if (e.target.id === 'cmtSheet') closeCmtSheet();
-    });
-
-    btnCmtSend?.addEventListener('click', ()=>{
-      const text = (cmtInput?.value || '').trim();
-      if (!text) return;
-      // 給一個隨機匿名名
-      const nick = localStorage.getItem('hl.user.nick') || '旅人';
-      const item = { text, nick, ts: Date.now() };
-      comments.unshift(item);               // 新的在最上面
-      saveComments(m.id, comments);         // 存回 localStorage
-      renderCmtPreview(comments);           // 更新詳情頁一則
-      renderCmtSheet(comments);             // 更新列表
-      cmtInput.value = '';
-    });
+    if (cmtInput) cmtInput.value = '';
+  };
+}
 
 
       // related
