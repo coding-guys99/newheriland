@@ -309,10 +309,37 @@ async function renderCities(){
 }
 /* -------------------- /cities -------------------- */
 
-function renderAd(){
-  const a = $('#adSlot'); if(!a) return;
-  a.href = HOME_DATA.ad.href;
-  a.querySelector('img').src = HOME_DATA.ad.img;
+async function fetchAdFromSupabase(place='home-main'){
+  try {
+    const { data, error } = await supabase
+      .from('hl_ads')
+      .select('*')
+      .eq('placement', place)
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .limit(1);
+
+    if (error) throw error;
+    if (!data?.length) return HOME_DATA.ad; // fallback
+
+    const ad = data[0];
+    return {
+      img: ad.image_url,
+      href: ad.href
+    };
+  } catch (err) {
+    console.warn('fetchAdFromSupabase failed, use fallback', err);
+    return HOME_DATA.ad;
+  }
+}
+
+async function renderAd(){
+  const a = $('#adSlot');
+  if(!a) return;
+
+  const ad = await fetchAdFromSupabase('home-main');
+  a.href = ad.href;
+  a.querySelector('img').src = ad.img;
 }
 
 function renderCollections(){
@@ -359,7 +386,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   await renderHero();
   await renderCombo();
   await renderCities();
-  renderAd();
+  await renderAd();
   renderCollections();
   renderGroups();
   renderSpotlight();
