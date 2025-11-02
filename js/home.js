@@ -185,30 +185,80 @@ async function renderHero(){
 }
 /* -------------------- /hero -------------------- */
 
-function renderCombo(){
-  const left = $('#comboLeft'), cdots = $('#comboDots'), right = $('#comboRight');
-  if(left && cdots){
-    left.innerHTML = HOME_DATA.comboLeft.map(s =>
-      `<a class="slide" href="${s.href}" role="listitem"><img src="${s.img}" alt=""></a>`
+/* -------------------- combo left 專用 -------------------- */
+async function fetchComboLeftFromSupabase(){
+  try {
+    const { data, error } = await supabase
+      .from('hl_combo_left')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (error) throw error;
+    if (!data?.length) return HOME_DATA.comboLeft;  // fallback
+
+    return data.map(row => ({
+      img: row.image_url,
+      title: row.title || '',
+      href: row.href
+    }));
+  } catch (err) {
+    console.warn('fetchComboLeftFromSupabase failed, use fallback', err);
+    return HOME_DATA.comboLeft;
+  }
+}
+
+async function renderCombo(){
+  const left  = $('#comboLeft');
+  const cdots = $('#comboDots');
+  const right = $('#comboRight');
+
+  // 左邊輪播（Supabase）
+  if (left && cdots) {
+    const comboLeft = await fetchComboLeftFromSupabase();
+
+    left.innerHTML = comboLeft.map(s =>
+      `<a class="slide" href="${s.href}" role="listitem">
+         <img src="${s.img}" alt="${s.title || ''}">
+       </a>`
     ).join('');
-    cdots.innerHTML = HOME_DATA.comboLeft.map((_,i)=>
-      `<button type="button" ${i===0 ? 'aria-current="true"' : ''}></button>`
+
+    cdots.innerHTML = comboLeft.map((_,i)=>
+      `<button type="button" ${i===0 ? 'aria-current="true"' : ''} data-idx="${i}"></button>`
     ).join('');
+
+    // 滾動 → 更新 dots
     const update = ()=>{
       const w = left.clientWidth || 1;
       const idx = Math.round(left.scrollLeft / (w));
       [...cdots.children].forEach((b,i)=> b.setAttribute('aria-current', i===idx ? 'true':'false'));
     };
     left.addEventListener('scroll', ()=> requestAnimationFrame(update));
+
+    // 點 dot → 滾到對應張
+    [...cdots.children].forEach(btn => {
+      btn.addEventListener('click', ()=>{
+        const i = Number(btn.dataset.idx || 0);
+        const w = left.clientWidth || 1;
+        left.scrollTo({
+          left: i * w,
+          behavior: 'smooth'
+        });
+      });
+    });
   }
-  if(right){
+
+  // 右邊列表（先保持吃假資料）
+  if (right) {
     right.innerHTML = HOME_DATA.comboRight.map(r =>
       `<a href="${r.href}">
          <div>${r.title}</div>
          <span class="sub">${r.sub||''}</span>
-       </a>`).join('');
+       </a>`
+    ).join('');
   }
 }
+/* -------------------- /combo left -------------------- */
 
 function renderCities(){
   const row = $('#cityRow'); if(!row) return;
@@ -267,7 +317,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 
   await renderFeatures();
   await renderHero();     // 👈 hero 要等它抓資料
-  renderCombo();
+  await renderCombo(); 
   renderCities();
   renderAd();
   renderCollections();
