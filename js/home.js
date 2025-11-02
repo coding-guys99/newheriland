@@ -169,7 +169,7 @@ async function renderHero(){
 }
 /* -------------------- /hero -------------------- */
 
-/* -------------------- combo left：從 Supabase 抓 -------------------- */
+/* -------------------- combo left + right：從 Supabase 抓 -------------------- */
 async function fetchComboLeftFromSupabase(){
   try {
     const { data, error } = await supabase
@@ -177,7 +177,6 @@ async function fetchComboLeftFromSupabase(){
       .select('*')
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
-
     if (error) throw error;
     if (!data?.length) return HOME_DATA.comboLeft;
 
@@ -189,6 +188,27 @@ async function fetchComboLeftFromSupabase(){
   } catch (err) {
     console.warn('fetchComboLeftFromSupabase failed, use fallback', err);
     return HOME_DATA.comboLeft;
+  }
+}
+
+async function fetchComboRightFromSupabase(){
+  try {
+    const { data, error } = await supabase
+      .from('hl_combo_right')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    if (!data?.length) return HOME_DATA.comboRight;
+
+    return data.map(row => ({
+      title: row.title,
+      sub: row.subtitle || '',
+      href: row.href
+    }));
+  } catch (err) {
+    console.warn('fetchComboRightFromSupabase failed, use fallback', err);
+    return HOME_DATA.comboRight;
   }
 }
 
@@ -230,17 +250,19 @@ async function renderCombo(){
     });
   }
 
-  // 右邊列表（先保持吃假資料，下一步再搬 supabase）
+  // 右邊列表（Supabase）
   if (right) {
-    right.innerHTML = HOME_DATA.comboRight.map(r =>
+    const comboRight = await fetchComboRightFromSupabase();
+
+    right.innerHTML = comboRight.map(r =>
       `<a href="${r.href}">
          <div>${r.title}</div>
-         <span class="sub">${r.sub||''}</span>
+         <span class="sub">${r.sub || ''}</span>
        </a>`
     ).join('');
   }
 }
-/* -------------------- /combo left -------------------- */
+/* -------------------- /combo left + right -------------------- */
 
 function renderCities(){
   const row = $('#cityRow'); if(!row) return;
