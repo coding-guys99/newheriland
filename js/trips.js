@@ -132,7 +132,7 @@
   // 「去看體驗」→ 回到 experiences 那一頁
   btnGoExp?.addEventListener('click', () => {
     if (typeof window.showPage === 'function') {
-      window.showPage('experiences');
+      window.showPage('experiences.html');
     } else {
       // 分頁版就導回 index
       location.href = 'index.html#experiences';
