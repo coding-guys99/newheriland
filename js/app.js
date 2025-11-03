@@ -6,16 +6,22 @@
 // 3. 如果頁面上有 Settings，就幫你處理開/關與第 3 層
 // 4. 不做 router、不動 tabbar、不改 data-page
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+// js/app.js
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// ====== 你原本的 Supabase 設定 ======
 const SUPABASE_URL = 'https://grnslirusehkdmxzxwnp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdybnNsaXJ1c2Voa2RteHp4d25wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NTY0MTYsImV4cCI6MjA3NjAzMjQxNn0.-pVf96mDwnJU4a9QndmFjr0f7DWNBAlxkJrzuKKj7WI';
+const SUPABASE_ANON_KEY = '你的 anon key';
 
-// 對外可以拿到 supabase
 export const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
-  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,        // 記住登入
+        autoRefreshToken: true,      // 自動刷新
+        detectSessionInUrl: true
+      }
+    })
   : null;
+
 
 // 共用工具（也 export）
 export const $  = (sel, root = document) => root.querySelector(sel);
