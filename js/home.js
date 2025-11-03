@@ -309,6 +309,7 @@ async function renderCities(){
 }
 /* -------------------- /cities -------------------- */
 
+/* -------------------- ad：從 Supabase 抓（含檔期） -------------------- */
 async function fetchAdFromSupabase(place='home-main'){
   try {
     const { data, error } = await supabase
@@ -316,6 +317,8 @@ async function fetchAdFromSupabase(place='home-main'){
       .select('*')
       .eq('placement', place)
       .eq('is_active', true)
+      .lte('starts_at', new Date().toISOString())
+      .gte('ends_at', new Date().toISOString())
       .order('sort_order', { ascending: true })
       .limit(1);
 
@@ -341,6 +344,7 @@ async function renderAd(){
   a.href = ad.href;
   a.querySelector('img').src = ad.img;
 }
+/* -------------------- /ad -------------------- */
 
 function renderCollections(){
   const row = $('#colRow'); if(!row) return;
