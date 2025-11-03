@@ -247,8 +247,6 @@ const ftBody     = $('#ft-body');
 const ftAddBtn   = $('#ft-add');
 const ftRefBtn   = $('#ft-refresh');
 
-function esc(s){ return (s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
-
 async function fetchFeatures(){
   const { data, error } = await supabase
     .from('hl_features')
