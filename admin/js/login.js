@@ -29,9 +29,10 @@ form.addEventListener('submit', async (e)=>{
     }
 
     msg.textContent = '登入成功，正在跳轉...';
-    setTimeout(()=> location.href = '/admin/index.html', 1200);
+    setTimeout(()=> location.href = './index.html', 1200);
   } catch (err) {
     msg.textContent = '登入失敗：' + (err.message || '');
   }
 });
+
 
