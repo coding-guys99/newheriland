@@ -1,22 +1,37 @@
-// /admin/js/admin-home.js — Hero(hl_banners) CRUD
+// /admin/js/admin-home.js — Home Admin (Tabs + Hero/hl_banners CRUD)
 import { supabase } from '../../js/app.js';
 
 const $  = (s, r=document)=> r.querySelector(s);
 const $$ = (s, r=document)=> Array.from(r.querySelectorAll(s));
 
-/* ---------- Tabs（先啟用 banners） ---------- */
+/* =========================
+   Tabs：通用切換（含 lazy render）
+   ========================= */
 const tabButtons = $$('.tabs .btn');
-function activateTab(name){
-  const bannersPanel = $('#tab-banners');
-  if (bannersPanel) bannersPanel.style.display = (name==='banners') ? 'block' : 'none';
-  tabButtons.forEach(b=> b.classList.toggle('active', b.dataset.tab===name));
-  history.replaceState({}, '', `#home:${name}`);
-}
-tabButtons.forEach(b=> b.addEventListener('click', ()=> activateTab(b.dataset.tab)));
-activateTab('banners');
-window.addEventListener('message', (e)=>{ if (e?.data?.openTab) activateTab(e.data.openTab); });
+const panels = Array.from(document.querySelectorAll('section[id^="tab-"]'));
+const loaded = {}; // 首次開啟才渲染用（之後接其它面板）
 
-/* ---------- HERO / hl_banners CRUD ---------- */
+function showTab(name){
+  const targetId = `tab-${name}`;
+  panels.forEach(p => p.style.display = (p.id === targetId ? 'block' : 'none'));
+  tabButtons.forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  history.replaceState({}, '', `#home:${name}`);
+
+  // 首次開啟才做初始化（目前只需要 banners）
+  if (!loaded[name]) {
+    if (name === 'banners') renderBanners();
+    // e.g. if (name === 'features') renderFeaturesAdmin();
+    loaded[name] = true;
+  }
+}
+tabButtons.forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+const initial = location.hash.match(/#home:([\w-]+)/)?.[1] || 'banners';
+showTab(initial);
+window.addEventListener('message', e => { if (e?.data?.openTab) showTab(e.data.openTab); });
+
+/* =========================
+   HERO / hl_banners CRUD
+   ========================= */
 const tableBody   = $('#bn-body');
 const btnAdd      = $('#bn-add');
 const btnRefresh  = $('#bn-refresh');
@@ -25,7 +40,7 @@ const PLACEHOLDER_IMG = 'https://placehold.co/1200x600?text=Banner';
 async function fetchBanners(){
   const { data, error } = await supabase
     .from('hl_banners')
-    .select('*')
+    .select('id,title,image_url,target_type,target_value,sort_order,is_active')
     .order('sort_order', { ascending: true });
   if (error) throw error;
   return data || [];
@@ -42,7 +57,10 @@ function rowTpl(b){
       <div class="bn-row">
         <!-- 預覽 -->
         <div>
-          <img class="bn-thumb" src="${b.image_url || PLACEHOLDER_IMG}" alt="preview">
+          <img class="bn-thumb"
+               src="${b.image_url || PLACEHOLDER_IMG}"
+               alt="preview"
+               onerror="this.src='${PLACEHOLDER_IMG}'">
         </div>
 
         <!-- 標題 -->
@@ -100,8 +118,8 @@ function rowTpl(b){
   </tr>`;
 }
 
-
 async function renderBanners(){
+  if (!tableBody) return;
   tableBody.innerHTML = '<tr><td colspan="8" style="padding:12px" class="help">載入中…</td></tr>';
   try{
     const data = await fetchBanners();
@@ -115,30 +133,33 @@ async function renderBanners(){
 }
 
 /* 即時預覽圖片（事件委派） */
-$('#bn-table').addEventListener('input', (e)=>{
-  const tr = e.target.closest('tr'); if(!tr) return;
-  if(e.target.classList.contains('image_url')){
-    const url = e.target.value.trim();
-    const img = tr.querySelector('img');
-    img.src = url || PLACEHOLDER_IMG;
-  }
-});
+const bnTable = $('#bn-table');
+if (bnTable){
+  bnTable.addEventListener('input', (e)=>{
+    const tr = e.target.closest('tr'); if(!tr) return;
+    if(e.target.classList.contains('image_url')){
+      const url = e.target.value.trim();
+      const img = tr.querySelector('img');
+      img.src = url || PLACEHOLDER_IMG;
+    }
+  });
 
-/* 點擊事件（儲存 / 刪除 / 上下移） */
-$('#bn-table').addEventListener('click', async (e)=>{
-  const tr = e.target.closest('tr'); if(!tr) return;
-  const id = tr.dataset.id;
+  /* 點擊事件（儲存 / 刪除 / 上下移） */
+  bnTable.addEventListener('click', async (e)=>{
+    const tr = e.target.closest('tr'); if(!tr) return;
+    const id = tr.dataset.id;
 
-  if(e.target.classList.contains('save')){
-    await saveRow(tr);
-  } else if(e.target.classList.contains('del')){
-    await deleteRow(id);
-  } else if(e.target.classList.contains('up')){
-    await moveRow(tr, -1);
-  } else if(e.target.classList.contains('down')){
-    await moveRow(tr, +1);
-  }
-});
+    if(e.target.classList.contains('save')){
+      await saveRow(tr);
+    } else if(e.target.classList.contains('del')){
+      await deleteRow(id);
+    } else if(e.target.classList.contains('up')){
+      await moveRow(tr, -1);
+    } else if(e.target.classList.contains('down')){
+      await moveRow(tr, +1);
+    }
+  });
+}
 
 /* 重新整理 / 新增 */
 btnRefresh?.addEventListener('click', renderBanners);
@@ -209,14 +230,10 @@ async function moveRow(tr, dir){
 
   try{
     const { error } = await supabase.from('hl_banners').upsert([
-      { id,       sort_order: otherSort },
+      { id,        sort_order: otherSort },
       { id: otherId, sort_order: currentSort }
     ]);
     if(error) throw error;
     await renderBanners();
   }catch(e){ alert('移動失敗：'+e.message); }
 }
-
-/* 首次載入 */
-renderBanners();
-
