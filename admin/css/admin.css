@@ -135,3 +135,5 @@ h1{ font-size:22px; } h2{ font-size:18px; } h3{ font-size:16px; }
   .bn-row{ grid-template-columns: 120px 1fr; }
   .only-wide{ display:none; }
 }
+
+#adminFrame{ display:block; width:100%; height:calc(100dvh - 56px); min-height:600px; border:0; }
