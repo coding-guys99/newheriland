@@ -7,61 +7,56 @@
 <link rel="stylesheet" href="css/admin.css" />
 </head>
 <body>
+
 <div class="container">
-<h1 class="h1">首頁管理</h1>
+  <h1 class="h1">首頁管理</h1>
 
+  <div class="tabs">
+    <button class="btn" data-tab="banners">Hero 輪播</button>
+    <button class="btn" data-tab="features">優惠活動</button>
+    <button class="btn" data-tab="combo">Combo Left / Right</button>
+    <button class="btn" data-tab="cities">城市推薦</button>
+    <button class="btn" data-tab="ads">廣告橫幅</button>
+    <button class="btn" data-tab="collections">主題集合</button>
+    <button class="btn" data-tab="groups">多人主題</button>
+    <button class="btn" data-tab="spotlight">Spotlight</button>
+    <button class="btn" data-tab="goods">在地小物</button>
+  </div>
 
-<div class="tabs" style="display:flex; gap:8px; margin:12px 0 16px">
-<button class="btn" data-tab="banners">Hero 輪播</button>
-<button class="btn" data-tab="features">優惠活動</button>
-<button class="btn" data-tab="combo">Combo Left / Right</button>
-<button class="btn" data-tab="cities">城市推薦</button>
-<button class="btn" data-tab="ads">廣告橫幅</button>
-<button class="btn" data-tab="collections">主題集合</button>
-<button class="btn" data-tab="groups">多人主題</button>
-<button class="btn" data-tab="spotlight">Spotlight</button>
-<button class="btn" data-tab="goods">在地小物</button>
+  <!-- Hero / hl_banners -->
+  <section id="tab-banners" class="admin-card">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+      <div>
+        <h3 style="margin:0">Hero 輪播（hl_banners）</h3>
+        <div class="help">管理首頁頂部輪播：標題、圖片、導向、排序、上架狀態。</div>
+      </div>
+      <div class="table-head-actions">
+        <button id="bn-refresh" class="btn">重新整理</button>
+        <button id="bn-add" class="btn primary">新增 Banner</button>
+      </div>
+    </div>
+
+    <div style="overflow:auto">
+      <table id="bn-table">
+        <thead>
+          <tr>
+            <th>預覽</th>
+            <th>標題</th>
+            <th>圖片 URL</th>
+            <th>導向類型</th>
+            <th>導向值 / 連結</th>
+            <th>排序</th>
+            <th>上架</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="bn-body"></tbody>
+      </table>
+    </div>
+  </section>
 </div>
-
-
-<!-- Hero / hl_banners -->
-<section id="tab-banners" class="card">
-<header style="display:flex; align-items:center; gap:8px; justify-content:space-between; margin-bottom:12px">
-<div>
-<strong>Hero 輪播（hl_banners）</strong>
-<div class="help">管理首頁頂部輪播：標題、圖片、導向、排序、上架狀態。</div>
-</div>
-<div style="display:flex; gap:8px">
-<button id="bn-refresh" class="btn">重新整理</button>
-<button id="bn-add" class="btn">新增 Banner</button>
-</div>
-</header>
-
-
-<div style="overflow:auto">
-<table id="bn-table" style="width:100%; border-collapse:collapse">
-<thead>
-<tr style="border-bottom:1px solid var(--border)">
-<th style="text-align:left; padding:8px">預覽</th>
-<th style="text-align:left; padding:8px; width:220px">標題</th>
-<th style="text-align:left; padding:8px; width:340px">圖片 URL</th>
-<th style="text-align:left; padding:8px; width:120px">導向類型</th>
-<th style="text-align:left; padding:8px; width:240px">導向值 / 連結</th>
-<th style="text-align:left; padding:8px; width:80px">排序</th>
-<th style="text-align:left; padding:8px; width:90px">上架</th>
-<th style="text-align:left; padding:8px">操作</th>
-</tr>
-</thead>
-<tbody id="bn-body"></tbody>
-</table>
-</div>
-</section>
-
-
-<!-- 其他模組的面板之後再掛（features/combo/cities/ads/...） -->
-</div>
-
 
 <script type="module" src="js/admin-home.js"></script>
+
 </body>
 </html>
