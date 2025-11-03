@@ -1,101 +1,114 @@
-/* ===== Admin - Hero Banners 美化 ===== */
+/* =========================
+   HeriLand Admin - Integrated CSS
+   ========================= */
+
+/* --- Theme tokens --- */
 :root{
+  --bg:#0b0f0d;
   --panel:#0f1211;
   --panel-2:#131816;
   --border:#202725;
   --muted:#8a938e;
   --text:#e9efe9;
-  --brand:#1e7a55;
-  --brand-2:#bda26b;
-  --danger:#862e2e;
+
+  --brand:#1e7a55;      /* Forest Green */
+  --brand-2:#bda26b;    /* Champagne Gold accent */
   --ok:#1c6b4f;
+  --danger:#862e2e;
 }
 
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0; font:14px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  color:var(--text); background:var(--bg);
+}
+
+/* --- Layout shell (optional) --- */
+.admin-wrap{ display:flex; min-height:100vh; }
+.admin-aside{
+  width:260px; background:var(--panel-2); border-right:1px solid var(--border);
+  padding:18px; position:sticky; top:0; height:100dvh;
+}
+.admin-main{ flex:1; padding:22px; }
+
+/* --- Headings & helpers --- */
+h1,h2,h3{ margin:0 0 10px; font-weight:700; }
+h1{ font-size:22px; } h2{ font-size:18px; } h3{ font-size:16px; }
+.help{ color:var(--muted); font-size:13px; }
+
+/* --- Tabs --- */
+.tabs{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+.tabs .btn{
+  border:1px solid var(--border); background:#0f1412; color:var(--text);
+  padding:8px 12px; border-radius:999px; cursor:pointer;
+}
+.tabs .btn.active{ background:var(--brand); border-color:transparent; }
+
+/* --- Buttons --- */
+.btn{
+  border:1px solid var(--border);
+  background:#0f1412; color:var(--text);
+  padding:8px 10px; border-radius:10px; cursor:pointer;
+  transition:background .15s ease;
+}
+.btn:hover{ background:#131a16; }
+.btn.primary{ background:var(--brand); border-color:transparent; }
+.btn.primary:hover{ background:var(--brand-2); color:#0b0b0b; }
+.btn.danger{ background:#2a1414; color:#ffdede; }
+.btn.icon{ width:34px; height:34px; display:inline-grid; place-items:center; padding:0; }
+
+/* --- Inputs --- */
+.in{
+  width:100%; background:#0e1311; color:var(--text);
+  border:1px solid var(--border); border-radius:10px;
+  padding:9px 10px; font-size:14px;
+}
+.in:focus{ outline:2px solid var(--brand); }
+.sel{ height:36px; }
+
+/* --- Admin card container --- */
 .admin-card{
   background:var(--panel-2);
   border:1px solid var(--border);
   border-radius:16px;
   box-shadow:0 4px 18px rgba(0,0,0,.25);
   padding:14px;
+  margin-bottom:18px;
 }
+.table-head-actions{ display:flex; gap:10px; align-items:center; justify-content:flex-end; }
 
-#bn-table{
-  width:100%;
-  border-collapse:separate;
-  border-spacing:0 10px;
+/* --- Table (visual rows as cards) --- */
+#bn-table, .adm-table{
+  width:100%; border-collapse:separate; border-spacing:0 10px;
 }
-#bn-table thead th{
-  color:var(--muted);
-  font-weight:600;
-  text-align:left;
-  padding:4px 10px;
+#bn-table thead th, .adm-table thead th{
+  color:var(--muted); font-weight:600; text-align:left; padding:4px 10px;
 }
-#bn-body tr{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:14px;
-  overflow:hidden;
+#bn-body tr, .adm-tbody tr{
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:14px; overflow:hidden;
 }
-#bn-body tr > td{
-  padding:12px;
-  vertical-align:middle;
-}
+#bn-body tr > td, .adm-tbody tr > td{ padding:12px; vertical-align:middle; }
 
-/* 讓每列長得像卡片：用 CSS Grid 排版 */
+/* --- Banner Row Grid --- */
 .bn-row{
   display:grid;
   grid-template-columns: 140px 1.2fr 1.6fr 140px 1.2fr 180px 120px 160px;
-  gap:12px;
-  align-items:center;
+  gap:12px; align-items:center;
 }
-
 .bn-thumb{
   width:120px; height:60px; object-fit:cover;
-  border-radius:10px; border:1px solid var(--border);
-  background:#0c0f0d;
+  border-radius:10px; border:1px solid var(--border); background:#0c0f0d;
 }
-
-.in{
-  width:100%;
-  background:#0e1311;
-  color:var(--text);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:9px 10px;
-  font-size:14px;
-}
-.in:focus{ outline:2px solid var(--brand); }
-
-.sel{ height:36px; }
-
-.stack{
-  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-}
-
 .badge{
-  font-size:12px; color:#cdd5cf; background:#0f1412;
-  border:1px dashed var(--border); border-radius:999px;
-  padding:4px 8px;
+  display:inline-block; font-size:12px; color:#cdd5cf;
+  background:#0f1412; border:1px dashed var(--border);
+  border-radius:999px; padding:4px 8px; margin-bottom:6px;
 }
 
-/* 排序按鈕與主操作 */
-.btn{
-  border:1px solid var(--border);
-  background:#0f1412; color:#eaf2ec;
-  padding:8px 10px; border-radius:10px; cursor:pointer;
-}
-.btn:hover{ background:#121815; }
-.btn.act{ padding:6px 8px; }
-.btn.primary{ background:var(--brand); border-color:transparent; }
-.btn.primary:hover{ background:var(--brand-2); }
-.btn.danger{ background:#2a1414; color:#ffdede; }
-.btn.icon{ width:34px; height:34px; display:inline-grid; place-items:center; }
-
-/* 上架切換（更漂亮的 switch） */
-.switch{
-  --w:44px; --h:26px;
-  position:relative; width:var(--w); height:var(--h);
-}
+/* --- Switch --- */
+.switch{ --w:44px; --h:26px; position:relative; width:var(--w); height:var(--h); }
 .switch input{ display:none; }
 .switch i{
   position:absolute; inset:0; border-radius:999px;
@@ -109,13 +122,16 @@
 .switch input:checked + i{ background:#123c2d; border-color:#175842; }
 .switch input:checked + i::after{ transform:translateX(18px); background:#e9fff4; }
 
-/* 表頭右側動作列 */
-.table-head-actions{
-  display:flex; gap:10px; align-items:center; justify-content:flex-end;
-}
+/* --- Utilities --- */
+.stack{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.only-wide{ display:initial; }
 
-/* 手機/窄螢幕堆疊 */
+/* --- Responsive --- */
+@media (max-width: 1200px){
+  .bn-row{ grid-template-columns: 140px 1fr 1fr 140px 1fr 1fr 120px 1fr; }
+}
 @media (max-width: 960px){
+  .admin-aside{ position:static; height:auto; width:100%; }
   .bn-row{ grid-template-columns: 120px 1fr; }
   .only-wide{ display:none; }
 }
