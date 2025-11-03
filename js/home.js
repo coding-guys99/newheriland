@@ -394,13 +394,59 @@ async function renderCollections(){
 }
 /* -------------------- /collections -------------------- */
 
-function renderGroups(){
-  const row = $('#groupRow'); if(!row) return;
-  row.innerHTML = HOME_DATA.groups.map(g =>
-    `<a class="card" href="${g.href}">
-       <img src="${g.img}" alt=""><div class="ttl">${g.name}</div>
-     </a>`).join('');
+/* -------------------- group themes：從 Supabase 抓 -------------------- */
+async function fetchGroupThemesFromSupabase(){
+  try {
+    const { data, error } = await supabase
+      .from('hl_group_themes')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (error) throw error;
+    if (!data?.length) {
+      // fallback：轉你原本的 HOME_DATA.groups
+      return HOME_DATA.groups.map(g => ({
+        name: g.name,
+        img: g.img,
+        href: g.href
+      }));
+    }
+
+    return data.map(g => {
+      const href = g.href && g.href.trim()
+        ? g.href
+        : `#explore?theme=${encodeURIComponent(g.slug)}`;
+      return {
+        name: g.name,
+        img: g.image_url,
+        href
+      };
+    });
+  } catch (err) {
+    console.warn('fetchGroupThemesFromSupabase failed, use fallback', err);
+    return HOME_DATA.groups.map(g => ({
+      name: g.name,
+      img: g.img,
+      href: g.href
+    }));
+  }
 }
+
+async function renderGroups(){
+  const row = $('#groupRow'); 
+  if (!row) return;
+
+  const groups = await fetchGroupThemesFromSupabase();
+
+  row.innerHTML = groups.map(g =>
+    `<a class="card" href="${g.href}">
+       <img src="${g.img}" alt="${g.name}">
+       <div class="ttl">${g.name}</div>
+     </a>`
+  ).join('');
+}
+/* -------------------- /group themes -------------------- */
 
 function renderSpotlight(){
   const row = $('#spotlightRow'); if(!row) return;
@@ -433,7 +479,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   await renderCities();
   await renderAd();
   await renderCollections();
-  renderGroups();
+  await renderGroups();
   renderSpotlight();
   renderGoods();
 });
