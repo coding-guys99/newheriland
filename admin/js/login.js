@@ -1,4 +1,4 @@
-import { supabase } from './js/app.js'; // ⚠️ 若 login.html 與 app.js 不在同層，請改正確路徑
+import { supabase } from '../../js/app.js'; // ⚠️ 若 login.html 與 app.js 不在同層，請改正確路徑
 
 const form = document.getElementById('loginForm');
 const emailEl = document.getElementById('email');
@@ -34,3 +34,4 @@ form.addEventListener('submit', async (e)=>{
     msg.textContent = '登入失敗：' + (err.message || '');
   }
 });
+
