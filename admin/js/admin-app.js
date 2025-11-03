@@ -1,3 +1,4 @@
+// /admin/js/admin-app.js
 import { supabase } from '../../js/app.js';
 
 const $ = (s, r=document) => r.querySelector(s);
@@ -6,27 +7,25 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const frame = $('#adminFrame');
 const userEmailEl = $('#userEmail');
 
-// ✅ 同一份白名單
 const ALLOWED_EMAILS = ['andy@heriland.app'];
 
-// 1) Auth guard + 顯示使用者 email
 (async () => {
   try {
-    const { data, error } = await supabase.auth.getUser();
+    // 用 getSession 更穩
+    const { data: { session }, error } = await supabase.auth.getSession();
     if (error) throw error;
 
-    const user = data?.user;
+    const user = session?.user;
     if (!user) {
       alert('請先登入後再進入後台');
-      location.href = '../login.html';
+      location.href = new URL('../login.html', location.href).href;
       return;
     }
 
-    // 檢查是否允許
     if (!ALLOWED_EMAILS.includes(user.email)) {
       alert('此帳號無權限使用後台');
       await supabase.auth.signOut();
-      location.href = '../login.html';
+      location.href = new URL('../login.html', location.href).href;
       return;
     }
 
@@ -34,6 +33,6 @@ const ALLOWED_EMAILS = ['andy@heriland.app'];
   } catch (err) {
     console.error('Auth error:', err);
     alert('登入驗證失敗，請重新登入');
-    location.href = '../login.html';
+    location.href = new URL('../login.html', location.href).href;
   }
 })();
