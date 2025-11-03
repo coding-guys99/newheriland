@@ -7,6 +7,7 @@
 
   <!-- base -->
   <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/tabbar.css">
   <!-- curator profile page -->
   <link rel="stylesheet" href="css/curator.css">
   <!-- curation article style (用在 overlay 內容) -->
@@ -100,8 +101,11 @@
     </div>
   </section>
 
+  <div data-include="partials/tabbar.html"></div>
+
   <!-- JS：順序很重要！ -->
   <!-- 1. 控制浮層的 -->
+  <script type="module" src="js/tabbar.js"></script>
   <script type="module" src="js/detail-overlay.js"></script>
   <!-- 2. 產生「文章型策展內容」的 -->
   <script type="module" src="js/curation.js"></script>
