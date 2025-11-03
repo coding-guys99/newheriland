@@ -448,13 +448,58 @@ async function renderGroups(){
 }
 /* -------------------- /group themes -------------------- */
 
-function renderSpotlight(){
-  const row = $('#spotlightRow'); if(!row) return;
-  row.innerHTML = HOME_DATA.spotlight.map(p =>
-    `<a class="avatar" href="${p.href}">
-       <img src="${p.avatar}" alt=""><span>${p.name}</span>
-     </a>`).join('');
+/* -------------------- spotlight：從 Supabase 抓 -------------------- */
+async function fetchSpotlightFromSupabase(){
+  try {
+    const { data, error } = await supabase
+      .from('hl_spotlight')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (error) throw error;
+    if (!data?.length) {
+      // fallback 用你原來的
+      return HOME_DATA.spotlight.map(p => ({
+        name: p.name,
+        avatar: p.avatar,
+        href: p.href,
+        tagline: ''
+      }));
+    }
+
+    return data.map(p => ({
+      name: p.name,
+      avatar: p.avatar_url,
+      href: p.href,
+      tagline: p.tagline || ''
+    }));
+  } catch (err) {
+    console.warn('fetchSpotlightFromSupabase failed, use fallback', err);
+    return HOME_DATA.spotlight.map(p => ({
+      name: p.name,
+      avatar: p.avatar,
+      href: p.href,
+      tagline: ''
+    }));
+  }
 }
+
+async function renderSpotlight(){
+  const row = $('#spotlightRow'); 
+  if(!row) return;
+
+  const people = await fetchSpotlightFromSupabase();
+
+  row.innerHTML = people.map(p =>
+    `<a class="avatar" href="${p.href}">
+       <img src="${p.avatar}" alt="${p.name}">
+       <span>${p.name}</span>
+       ${p.tagline ? `<small>${p.tagline}</small>` : ''}
+     </a>`
+  ).join('');
+}
+/* -------------------- /spotlight -------------------- */
 
 function renderGoods(){
   const row = $('#goodsRow'); if(!row) return;
@@ -480,6 +525,6 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   await renderAd();
   await renderCollections();
   await renderGroups();
-  renderSpotlight();
+  await renderSpotlight();
   renderGoods();
 });
