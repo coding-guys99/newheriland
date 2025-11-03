@@ -1,61 +1,121 @@
+/* ===== Admin - Hero Banners 美化 ===== */
 :root{
---bg:#0c0f0d; /* deep forest */
---panel:#131715; /* panel surface */
---muted:#818a83; /* muted text */
---text:#e7efe9; /* main text */
---brand:#1e7a55; /* forest green */
---brand-2:#bda26b; /* champagne gold */
---border:#1e2421; /* subtle border */
-}
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-margin:0; display:flex; background:var(--bg); color:var(--text);
-font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-}
-.sidebar{
-width:260px; background:var(--panel); border-right:1px solid var(--border);
-display:flex; flex-direction:column; padding:16px; gap:16px;
-}
-.brand{display:flex; align-items:center; gap:12px;}
-.logo{
-width:36px; height:36px; border-radius:10px; display:grid; place-items:center;
-background:linear-gradient(135deg,var(--brand),#14533b); color:#fff; font-weight:800;
-}
-.title strong{display:block}
-.title small{color:var(--muted)}
-
-
-.nav{display:flex; flex-direction:column; gap:8px}
-.nav-btn{
-width:100%; text-align:left; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
-background:#0f1311; color:var(--text); cursor:pointer; transition:.15s ease;
-}
-.nav-btn:hover{background:#121815}
-.nav-btn.active{outline:2px solid var(--brand); outline-offset:0;}
-
-
-.spacer{flex:1}
-.foot{display:flex}
-.logout{
-width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
-background:#151a18; color:#fff; cursor:pointer;
-}
-.logout:hover{background:#19211d}
-
-
-.workspace{flex:1; display:flex; min-width:0}
-iframe#adminFrame{
-border:0; width:100%; height:100vh; background:#0b0e0c;
+  --panel:#0f1211;
+  --panel-2:#131816;
+  --border:#202725;
+  --muted:#8a938e;
+  --text:#e9efe9;
+  --brand:#1e7a55;
+  --brand-2:#bda26b;
+  --danger:#862e2e;
+  --ok:#1c6b4f;
 }
 
+.admin-card{
+  background:var(--panel-2);
+  border:1px solid var(--border);
+  border-radius:16px;
+  box-shadow:0 4px 18px rgba(0,0,0,.25);
+  padding:14px;
+}
 
-/* Generic table + form styles for stubs */
-.container{padding:20px}
-.h1{font-size:20px; font-weight:700; margin:0 0 12px}
-.card{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:16px}
-.help{color:var(--muted)}
-.btn{padding:8px 12px; border-radius:10px; border:1px solid var(--border); background:#101512; color:#fff; cursor:pointer}
-.btn:hover{background:#131a16}
-.grid{display:grid; gap:12px}
-@media (min-width:960px){.grid.cols-2{grid-template-columns:1fr 1fr}}
+#bn-table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0 10px;
+}
+#bn-table thead th{
+  color:var(--muted);
+  font-weight:600;
+  text-align:left;
+  padding:4px 10px;
+}
+#bn-body tr{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+}
+#bn-body tr > td{
+  padding:12px;
+  vertical-align:middle;
+}
+
+/* 讓每列長得像卡片：用 CSS Grid 排版 */
+.bn-row{
+  display:grid;
+  grid-template-columns: 140px 1.2fr 1.6fr 140px 1.2fr 180px 120px 160px;
+  gap:12px;
+  align-items:center;
+}
+
+.bn-thumb{
+  width:120px; height:60px; object-fit:cover;
+  border-radius:10px; border:1px solid var(--border);
+  background:#0c0f0d;
+}
+
+.in{
+  width:100%;
+  background:#0e1311;
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:9px 10px;
+  font-size:14px;
+}
+.in:focus{ outline:2px solid var(--brand); }
+
+.sel{ height:36px; }
+
+.stack{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+}
+
+.badge{
+  font-size:12px; color:#cdd5cf; background:#0f1412;
+  border:1px dashed var(--border); border-radius:999px;
+  padding:4px 8px;
+}
+
+/* 排序按鈕與主操作 */
+.btn{
+  border:1px solid var(--border);
+  background:#0f1412; color:#eaf2ec;
+  padding:8px 10px; border-radius:10px; cursor:pointer;
+}
+.btn:hover{ background:#121815; }
+.btn.act{ padding:6px 8px; }
+.btn.primary{ background:var(--brand); border-color:transparent; }
+.btn.primary:hover{ background:var(--brand-2); }
+.btn.danger{ background:#2a1414; color:#ffdede; }
+.btn.icon{ width:34px; height:34px; display:inline-grid; place-items:center; }
+
+/* 上架切換（更漂亮的 switch） */
+.switch{
+  --w:44px; --h:26px;
+  position:relative; width:var(--w); height:var(--h);
+}
+.switch input{ display:none; }
+.switch i{
+  position:absolute; inset:0; border-radius:999px;
+  background:#1a1f1d; border:1px solid var(--border);
+}
+.switch i::after{
+  content:""; position:absolute; top:3px; left:3px;
+  width:20px; height:20px; border-radius:50%;
+  background:#cfd6d1; transition:.18s;
+}
+.switch input:checked + i{ background:#123c2d; border-color:#175842; }
+.switch input:checked + i::after{ transform:translateX(18px); background:#e9fff4; }
+
+/* 表頭右側動作列 */
+.table-head-actions{
+  display:flex; gap:10px; align-items:center; justify-content:flex-end;
+}
+
+/* 手機/窄螢幕堆疊 */
+@media (max-width: 960px){
+  .bn-row{ grid-template-columns: 120px 1fr; }
+  .only-wide{ display:none; }
+}
