@@ -37,45 +37,69 @@ function esc(s){ return (s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').r
 function rowTpl(b){
   const id = b.id;
   return `
-  <tr data-id="${id}" style="border-bottom:1px solid var(--border)">
-    <td style="padding:8px; min-width:120px">
-      <img src="${b.image_url || PLACEHOLDER_IMG}" alt="preview"
-           style="width:120px; height:60px; object-fit:cover; border-radius:6px; border:1px solid var(--border)" />
-    </td>
-    <td style="padding:8px">
-      <input class="in title" value="${esc(b.title||'')}" style="width:100%" />
-    </td>
-    <td style="padding:8px">
-      <input class="in image_url" value="${esc(b.image_url||'')}" placeholder="https://..." style="width:100%" />
-    </td>
-    <td style="padding:8px">
-      <select class="in target_type" style="width:100%">
-        ${opt('url','url',b.target_type)}
-        ${opt('city','city',b.target_type)}
-        ${opt('experience','experience',b.target_type)}
-        ${opt('merchant','merchant',b.target_type)}
-      </select>
-    </td>
-    <td style="padding:8px">
-      <input class="in target_value" value="${esc(b.target_value||'')}" placeholder="#explore?city=kuching 或 ID/URL" style="width:100%" />
-    </td>
-    <td style="padding:8px; white-space:nowrap">
-      <input class="in sort_order" type="number" value="${Number(b.sort_order||1)}" style="width:72px" />
-      <button class="btn act up"   title="上移">↑</button>
-      <button class="btn act down" title="下移">↓</button>
-    </td>
-    <td style="padding:8px">
-      <label style="display:inline-flex; align-items:center; gap:6px">
-        <input type="checkbox" class="in is_active" ${b.is_active? 'checked':''} />
-        <span class="help">上架</span>
-      </label>
-    </td>
-    <td style="padding:8px; white-space:nowrap">
-      <button class="btn save">💾 儲存</button>
-      <button class="btn del"  style="background:#2a1414">🗑️ 刪除</button>
+  <tr data-id="${id}">
+    <td colspan="8">
+      <div class="bn-row">
+        <!-- 預覽 -->
+        <div>
+          <img class="bn-thumb" src="${b.image_url || PLACEHOLDER_IMG}" alt="preview">
+        </div>
+
+        <!-- 標題 -->
+        <div>
+          <div class="badge">標題</div>
+          <input class="in title" value="${esc(b.title||'')}" placeholder="例：Mid-Autumn Specials">
+        </div>
+
+        <!-- 圖片 URL -->
+        <div>
+          <div class="badge">圖片 URL</div>
+          <input class="in image_url" value="${esc(b.image_url||'')}" placeholder="https://...">
+        </div>
+
+        <!-- 導向類型 -->
+        <div>
+          <div class="badge">導向類型</div>
+          <select class="in sel target_type">
+            ${opt('url','url',b.target_type)}
+            ${opt('city','city',b.target_type)}
+            ${opt('experience','experience',b.target_type)}
+            ${opt('merchant','merchant',b.target_type)}
+          </select>
+        </div>
+
+        <!-- 導向值 / 連結 -->
+        <div>
+          <div class="badge">導向值 / 連結</div>
+          <input class="in target_value" value="${esc(b.target_value||'')}" placeholder="#explore?city=kuching 或 ID/URL">
+        </div>
+
+        <!-- 排序 + 上下移 -->
+        <div class="stack">
+          <input class="in sort_order" type="number" value="${Number(b.sort_order||1)}" style="width:80px">
+          <button class="btn icon act up"   title="上移">↑</button>
+          <button class="btn icon act down" title="下移">↓</button>
+        </div>
+
+        <!-- 上架狀態 -->
+        <div class="stack">
+          <label class="badge only-wide">狀態</label>
+          <label class="switch" title="上架">
+            <input type="checkbox" class="in is_active" ${b.is_active? 'checked':''}>
+            <i></i>
+          </label>
+        </div>
+
+        <!-- 操作 -->
+        <div class="stack">
+          <button class="btn primary save">💾 儲存</button>
+          <button class="btn danger  del">🗑️ 刪除</button>
+        </div>
+      </div>
     </td>
   </tr>`;
 }
+
 
 async function renderBanners(){
   tableBody.innerHTML = '<tr><td colspan="8" style="padding:12px" class="help">載入中…</td></tr>';
@@ -195,3 +219,4 @@ async function moveRow(tr, dir){
 
 /* 首次載入 */
 renderBanners();
+
