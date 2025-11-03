@@ -56,9 +56,33 @@
 
     <!-- 其它面板骨架（先隱藏，避免點了空白） -->
     <section id="tab-features" class="admin-card" style="display:none">
-      <h3 style="margin:0 0 8px">優惠活動（hl_features）</h3>
-      <div class="help">這裡之後接清單 + 新增/編輯表單。</div>
-    </section>
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+    <div>
+      <h3 style="margin:0">優惠活動（hl_features）</h3>
+      <div class="help">首頁快捷的功能按鈕：Icon、文字、連結、排序、上架。</div>
+    </div>
+    <div class="table-head-actions">
+      <button id="ft-refresh" class="btn">重新整理</button>
+      <button id="ft-add" class="btn primary">新增項目</button>
+    </div>
+  </div>
+
+  <div style="overflow:auto">
+    <table id="ft-table">
+      <thead>
+        <tr>
+          <th style="width:120px">Icon</th>
+          <th>標籤</th>
+          <th>連結</th>
+          <th style="width:100px">排序</th>
+          <th style="width:90px">上架</th>
+          <th style="width:140px">操作</th>
+        </tr>
+      </thead>
+      <tbody id="ft-body"></tbody>
+    </table>
+  </div>
+</section>
 
     <section id="tab-combo" class="admin-card" style="display:none">
       <h3 style="margin:0 0 8px">Combo Left / Right</h3>
