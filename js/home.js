@@ -346,12 +346,53 @@ async function renderAd(){
 }
 /* -------------------- /ad -------------------- */
 
-function renderCollections(){
-  const row = $('#colRow'); if(!row) return;
-  row.innerHTML = HOME_DATA.collections.map(t =>
-    `<a class="tag" href="#explore?collection=${encodeURIComponent(t)}">${t}</a>`
+/* -------------------- collections：從 Supabase 抓 -------------------- */
+async function fetchCollectionsFromSupabase(){
+  try {
+    const { data, error } = await supabase
+      .from('hl_collections')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (error) throw error;
+    if (!data?.length) {
+      // 老資料是純字串，這裡轉成你原本吃的格式
+      return HOME_DATA.collections.map(c => ({
+        name: c,
+        slug: c,  // 沒 slug 就先用字
+        icon: ''
+      }));
+    }
+
+    return data.map(c => ({
+      name: c.name,
+      slug: c.slug,
+      icon: c.icon || ''
+    }));
+  } catch (err) {
+    console.warn('fetchCollectionsFromSupabase failed, use fallback', err);
+    return HOME_DATA.collections.map(c => ({
+      name: c,
+      slug: c,
+      icon: ''
+    }));
+  }
+}
+
+async function renderCollections(){
+  const row = $('#colRow'); 
+  if(!row) return;
+
+  const cols = await fetchCollectionsFromSupabase();
+
+  row.innerHTML = cols.map(c =>
+    `<a class="tag" href="#explore?collection=${encodeURIComponent(c.slug)}">
+       ${c.icon ? `<span class="ico">${c.icon}</span>` : ''}${c.name}
+     </a>`
   ).join('');
 }
+/* -------------------- /collections -------------------- */
 
 function renderGroups(){
   const row = $('#groupRow'); if(!row) return;
@@ -391,7 +432,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   await renderCombo();
   await renderCities();
   await renderAd();
-  renderCollections();
+  await renderCollections();
   renderGroups();
   renderSpotlight();
   renderGoods();
