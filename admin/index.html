@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HeriLand Admin Console</title>
+<link rel="stylesheet" href="css/admin.css" />
+<!-- If you use a favicon: <link rel="icon" href="/assets/favicon.svg"> -->
+</head>
+<body data-page="admin">
+<aside class="sidebar">
+<div class="brand">
+<div class="logo">HL</div>
+<div class="title">
+<strong>HeriLand Admin</strong>
+<small id="userEmail">—</small>
+</div>
+</div>
+
+
+<nav class="nav">
+<button class="nav-btn active" data-page="home">🏠 首頁管理</button>
+<button class="nav-btn" data-page="explore">🗺️ 探索內容</button>
+<button class="nav-btn" data-page="profile">👤 會員 / 創作者</button>
+</nav>
+
+
+<div class="spacer"></div>
+
+
+<footer class="foot">
+<button id="logoutBtn" class="logout">登出</button>
+</footer>
+</aside>
+
+
+<main class="workspace">
+<iframe id="adminFrame" title="Admin Content" src="home.html"></iframe>
+</main>
+
+
+<script type="module" src="js/admin-app.js"></script>
+</body>
+</html>

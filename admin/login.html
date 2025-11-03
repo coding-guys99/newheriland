@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HeriLand 登入後台</title>
+  <link rel="stylesheet" href="css/login.css" />
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-card">
+      <h1>HeriLand Admin</h1>
+      <p class="help">請使用您的帳號登入後台。</p>
+
+      <form id="loginForm">
+        <label>
+          <span>Email</span>
+          <input type="email" id="email" required placeholder="you@example.com" />
+        </label>
+        <label>
+          <span>密碼</span>
+          <input type="password" id="password" required placeholder="••••••" />
+        </label>
+        <button type="submit" id="loginBtn">登入</button>
+      </form>
+
+      <p id="msg" class="msg"></p>
+    </div>
+  </div>
+
+  <script type="module" src="js/login.js"></script>
+</body>
+</html>
