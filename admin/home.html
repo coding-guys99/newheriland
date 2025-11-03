@@ -1,62 +1,101 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Home Admin</title>
-<link rel="stylesheet" href="css/admin.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home Admin</title>
+  <link rel="stylesheet" href="css/admin.css" />
 </head>
 <body>
+  <div class="container">
+    <h1 class="h1">首頁管理</h1>
 
-<div class="container">
-  <h1 class="h1">首頁管理</h1>
+    <div class="tabs">
+      <button class="btn" data-tab="banners">Hero 輪播</button>
+      <button class="btn" data-tab="features">優惠活動</button>
+      <button class="btn" data-tab="combo">Combo Left / Right</button>
+      <button class="btn" data-tab="cities">城市推薦</button>
+      <button class="btn" data-tab="ads">廣告橫幅</button>
+      <button class="btn" data-tab="collections">主題集合</button>
+      <button class="btn" data-tab="groups">多人主題</button>
+      <button class="btn" data-tab="spotlight">Spotlight</button>
+      <button class="btn" data-tab="goods">在地小物</button>
+    </div>
 
-  <div class="tabs">
-    <button class="btn" data-tab="banners">Hero 輪播</button>
-    <button class="btn" data-tab="features">優惠活動</button>
-    <button class="btn" data-tab="combo">Combo Left / Right</button>
-    <button class="btn" data-tab="cities">城市推薦</button>
-    <button class="btn" data-tab="ads">廣告橫幅</button>
-    <button class="btn" data-tab="collections">主題集合</button>
-    <button class="btn" data-tab="groups">多人主題</button>
-    <button class="btn" data-tab="spotlight">Spotlight</button>
-    <button class="btn" data-tab="goods">在地小物</button>
+    <!-- Hero / hl_banners -->
+    <section id="tab-banners" class="admin-card">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+        <div>
+          <h3 style="margin:0">Hero 輪播（hl_banners）</h3>
+          <div class="help">管理首頁頂部輪播：標題、圖片、導向、排序、上架狀態。</div>
+        </div>
+        <div class="table-head-actions">
+          <button id="bn-refresh" class="btn">重新整理</button>
+          <button id="bn-add" class="btn primary">新增 Banner</button>
+        </div>
+      </div>
+
+      <div style="overflow:auto">
+        <table id="bn-table">
+          <thead>
+            <tr>
+              <th>預覽</th>
+              <th>標題</th>
+              <th>圖片 URL</th>
+              <th>導向類型</th>
+              <th>導向值 / 連結</th>
+              <th>排序</th>
+              <th>上架</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="bn-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 其它面板骨架（先隱藏，避免點了空白） -->
+    <section id="tab-features" class="admin-card" style="display:none">
+      <h3 style="margin:0 0 8px">優惠活動（hl_features）</h3>
+      <div class="help">這裡之後接清單 + 新增/編輯表單。</div>
+    </section>
+
+    <section id="tab-combo" class="admin-card" style="display:none">
+      <h3 style="margin:0 0 8px">Combo Left / Right</h3>
+      <div class="help">左側輪播、右側卡片區的管理介面。</div>
+    </section>
+
+    <section id="tab-cities" class="admin-card" style="display:none">
+      <h3 style="margin:0 0 8px">城市推薦（hl_cities）</h3>
+      <div class="help">城市卡片排序、上架。</div>
+    </section>
+
+    <section id="tab-ads" class="admin-card" style="display:none">
+      <h3 style="margin:0 0 8px">廣告橫幅（hl_ads）</h3>
+      <div class="help">可放自家宣傳或 Google Ad 替代圖。</div>
+    </section>
+
+    <section id="tab-collections" class="admin-card" style="display:none">
+      <h3 style="margin:0 0 8px">主題集合（hl_collections）</h3>
+      <div class="help">標籤/主題的排序、上架。</div>
+    </section>
+
+    <section id="tab-groups" class="admin-card" style="display:none">
+      <h3 style="margin:0 0 8px">多人主題（hl_groups）</h3>
+      <div class="help">三五好友 / 公司團建 / 教會小組等。</div>
+    </section>
+
+    <section id="tab-spotlight" class="admin-card" style="display:none">
+      <h3 style="margin:0 0 8px">Spotlight（hl_spotlight）</h3>
+      <div class="help">@Curator 精選作者。</div>
+    </section>
+
+    <section id="tab-goods" class="admin-card" style="display:none">
+      <h3 style="margin:0 0 8px">在地小物（hl_goods）</h3>
+      <div class="help">小物清單、價格、上架。</div>
+    </section>
   </div>
 
-  <!-- Hero / hl_banners -->
-  <section id="tab-banners" class="admin-card">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-      <div>
-        <h3 style="margin:0">Hero 輪播（hl_banners）</h3>
-        <div class="help">管理首頁頂部輪播：標題、圖片、導向、排序、上架狀態。</div>
-      </div>
-      <div class="table-head-actions">
-        <button id="bn-refresh" class="btn">重新整理</button>
-        <button id="bn-add" class="btn primary">新增 Banner</button>
-      </div>
-    </div>
-
-    <div style="overflow:auto">
-      <table id="bn-table">
-        <thead>
-          <tr>
-            <th>預覽</th>
-            <th>標題</th>
-            <th>圖片 URL</th>
-            <th>導向類型</th>
-            <th>導向值 / 連結</th>
-            <th>排序</th>
-            <th>上架</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody id="bn-body"></tbody>
-      </table>
-    </div>
-  </section>
-</div>
-
-<script type="module" src="js/admin-home.js"></script>
-
+  <script type="module" src="js/admin-home.js"></script>
 </body>
 </html>
