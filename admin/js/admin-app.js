@@ -18,14 +18,14 @@ const ALLOWED_EMAILS = ['andy@heriland.app'];
     const user = session?.user;
     if (!user) {
       alert('請先登入後再進入後台');
-      location.href = new URL('../admin/login.html', location.href).href;
+      location.href = new URL('./login.html', location.href).href;
       return;
     }
 
     if (!ALLOWED_EMAILS.includes(user.email)) {
       alert('此帳號無權限使用後台');
       await supabase.auth.signOut();
-      location.href = new URL('../admin/login.html', location.href).href;
+      location.href = new URL('./login.html', location.href).href;
       return;
     }
 
@@ -33,7 +33,8 @@ const ALLOWED_EMAILS = ['andy@heriland.app'];
   } catch (err) {
     console.error('Auth error:', err);
     alert('登入驗證失敗，請重新登入');
-    location.href = new URL('../admin/login.html', location.href).href;
+    location.href = new URL('./login.html', location.href).href;
   }
 })();
+
 
