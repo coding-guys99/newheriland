@@ -501,17 +501,63 @@ async function renderSpotlight(){
 }
 /* -------------------- /spotlight -------------------- */
 
-function renderGoods(){
-  const row = $('#goodsRow'); if(!row) return;
-  row.innerHTML = HOME_DATA.goods.map(g =>
+/* -------------------- local goods：從 Supabase 抓 -------------------- */
+async function fetchLocalGoodsFromSupabase(){
+  try {
+    const { data, error } = await supabase
+      .from('hl_local_goods')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (error) throw error;
+    if (!data?.length) {
+      // fallback 吃舊的
+      return HOME_DATA.goods.map(g => ({
+        name: g.name,
+        price: g.price,
+        href: g.href,
+        image_url: ''
+      }));
+    }
+
+    return data.map(g => ({
+      name: g.name,
+      price: g.price || '',
+      href: g.href,
+      image_url: g.image_url || ''
+    }));
+  } catch (err) {
+    console.warn('fetchLocalGoodsFromSupabase failed, use fallback', err);
+    return HOME_DATA.goods.map(g => ({
+      name: g.name,
+      price: g.price,
+      href: g.href,
+      image_url: ''
+    }));
+  }
+}
+
+async function renderGoods(){
+  const row = $('#goodsRow'); 
+  if (!row) return;
+
+  const goods = await fetchLocalGoodsFromSupabase();
+
+  row.innerHTML = goods.map(g =>
     `<a class="goods" href="${g.href}">
-      <div class="ph"></div>
+      ${g.image_url 
+        ? `<div class="ph"><img src="${g.image_url}" alt="${g.name}"></div>`
+        : `<div class="ph"></div>`
+      }
       <div class="meta">
         <div class="name">${g.name}</div>
-        <div class="price">${g.price}</div>
+        <div class="price">${g.price || ''}</div>
       </div>
-    </a>`).join('');
+    </a>`
+  ).join('');
 }
+/* -------------------- /local goods -------------------- */
 
 document.addEventListener('DOMContentLoaded', async ()=>{
   if (!document.querySelector('[data-page="home"]')) return;
@@ -526,5 +572,5 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   await renderCollections();
   await renderGroups();
   await renderSpotlight();
-  renderGoods();
+  await renderGoods();
 });
