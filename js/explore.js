@@ -77,6 +77,19 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   let currentCity = null;
   let allMerchants = [];
+  
+  // ---- AF: Apply/Reset 可用狀態控管（純文字版） ----
+let afDirty = false;
+function setApplyEnabled(on){
+  if (!btnAdvApply) return;
+  btnAdvApply.disabled = !on;
+  if (on) btnAdvApply.removeAttribute('aria-disabled');
+  else    btnAdvApply.setAttribute('aria-disabled','true');
+}
+function markDirty(){
+  afDirty = true;
+  setApplyEnabled(true);
+}
 
   /* ---------- 小工具 ---------- */
   const toNum = n => {
@@ -427,105 +440,123 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* ---------- Advanced Filter ---------- */
-  function openAF(){
-    if (!advFilter) return;
-    advFilter.hidden = false;
-    requestAnimationFrame(()=> advFilter.classList.add('active'));
-  }
-  function closeAF(){
-    if (!advFilter) return;
-    advFilter.classList.remove('active');
-    setTimeout(()=>{ advFilter.hidden = true; }, 150);
-  }
+/* ---------- Advanced Filter ---------- */
+function openAF(){
+  if (!advFilter) return;
+  // 打開時依據是否有未套用變更，決定 Apply 是否可按
+  setApplyEnabled(afDirty);
+  advFilter.hidden = false;
+  requestAnimationFrame(()=> advFilter.classList.add('active'));
+}
+function closeAF(){
+  if (!advFilter) return;
+  advFilter.classList.remove('active');
+  setTimeout(()=>{ advFilter.hidden = true; }, 150);
+}
 
-  btnOpenFilter?.addEventListener('click', openAF);
-  btnAdvClose?.addEventListener('click', closeAF);
-  advFilter?.addEventListener('click', (e)=>{ if (e.target===advFilter) closeAF(); });
-  window.addEventListener('keydown', (e)=>{ if (e.key==='Escape' && advFilter && !advFilter.hidden) closeAF(); });
+btnOpenFilter?.addEventListener('click', openAF);
+btnAdvClose?.addEventListener('click', closeAF);
+advFilter?.addEventListener('click', (e)=>{ if (e.target===advFilter) closeAF(); });
+window.addEventListener('keydown', (e)=>{ if (e.key==='Escape' && advFilter && !advFilter.hidden) closeAF(); });
 
-  function toggleMulti(container, attr, set){
-    container?.addEventListener('click', (e)=>{
-      const btn = e.target.closest(`.chip[${attr}]`); if (!btn) return;
-      const val = btn.getAttribute(attr);
-      const on  = btn.classList.toggle('is-on');
-      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      if (on) set.add(val); else set.delete(val);
-    });
-  }
-  toggleMulti(afCats,   'data-cat',   state.cats);
-  toggleMulti(afThemes, 'data-theme', state.themes);
-  toggleMulti(afAttrs,  'data-attr',  state.attrs);
-
-  // More
-  afMore?.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.chip'); if (!btn) return;
-    if (btn.hasAttribute('data-open')){
-      const on = btn.classList.toggle('is-on');
-      btn.setAttribute('aria-pressed', on ? 'true':'false');
-      state.open = on; return;
-    }
-    if (btn.hasAttribute('data-rating')){
-      afMore.querySelectorAll('.chip[data-rating]').forEach(b=>{
-        b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
-      });
-      btn.classList.add('is-on'); btn.setAttribute('aria-pressed','true');
-      state.minRating = Number(btn.getAttribute('data-rating')); return;
-    }
-    if (btn.hasAttribute('data-price')){
-      const val = Number(btn.getAttribute('data-price'));
-      const on  = btn.classList.toggle('is-on');
-      btn.setAttribute('aria-pressed', on ? 'true':'false');
-      if (on) state.prices.add(val); else state.prices.delete(val);
-    }
+// 多選 chips：點了就切換、更新 state、標記 dirty
+function toggleMulti(container, attr, set){
+  container?.addEventListener('click', (e)=>{
+    const btn = e.target.closest(`.chip[${attr}]`); if (!btn) return;
+    const val = btn.getAttribute(attr);
+    const on  = btn.classList.toggle('is-on');
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (on) set.add(val); else set.delete(val);
+    markDirty();
   });
+}
+toggleMulti(afCats,   'data-cat',   state.cats);
+toggleMulti(afThemes, 'data-theme', state.themes);
+toggleMulti(afAttrs,  'data-attr',  state.attrs);
 
-  // sort
-  afSort?.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.chip[data-sort]'); if (!btn) return;
-    afSort.querySelectorAll('.chip[data-sort]').forEach(b=>{
+// More：open now / rating 單選 / price 多選
+afMore?.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.chip'); if (!btn) return;
+
+  if (btn.hasAttribute('data-open')){
+    const on = btn.classList.toggle('is-on');
+    btn.setAttribute('aria-pressed', on ? 'true':'false');
+    state.open = on;
+    markDirty();
+    return;
+  }
+  if (btn.hasAttribute('data-rating')){
+    afMore.querySelectorAll('.chip[data-rating]').forEach(b=>{
       b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
     });
     btn.classList.add('is-on'); btn.setAttribute('aria-pressed','true');
-    state.sort = btn.getAttribute('data-sort') || 'latest';
-  });
-
-  function syncLightBarFromState(){
-    $$('.chips--quick .chip[data-sort]').forEach(b=>{
-      const on = (b.dataset.sort === state.sort);
-      b.classList.toggle('is-on', on);
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
-    const lightOpen = $('.chips--quick .chip[data-open]');
-    if (lightOpen){
-      lightOpen.classList.toggle('is-on', !!state.open);
-      lightOpen.setAttribute('aria-pressed', state.open ? 'true' : 'false');
-    }
+    state.minRating = Number(btn.getAttribute('data-rating'));
+    markDirty();
+    return;
   }
+  if (btn.hasAttribute('data-price')){
+    const val = Number(btn.getAttribute('data-price'));
+    const on  = btn.classList.toggle('is-on');
+    btn.setAttribute('aria-pressed', on ? 'true':'false');
+    if (on) state.prices.add(val); else state.prices.delete(val);
+    markDirty();
+  }
+});
 
-  btnAdvApply?.addEventListener('click', ()=>{
-    applyFilters();
-    syncLightBarFromState();
-    closeAF();
+// Sort 單選
+afSort?.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.chip[data-sort]'); if (!btn) return;
+  afSort.querySelectorAll('.chip[data-sort]').forEach(b=>{
+    b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
   });
+  btn.classList.add('is-on'); btn.setAttribute('aria-pressed','true');
+  state.sort = btn.getAttribute('data-sort') || 'latest';
+  markDirty();
+});
 
-  btnAdvReset?.addEventListener('click', ()=>{
-    state.cats.clear();
-    state.themes.clear();
-    state.attrs.clear();
-    state.prices.clear();
-    state.open = false;
-    state.minRating = null;
-    state.sort = 'latest';
-
-    advFilter?.querySelectorAll('.chip.is-on').forEach(b=>{
-      b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
-    });
-    const firstSort = afSort?.querySelector('.chip[data-sort="latest"]');
-    firstSort?.classList.add('is-on'); firstSort?.setAttribute('aria-pressed','true');
-    syncLightBarFromState();
-    applyFilters();
+// 將 overlay 的變更同步到上方輕量列（只改視覺，不覆蓋 state）
+function syncLightBarFromState(){
+  $$('.chips--quick .chip[data-sort]', filtersBox).forEach(b=>{
+    const on = (b.dataset.sort === state.sort);
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
+  const lightOpen = $('.chips--quick .chip[data-open]');
+  if (lightOpen){
+    lightOpen.classList.toggle('is-on', !!state.open);
+    lightOpen.setAttribute('aria-pressed', state.open ? 'true' : 'false');
+  }
+}
+
+// Apply：套用 → 清 dirty → 關閉
+btnAdvApply?.addEventListener('click', ()=>{
+  applyFilters();
+  syncLightBarFromState();
+  afDirty = false;
+  setApplyEnabled(false);
+  closeAF();
+});
+
+// Reset：清選取 → 變更成“乾淨的預設”但需再按 Apply 才生效
+btnAdvReset?.addEventListener('click', ()=>{
+  state.cats.clear();
+  state.themes.clear();
+  state.attrs.clear();
+  state.prices.clear();
+  state.open = false;
+  state.minRating = null;
+  state.sort = 'latest';
+
+  advFilter?.querySelectorAll('.chip.is-on').forEach(b=>{
+    b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
+  });
+  const firstSort = afSort?.querySelector('.chip[data-sort="latest"]');
+  firstSort?.classList.add('is-on'); firstSort?.setAttribute('aria-pressed','true');
+
+  // 標記有變更，但不立即套用
+  afDirty = true;
+  setApplyEnabled(true);
+});
   
   // ====== AF: scroll-to-section + scroll-spy ======
 const afScroll = document.getElementById('afScroll');
