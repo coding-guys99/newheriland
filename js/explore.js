@@ -473,11 +473,11 @@ if (state.sort === 'hot'){
   advFilter?.addEventListener('click', (e)=>{ if (e.target===advFilter) closeAF(); });
 
   window.addEventListener('keydown', (e)=>{
-    if (e.key==='Escape'){
-      if (advFilter && !advFilter.hidden) closeAF();
-      if (sortPopover && !sortPopover.hidden) closeSort();
-    }
-  });
+  if (e.key==='Escape'){
+    if (advFilter && !advFilter.hidden) closeAF();
+    if (sortPop && !sortPop.hidden) closeSort(); // ← 這裡改名
+  }
+});
 
   function toggleMulti(container, attr, set){
     container?.addEventListener('click', (e)=>{
@@ -651,12 +651,25 @@ const SORT_LS_KEY = 'hl.explore.sort';
 
 function applySortLabel(v){
   const map = { latest:'Latest', hot:'Popular', rating:'Rating', price_asc:'Price' };
-  if (btnSortText) btnSortText.textContent = `Sort: ${map[v] || 'Latest'}`;
-  // 同步 list 的 aria
+  const label = `Sort: ${map[v] || 'Latest'}`;
+
+  // 1) 若有 #btnSortText → 優先更新
+  if (btnSortText) btnSortText.textContent = label;
+
+  // 2) 否則嘗試更新按鈕內的 .t
+  const fallbackT = btnSort?.querySelector('.t');
+  if (!btnSortText && fallbackT) fallbackT.textContent = label;
+
+  // 同步 list 的 aria（高亮所選）
   sortList?.querySelectorAll('[role="option"]').forEach(b=>{
     const on = (b.dataset.sort === v);
     b.setAttribute('aria-selected', on ? 'true':'false');
   });
+}
+
+// 保持 Sort 按鈕文字與 state.sort 一致
+function syncSortButtonLabel(){
+  applySortLabel(state.sort || 'latest');
 }
 
 function openSort(){
@@ -731,8 +744,8 @@ sortList?.addEventListener('click', (e)=>{
       allMerchants = res.data || [];
       list && (list.hidden = false);
 
-      // 重置 sort（並同步按鈕）
-      state.sort = 'latest';
+      const savedSort = localStorage.getItem('hl.explore.sort') || 'latest';
+      state.sort = savedSort;
       syncSortButtonLabel();
 
       // 若你仍保留輕量列 sort chips，這裡也同步
