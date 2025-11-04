@@ -147,14 +147,64 @@
 </section>
 
     <section id="tab-cities" class="admin-card" style="display:none">
-      <h3 style="margin:0 0 8px">城市推薦（hl_cities）</h3>
-      <div class="help">城市卡片排序、上架。</div>
-    </section>
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+    <div>
+      <h3 style="margin:0">城市推薦（hl_cities）</h3>
+      <div class="help">首頁城市卡片：名稱、圖片、連結、排序、上架。</div>
+    </div>
+    <div class="table-head-actions">
+      <button id="ct-refresh" class="btn">重新整理</button>
+      <button id="ct-add" class="btn primary">新增城市</button>
+    </div>
+  </div>
+
+  <div style="overflow:auto">
+    <table id="ct-table">
+      <thead>
+      <tr>
+        <th style="width:180px">預覽</th>
+        <th>名稱</th>
+        <th>圖片 URL</th>
+        <th>連結</th>
+        <th style="width:100px">排序</th>
+        <th style="width:90px">上架</th>
+        <th style="width:140px">操作</th>
+      </tr>
+      </thead>
+      <tbody id="ct-body"></tbody>
+    </table>
+  </div>
+</section>
 
     <section id="tab-ads" class="admin-card" style="display:none">
-      <h3 style="margin:0 0 8px">廣告橫幅（hl_ads）</h3>
-      <div class="help">可放自家宣傳或 Google Ad 替代圖。</div>
-    </section>
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+    <div>
+      <h3 style="margin:0">廣告橫幅（hl_ads）</h3>
+      <div class="help">支援多個位置，先用 <code>home_mid</code>。之後可擴充。</div>
+    </div>
+    <div class="table-head-actions">
+      <button id="ad-refresh" class="btn">重新整理</button>
+      <button id="ad-add" class="btn primary">新增廣告</button>
+    </div>
+  </div>
+
+  <div style="overflow:auto">
+    <table id="ad-table">
+      <thead>
+      <tr>
+        <th style="width:160px">位置</th>
+        <th style="width:180px">預覽</th>
+        <th>圖片 URL</th>
+        <th>連結</th>
+        <th style="width:100px">排序</th>
+        <th style="width:90px">上架</th>
+        <th style="width:140px">操作</th>
+      </tr>
+      </thead>
+      <tbody id="ad-body"></tbody>
+    </table>
+  </div>
+</section>
 
     <section id="tab-collections" class="admin-card" style="display:none">
       <h3 style="margin:0 0 8px">主題集合（hl_collections）</h3>
