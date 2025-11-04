@@ -366,21 +366,22 @@
     </section>
 
     <!-- 全量评论抽屉（保留你的原逻辑） -->
-    <section id="cmtSheet" class="overlay-sheet" hidden aria-label="Comments">
-      <div class="sheet">
-        <header class="sheet-head">
-          <h3 class="sheet-title">Comments</h3>
-          <button id="btnCmtClose" class="icon-btn" aria-label="Close">✕</button>
-        </header>
-        <div id="cmtList" class="sheet-body cmt-list"></div>
-        <footer class="sheet-foot cmt-foot">
-          <div class="cmt-input">
-            <input id="cmtText" type="text" maxlength="240" placeholder="Leave a thought (anonymous)..." autocomplete="off">
-          </div>
-          <button id="btnCmtSend" class="btn primary" type="button">Send</button>
-        </footer>
+    <section id="cmtSheet" class="overlay-sheet" hidden aria-label="留言列表與新增留言">
+  <div class="sheet">
+    <div class="sheet-grip" aria-hidden="true"></div>  <!-- 新增：拖拽手柄 -->
+    <header class="sheet-head">
+      <h3 class="sheet-title">留言</h3>
+      <button id="btnCmtClose" class="icon-btn" aria-label="關閉">✕</button>
+    </header>
+    <div id="cmtList" class="sheet-body cmt-list"></div>
+    <footer class="sheet-foot cmt-foot">
+      <div class="cmt-input">
+        <input id="cmtText" type="text" maxlength="240" placeholder="留下你的想法（匿名）…" autocomplete="off">
       </div>
-    </section>
+      <button id="btnCmtSend" class="btn primary" type="button">送出</button>
+    </footer>
+  </div>
+</section>
 
     <!-- Related（横滑） -->
     <section class="d-sec">
