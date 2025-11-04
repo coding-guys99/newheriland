@@ -992,7 +992,7 @@ const CO_PLACEHOLDER = 'https://placehold.co/800x500?text=Collection';
 async function fetchCollections(){
   const { data, error } = await supabase
     .from('hl_collections')
-    .select('id,name,slug,icon,sort_order,is_active')
+    .select('id,name,slug,icon,href,sort_order,is_active')
     .order('sort_order',{ ascending:true });
   if (error) throw error;
   return data || [];
