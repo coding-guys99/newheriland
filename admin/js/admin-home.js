@@ -18,10 +18,12 @@ function showTab(name){
   history.replaceState({}, '', `#home:${name}`);
 
   // 首次開啟才做初始化（目前只需要 banners）
-  if (!loaded[name]) {
+ if (!loaded[name]) {
   if (name === 'banners')  renderBanners();
   if (name === 'features') renderFeaturesAdmin();
-  if (name === 'combo')    renderComboAdmin();   // ← 新增這行
+  if (name === 'combo')    renderComboAdmin();
+  if (name === 'cities')   renderCitiesAdmin();     // ← 新增
+  if (name === 'ads')      renderAdsAdmin();        // ← 新增
   loaded[name] = true;
 }
 }
@@ -630,4 +632,251 @@ async function crMove(tr, dir){
 /* 一鍵渲染 Combo 面板 */
 async function renderComboAdmin(){
   await Promise.all([ renderComboLeft(), renderComboRight() ]);
+}
+
+/* =========================
+   CITIES / hl_cities CRUD
+   ========================= */
+const CT_PLACEHOLDER = 'https://placehold.co/800x500?text=City';
+
+async function fetchCities(){
+  const { data, error } = await supabase
+    .from('hl_cities')
+    .select('id,name,image_url,href,sort_order,is_active')
+    .order('sort_order',{ ascending:true });
+  if (error) throw error;
+  return data || [];
+}
+
+function ctRowTpl(r){
+  return `
+  <tr data-id="${r.id}">
+    <td><img class="bn-thumb" src="${esc(r.image_url||CT_PLACEHOLDER)}" alt="preview" onerror="this.src='${CT_PLACEHOLDER}'"></td>
+    <td><input class="in name"      value="${esc(r.name||'')}"      placeholder="例：Kuching 城市探險"></td>
+    <td><input class="in image_url" value="${esc(r.image_url||'')}" placeholder="https://..."></td>
+    <td><input class="in href"      value="${esc(r.href||'#')}"     placeholder="# 或 https://..."></td>
+    <td class="stack">
+      <input class="in sort_order" type="number" value="${Number(r.sort_order||1)}" style="width:80px">
+      <button class="btn icon act up">↑</button>
+      <button class="btn icon act down">↓</button>
+    </td>
+    <td class="stack">
+      <label class="switch"><input type="checkbox" class="in is_active" ${r.is_active?'checked':''}><i></i></label>
+    </td>
+    <td class="stack">
+      <button class="btn primary save">💾 儲存</button>
+      <button class="btn danger  del">🗑️ 刪除</button>
+    </td>
+  </tr>`;
+}
+
+async function renderCitiesAdmin(){
+  const ctBody = $('#ct-body'); if (!ctBody) return;
+  ctBody.innerHTML = `<tr><td colspan="7" class="help" style="padding:12px">載入中…</td></tr>`;
+  try{
+    const rows = await fetchCities();
+    ctBody.innerHTML = rows.length ? rows.map(ctRowTpl).join('')
+      : `<tr><td colspan="7" class="help" style="padding:12px">尚無資料，點右上角「新增城市」。</td></tr>`;
+  }catch(e){
+    ctBody.innerHTML = `<tr><td colspan="7" class="help" style="padding:12px">讀取失敗：${esc(e.message)}</td></tr>`;
+  }
+}
+
+$('#ct-table')?.addEventListener('input', (e)=>{
+  const tr = e.target.closest('tr'); if(!tr) return;
+  if (e.target.classList.contains('image_url')){
+    tr.querySelector('img').src = e.target.value.trim() || CT_PLACEHOLDER;
+  }
+});
+
+$('#ct-table')?.addEventListener('click', async (e)=>{
+  const tr = e.target.closest('tr'); if(!tr) return;
+  const id = tr.dataset.id;
+  if (e.target.classList.contains('save'))      await ctSave(tr);
+  else if (e.target.classList.contains('del'))  await ctDelete(id);
+  else if (e.target.classList.contains('up'))   await ctMove(tr,-1);
+  else if (e.target.classList.contains('down')) await ctMove(tr,+1);
+});
+
+$('#ct-refresh')?.addEventListener('click', renderCitiesAdmin);
+$('#ct-add')?.addEventListener('click', async ()=>{
+  try{
+    const { data: maxRow, error: e1 } = await supabase
+      .from('hl_cities').select('sort_order').order('sort_order',{ascending:false}).limit(1);
+    if (e1) throw e1;
+    const next = (maxRow?.[0]?.sort_order || 0) + 1;
+    const { error } = await supabase.from('hl_cities').insert({
+      name:'新城市', image_url: CT_PLACEHOLDER, href:'#', sort_order: next, is_active:true
+    });
+    if (error) throw error;
+    await renderCitiesAdmin();
+  }catch(err){ alert('新增失敗：'+err.message); }
+});
+
+async function ctSave(tr){
+  const id = tr.dataset.id;
+  const payload = {
+    name:      tr.querySelector('.name').value.trim(),
+    image_url: tr.querySelector('.image_url').value.trim() || CT_PLACEHOLDER,
+    href:      tr.querySelector('.href').value.trim() || '#',
+    sort_order: Number(tr.querySelector('.sort_order').value || 1),
+    is_active: tr.querySelector('.is_active').checked
+  };
+  try{
+    const { error } = await supabase.from('hl_cities').update(payload).eq('id', id);
+    if (error) throw error;
+    await renderCitiesAdmin();
+  }catch(err){ alert('儲存失敗：'+err.message); }
+}
+
+async function ctDelete(id){
+  if(!confirm('確定要刪除這個城市？')) return;
+  try{
+    const { error } = await supabase.from('hl_cities').delete().eq('id', id);
+    if (error) throw error;
+    await renderCitiesAdmin();
+  }catch(err){ alert('刪除失敗：'+err.message); }
+}
+
+async function ctMove(tr, dir){
+  const id  = tr.dataset.id;
+  const cur = Number(tr.querySelector('.sort_order').value || 1);
+  const rows = $$('#ct-body tr');
+  const idx = rows.indexOf(tr);
+  const swap = rows[idx + dir]; if (!swap) return;
+  const oid  = swap.dataset.id;
+  const os   = Number(swap.querySelector('.sort_order').value || 1);
+  try{
+    const { error } = await supabase.from('hl_cities').upsert([
+      { id, sort_order: os }, { id: oid, sort_order: cur }
+    ]);
+    if (error) throw error;
+    await renderCitiesAdmin();
+  }catch(err){ alert('移動失敗：'+err.message); }
+}
+
+/* =========================
+   ADS / hl_ads CRUD
+   ========================= */
+const AD_PLACEHOLDER = 'https://placehold.co/1200x300?text=Ad';
+
+async function fetchAds(){
+  const { data, error } = await supabase
+    .from('hl_ads')
+    .select('id,position,image_url,href,sort_order,is_active')
+    .order('position',{ ascending:true })
+    .order('sort_order',{ ascending:true });
+  if (error) throw error;
+  return data || [];
+}
+
+function adRowTpl(r){
+  return `
+  <tr data-id="${r.id}">
+    <td>
+      <select class="in position">
+        ${['home_mid','home_top','home_bottom'].map(p => `<option value="${p}" ${r.position===p?'selected':''}>${p}</option>`).join('')}
+      </select>
+    </td>
+    <td><img class="bn-thumb" src="${esc(r.image_url||AD_PLACEHOLDER)}" alt="preview" onerror="this.src='${AD_PLACEHOLDER}'"></td>
+    <td><input class="in image_url" value="${esc(r.image_url||'')}" placeholder="https://..."></td>
+    <td><input class="in href"      value="${esc(r.href||'#')}"     placeholder="# 或 https://..."></td>
+    <td class="stack">
+      <input class="in sort_order" type="number" value="${Number(r.sort_order||1)}" style="width:80px">
+      <button class="btn icon act up">↑</button>
+      <button class="btn icon act down">↓</button>
+    </td>
+    <td class="stack">
+      <label class="switch"><input type="checkbox" class="in is_active" ${r.is_active?'checked':''}><i></i></label>
+    </td>
+    <td class="stack">
+      <button class="btn primary save">💾 儲存</button>
+      <button class="btn danger  del">🗑️ 刪除</button>
+    </td>
+  </tr>`;
+}
+
+async function renderAdsAdmin(){
+  const adBody = $('#ad-body'); if (!adBody) return;
+  adBody.innerHTML = `<tr><td colspan="7" class="help" style="padding:12px">載入中…</td></tr>`;
+  try{
+    const rows = await fetchAds();
+    adBody.innerHTML = rows.length ? rows.map(adRowTpl).join('')
+      : `<tr><td colspan="7" class="help" style="padding:12px">尚無資料，點右上角「新增廣告」。</td></tr>`;
+  }catch(e){
+    adBody.innerHTML = `<tr><td colspan="7" class="help" style="padding:12px">讀取失敗：${esc(e.message)}</td></tr>`;
+  }
+}
+
+$('#ad-table')?.addEventListener('input', (e)=>{
+  const tr = e.target.closest('tr'); if(!tr) return;
+  if (e.target.classList.contains('image_url')){
+    tr.querySelector('img').src = e.target.value.trim() || AD_PLACEHOLDER;
+  }
+});
+
+$('#ad-table')?.addEventListener('click', async (e)=>{
+  const tr = e.target.closest('tr'); if(!tr) return;
+  const id = tr.dataset.id;
+  if (e.target.classList.contains('save'))      await adSave(tr);
+  else if (e.target.classList.contains('del'))  await adDelete(id);
+  else if (e.target.classList.contains('up'))   await adMove(tr,-1);
+  else if (e.target.classList.contains('down')) await adMove(tr,+1);
+});
+
+$('#ad-refresh')?.addEventListener('click', renderAdsAdmin);
+$('#ad-add')?.addEventListener('click', async ()=>{
+  try{
+    const { data: maxRow, error: e1 } = await supabase
+      .from('hl_ads').select('sort_order').eq('position','home_mid').order('sort_order',{ascending:false}).limit(1);
+    if (e1) throw e1;
+    const next = (maxRow?.[0]?.sort_order || 0) + 1;
+    const { error } = await supabase.from('hl_ads').insert({
+      position: 'home_mid', image_url: AD_PLACEHOLDER, href:'#', sort_order: next, is_active:true
+    });
+    if (error) throw error;
+    await renderAdsAdmin();
+  }catch(err){ alert('新增失敗：'+err.message); }
+});
+
+async function adSave(tr){
+  const id = tr.dataset.id;
+  const payload = {
+    position:  tr.querySelector('.position').value,
+    image_url: tr.querySelector('.image_url').value.trim() || AD_PLACEHOLDER,
+    href:      tr.querySelector('.href').value.trim() || '#',
+    sort_order: Number(tr.querySelector('.sort_order').value || 1),
+    is_active: tr.querySelector('.is_active').checked
+  };
+  try{
+    const { error } = await supabase.from('hl_ads').update(payload).eq('id', id);
+    if (error) throw error;
+    await renderAdsAdmin();
+  }catch(err){ alert('儲存失敗：'+err.message); }
+}
+
+async function adDelete(id){
+  if(!confirm('確定要刪除這個廣告？')) return;
+  try{
+    const { error } = await supabase.from('hl_ads').delete().eq('id', id);
+    if (error) throw error;
+    await renderAdsAdmin();
+  }catch(err){ alert('刪除失敗：'+err.message); }
+}
+
+async function adMove(tr, dir){
+  const id  = tr.dataset.id;
+  const cur = Number(tr.querySelector('.sort_order').value || 1);
+  const rows = $$('#ad-body tr');
+  const idx = rows.indexOf(tr);
+  const swap = rows[idx + dir]; if (!swap) return;
+  const oid  = swap.dataset.id;
+  const os   = Number(swap.querySelector('.sort_order').value || 1);
+  try{
+    const { error } = await supabase.from('hl_ads').upsert([
+      { id, sort_order: os }, { id: oid, sort_order: cur }
+    ]);
+    if (error) throw error;
+    await renderAdsAdmin();
+  }catch(err){ alert('移動失敗：'+err.message); }
 }
