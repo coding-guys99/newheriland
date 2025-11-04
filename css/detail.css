@@ -569,3 +569,72 @@
   .cm-name { color: #e2e8f0; }
   .cm-text { color: #cbd5f5; }
 }
+
+/* —— 单卡合并：About + Address + Hours —— */
+.d-info { /* 继承 d-card 的视觉，间距更紧凑一点 */
+  background: var(--detail-card);
+  border: 1px solid var(--detail-line);
+  border-radius: var(--detail-radius);
+  margin: 0 12px 12px;
+  padding: 12px 14px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.04);
+}
+
+/* 卡内的分节与分隔线 */
+.d-sec + .d-sec { 
+  margin-top: 12px; 
+  padding-top: 12px; 
+  border-top: 1px solid var(--detail-line); 
+}
+
+/* 小标题统一 */
+.d-sec .d-h2 { 
+  font-size: 15px; 
+  font-weight: 800; 
+  margin: 2px 0 8px; 
+}
+
+/* 行为按钮（例如 Copy、View all hours）靠右 */
+.d-sec .sec-actions{
+  display:flex; gap:8px; align-items:center; margin:6px 0 0;
+}
+.d-btn-link{
+  padding:0; border:0; background:transparent; 
+  color:#2563eb; font-weight:600; font-size:13px; cursor:pointer;
+}
+.d-btn-link:active{ transform:translateY(1px); }
+
+/* 让 pill 更“轻”，与 Hero 贴近 */
+.d-meta-inline { padding: 10px 12px 0; gap: 6px; }
+.d-meta-inline .chip { padding: 4px 10px 5px; font-size: 12px; }
+
+/* tags 行距再小一点 */
+.d-tags-inline { padding: 6px 12px 0; gap: 6px; font-size: 13px; }
+
+/* 让四宫格看起来更“按钮”一些 */
+.d-quick a{
+  border-radius: 12px;
+  padding: 12px 8px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.04);
+}
+.d-quick a svg, .d-quick a img{ width:18px; height:18px; }
+
+/* 初始覆盖 Hero 的透明态 */
+.d-appbar.is-hero{
+  position: sticky; top: 0; z-index: 20;
+  background: linear-gradient(to bottom, rgba(255,255,255,.85), rgba(255,255,255,.35));
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid transparent;
+}
+
+/* 滚动后变实心 */
+.d-appbar.is-opaque{
+  background:#fff;
+  border-bottom:1px solid var(--detail-line);
+  backdrop-filter: none;
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.d-reviews{ margin: 0 12px 12px; }
+.d-reviews .see-all{ margin-top:6px; }
+
