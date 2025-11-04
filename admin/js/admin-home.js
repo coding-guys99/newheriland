@@ -779,17 +779,21 @@ async function fetchAds(){
     .eq('is_active', true)
     .order('sort_order', { ascending: true });
 
-  if (error) throw error;
+  if (error) {
+    console.error('❌ fetchAds error:', error.message);
+    throw error;
+  }
 
-  // 若你允許 starts_at/end_at 可以是空，這裡在前端過濾一下時間窗
+  // ✅ 若 starts_at / ends_at 允許空值，這裡在前端篩掉過期/未開始的
   const inWindow = (row) => {
     const s = row.starts_at ? new Date(row.starts_at).toISOString() : null;
-    const e = row.ends_at     ? new Date(row.ends_at).toISOString() : null;
+    const e = row.ends_at   ? new Date(row.ends_at).toISOString()   : null;
     return (!s || s <= nowIso) && (!e || e >= nowIso);
   };
 
   return (data || []).filter(inWindow);
 }
+
 
 
 function adRowTpl(r){
