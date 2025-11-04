@@ -395,6 +395,15 @@ async function renderCollections(){
 /* -------------------- /collections -------------------- */
 
 /* -------------------- group themes：從 Supabase 抓 -------------------- */
+// ========= 防止 null 圖片或連結導致 404 =========
+function safeSrc(v, fallback = 'https://placehold.co/800x500?text=HeriLand') {
+  return (v && v !== 'null') ? v : fallback;
+}
+function safeHref(v, fallback = '#') {
+  return (v && v !== 'null') ? v : fallback;
+}
+
+/* -------------------- group themes：從 Supabase 抓 -------------------- */
 async function fetchGroupThemesFromSupabase(){
   try {
     const { data, error } = await supabase
@@ -407,8 +416,8 @@ async function fetchGroupThemesFromSupabase(){
 
     // 轉成前端原本吃的格式
     return (data || []).map(r => ({
-      name: r.name,                         // 顯示名稱
-      img:  safeSrc(r.image_url),          // 圖片
+      name: r.name,
+      img:  safeSrc(r.image_url),
       href: safeHref(r.href || `#explore?group=${encodeURIComponent(r.slug || r.name)}`)
     }));
   } catch (err) {
@@ -422,8 +431,10 @@ async function renderGroups(){
   const groups = await fetchGroupThemesFromSupabase();
   row.innerHTML = groups.map(g =>
     `<a class="card" href="${g.href}">
-       <img src="${g.img}" alt=""><div class="ttl">${g.name}</div>
-     </a>`).join('');
+       <img src="${g.img}" alt="">
+       <div class="ttl">${g.name}</div>
+     </a>`
+  ).join('');
 }
 /* -------------------- /group themes -------------------- */
 
