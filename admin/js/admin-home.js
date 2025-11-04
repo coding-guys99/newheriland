@@ -529,10 +529,11 @@ async function fetchComboRight(){
   const { data, error } = await supabase
     .from('hl_combo_right')
     .select('id,title,sub,href,sort_order,is_active')
-    .order('sort_order',{ ascending:true });
+    .order('sort_order',{ ascending:true }); // 單欄位排序
   if (error) throw error;
   return data || [];
 }
+
 
 function crRowTpl(r){
   return `
@@ -764,12 +765,13 @@ async function ctMove(tr, dir){
    ========================= */
 const AD_PLACEHOLDER = 'https://placehold.co/1200x300?text=Ad';
 
+// 改這段 fetch（更穩定）
 async function fetchAds(){
   const { data, error } = await supabase
     .from('hl_ads')
-    .select('id,position,image_url,href,sort_order,is_active')
-    .order('position',{ ascending:true })
-    .order('sort_order',{ ascending:true });
+    .select('id,ad_slot,image_url,href,sort_order,is_active')
+    .eq('ad_slot','home_mid')                // 只抓 home_mid 位置
+    .order('sort_order',{ ascending:true }); // 單欄位排序
   if (error) throw error;
   return data || [];
 }
@@ -894,10 +896,11 @@ async function fetchCollections(){
   const { data, error } = await supabase
     .from('hl_collections')
     .select('id,title,sub,image_url,href,sort_order,is_active')
-    .order('sort_order',{ascending:true});
+    .order('sort_order',{ ascending:true });
   if (error) throw error;
   return data || [];
 }
+
 
 function coRowTpl(r){
   return `
