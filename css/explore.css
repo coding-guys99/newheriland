@@ -349,3 +349,120 @@ section[data-page="detail"] .d-scroll{ padding-bottom: var(--safe-b); }
 #advFilter .filter-footer .btn.primary{
   background: var(--af-accent); color:#fff; border-color: var(--af-accent);
 }
+
+/* ===== Header：中置標題 + 右側文字操作 ===== */
+#advFilter .af-header{
+  position: sticky; top: 0; z-index: 3;
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.86));
+  border-bottom: 1px solid rgba(0,0,0,.06);
+  backdrop-filter: blur(8px);
+}
+#advFilter .af-back{
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  width: 44px; height: 36px; border-radius: 8px; font-size: 18px;
+}
+#advFilter .af-title{
+  margin: 0; text-align: center; font: 800 16px/1.2 system-ui, -apple-system, "Inter", "Noto Sans TC", sans-serif;
+  color: #0f172a; letter-spacing: .2px;
+}
+#advFilter .af-actions{ display: inline-flex; gap: 14px; align-items: center; }
+
+#advFilter .af-link{
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font: 700 14px/1 system-ui; color: #6b7280; padding: 6px 2px; border-radius: 6px;
+}
+#advFilter .af-link.primary{ color: #2E5E4E; }          /* Apply 主色（Forest green） */
+#advFilter .af-link[disabled]{ opacity: .35; pointer-events: none; }
+
+/* 深色 */
+@media (prefers-color-scheme: dark){
+  #advFilter .af-header{
+    background: linear-gradient(180deg, rgba(11,15,18,.85), rgba(11,15,18,.78));
+    border-bottom-color: rgba(255,255,255,.08);
+  }
+  #advFilter .af-title{ color:#e5e7eb; }
+  #advFilter .af-link{ color:#93a0ad; }
+  #advFilter .af-link.primary{ color:#9ED2BF; }
+}
+
+/* ===== 內容：減法設計（去膠囊、以文字描邊為主） ===== */
+#advFilter .chips{ display: flex; flex-wrap: wrap; gap: 10px; }
+
+#advFilter .chip{
+  background: transparent;
+  border: 1px solid rgba(0,0,0,.12);
+  padding: 8px 12px;
+  border-radius: 12px;
+  font: 600 14px/1 system-ui;
+  color: #0f172a;
+  box-shadow: none;
+}
+#advFilter .chip.is-on,
+#advFilter .chip[aria-pressed="true"]{
+  border-color: #2E5E4E;
+  color: #2E5E4E;
+  background: transparent;
+}
+#advFilter .chip:active{ transform: translateY(1px); }
+
+/* 區塊標題與分隔 */
+#advFilter .af-h{
+  margin: 12px 2px 10px;
+  font: 800 14px/1.2 system-ui;
+  color: #111827;
+}
+#advFilter .af-section{
+  padding: 12px 12px 6px;
+}
+#advFilter .af-sep{
+  height: 1px; margin: 14px 12px; background: rgba(0,0,0,.06); border-radius: 999px;
+}
+
+/* 移除舊底部大按鈕（如果還在） */
+.af-foot, .af-footbar{ display: none !important; }
+
+/* ===== Bottom sheet：貼底 70%（沿用你現有設定，確保黏底） ===== */
+#advFilter.overlay-page{
+  position: fixed; inset: 0; z-index: 1400;
+  display: none; background: rgba(17,24,39,.45);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+#advFilter.overlay-page.active{ display: block; }
+#advFilter .af-sheet{
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 70vh; border-radius: 16px 16px 0 0;
+  background: color-mix(in srgb, #ffffff 92%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid rgba(0,0,0,.08);
+  display: grid; grid-template-rows: auto 1fr; overflow: hidden;
+  transform: translateY(100%); opacity: 0;
+  transition: transform .28s cubic-bezier(.25,.8,.25,1), opacity .25s ease;
+  box-shadow: 0 -20px 60px rgba(0,0,0,.25);
+}
+#advFilter.overlay-page.active .af-sheet{ transform: translateY(0); opacity: 1; }
+
+/* 內容可捲動 */
+#advFilter .settings-panel{
+  overflow: auto; background: transparent;
+  padding: 6px 0 calc(16px + env(safe-area-inset-bottom));
+}
+
+/* 深色 sheet */
+@media (prefers-color-scheme: dark){
+  #advFilter .af-sheet{
+    background: color-mix(in srgb, #0b0f12 78%, transparent);
+    border-color: rgba(255,255,255,.08);
+  }
+  #advFilter .chip{
+    border-color: rgba(255,255,255,.14);
+    color: #e5e7eb;
+  }
+  #advFilter .chip.is-on{ border-color:#9ED2BF; color:#9ED2BF; }
+  #advFilter .af-h{ color:#e5e7eb; }
+}
