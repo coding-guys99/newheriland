@@ -19,11 +19,11 @@ function showTab(name){
 
   // 首次開啟才做初始化（目前只需要 banners）
   if (!loaded[name]) {
-    if (name === 'banners') renderBanners();
-    if (name === 'features') renderFeaturesAdmin();
-    // e.g. if (name === 'features') renderFeaturesAdmin();
-    loaded[name] = true;
-  }
+  if (name === 'banners')  renderBanners();
+  if (name === 'features') renderFeaturesAdmin();
+  if (name === 'combo')    renderComboAdmin();   // ← 新增這行
+  loaded[name] = true;
+}
 }
 tabButtons.forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
 const initial = location.hash.match(/#home:([\w-]+)/)?.[1] || 'banners';
@@ -383,4 +383,250 @@ async function moveFeatureRow(tr, dir){
     if (error) throw error;
     await renderFeaturesAdmin();
   }catch(err){ alert('移動失敗：'+err.message); }
+}
+
+/* =========================
+   COMBO LEFT / RIGHT CRUD
+   ========================= */
+const CL_PLACEHOLDER = 'https://placehold.co/1200x600?text=Combo+Left';
+
+const clBody = $('#cl-body');
+const clAdd  = $('#cl-add');
+const clRef  = $('#cl-refresh');
+
+const crBody = $('#cr-body');
+const crAdd  = $('#cr-add');
+const crRef  = $('#cr-refresh');
+
+/* ---- Left: hl_combo_left ---- */
+async function fetchComboLeft(){
+  const { data, error } = await supabase
+    .from('hl_combo_left')
+    .select('id,title,image_url,href,sort_order,is_active')
+    .order('sort_order',{ ascending:true });
+  if (error) throw error;
+  return data || [];
+}
+
+function clRowTpl(r){
+  return `
+  <tr data-id="${r.id}">
+    <td><img class="bn-thumb" src="${esc(r.image_url||CL_PLACEHOLDER)}" alt="preview" onerror="this.src='${CL_PLACEHOLDER}'"></td>
+    <td><input class="in title"     value="${esc(r.title||'')}" placeholder="標題（可空）"></td>
+    <td><input class="in image_url" value="${esc(r.image_url||'')}" placeholder="https://..."></td>
+    <td><input class="in href"      value="${esc(r.href||'#')}"   placeholder="# 或 https://..."></td>
+    <td class="stack">
+      <input class="in sort_order" type="number" value="${Number(r.sort_order||1)}" style="width:80px">
+      <button class="btn icon act up">↑</button>
+      <button class="btn icon act down">↓</button>
+    </td>
+    <td class="stack">
+      <label class="switch">
+        <input type="checkbox" class="in is_active" ${r.is_active?'checked':''}><i></i>
+      </label>
+    </td>
+    <td class="stack">
+      <button class="btn primary save">💾 儲存</button>
+      <button class="btn danger  del">🗑️ 刪除</button>
+    </td>
+  </tr>`;
+}
+
+async function renderComboLeft(){
+  if (!clBody) return;
+  clBody.innerHTML = `<tr><td colspan="7" class="help" style="padding:12px">載入中…</td></tr>`;
+  try{
+    const rows = await fetchComboLeft();
+    clBody.innerHTML = rows.length ? rows.map(clRowTpl).join('')
+      : `<tr><td colspan="7" class="help" style="padding:12px">尚無資料，點「新增輪播」。</td></tr>`;
+  }catch(e){
+    clBody.innerHTML = `<tr><td colspan="7" class="help" style="padding:12px">讀取失敗：${esc(e.message)}</td></tr>`;
+  }
+}
+
+$('#cl-table')?.addEventListener('input', (e)=>{
+  const tr = e.target.closest('tr'); if(!tr) return;
+  if (e.target.classList.contains('image_url')){
+    tr.querySelector('img').src = e.target.value.trim() || CL_PLACEHOLDER;
+  }
+});
+
+$('#cl-table')?.addEventListener('click', async (e)=>{
+  const tr = e.target.closest('tr'); if(!tr) return;
+  const id = tr.dataset.id;
+  if (e.target.classList.contains('save'))       await clSave(tr);
+  else if (e.target.classList.contains('del'))   await clDelete(id);
+  else if (e.target.classList.contains('up'))    await clMove(tr,-1);
+  else if (e.target.classList.contains('down'))  await clMove(tr,+1);
+});
+
+clRef?.addEventListener('click', renderComboLeft);
+clAdd?.addEventListener('click', async ()=>{
+  try{
+    const { data: maxRow, error: e1 } = await supabase
+      .from('hl_combo_left').select('sort_order').order('sort_order',{ascending:false}).limit(1);
+    if (e1) throw e1;
+    const next = (maxRow?.[0]?.sort_order || 0) + 1;
+    const { error } = await supabase.from('hl_combo_left').insert({
+      title:'', image_url: CL_PLACEHOLDER, href:'#', sort_order: next, is_active:true
+    });
+    if (error) throw error;
+    await renderComboLeft();
+  }catch(err){ alert('新增失敗：'+err.message); }
+});
+
+async function clSave(tr){
+  const id = tr.dataset.id;
+  const payload = {
+    title:      tr.querySelector('.title').value.trim(),
+    image_url:  tr.querySelector('.image_url').value.trim() || CL_PLACEHOLDER,
+    href:       tr.querySelector('.href').value.trim() || '#',
+    sort_order: Number(tr.querySelector('.sort_order').value || 1),
+    is_active:  tr.querySelector('.is_active').checked
+  };
+  try{
+    const { error } = await supabase.from('hl_combo_left').update(payload).eq('id', id);
+    if (error) throw error;
+    await renderComboLeft();
+  }catch(err){ alert('儲存失敗：'+err.message); }
+}
+
+async function clDelete(id){
+  if(!confirm('確定要刪除這筆輪播？')) return;
+  try{
+    const { error } = await supabase.from('hl_combo_left').delete().eq('id', id);
+    if (error) throw error;
+    await renderComboLeft();
+  }catch(err){ alert('刪除失敗：'+err.message); }
+}
+
+async function clMove(tr, dir){
+  const id  = tr.dataset.id;
+  const cur = Number(tr.querySelector('.sort_order').value || 1);
+  const rows = $$('#cl-body tr');
+  const idx = rows.indexOf(tr);
+  const swap = rows[idx + dir]; if (!swap) return;
+  const oid  = swap.dataset.id;
+  const os   = Number(swap.querySelector('.sort_order').value || 1);
+  try{
+    const { error } = await supabase.from('hl_combo_left').upsert([
+      { id, sort_order: os }, { id: oid, sort_order: cur }
+    ]);
+    if (error) throw error;
+    await renderComboLeft();
+  }catch(err){ alert('移動失敗：'+err.message); }
+}
+
+/* ---- Right: hl_combo_right ---- */
+async function fetchComboRight(){
+  const { data, error } = await supabase
+    .from('hl_combo_right')
+    .select('id,title,sub,href,sort_order,is_active')
+    .order('sort_order',{ ascending:true });
+  if (error) throw error;
+  return data || [];
+}
+
+function crRowTpl(r){
+  return `
+  <tr data-id="${r.id}">
+    <td><input class="in title" value="${esc(r.title||'')}" placeholder="標題"></td>
+    <td><input class="in sub"   value="${esc(r.sub||'')}"   placeholder="副標（可空）"></td>
+    <td><input class="in href"  value="${esc(r.href||'#')}" placeholder="# 或 https://..."></td>
+    <td class="stack">
+      <input class="in sort_order" type="number" value="${Number(r.sort_order||1)}" style="width:80px">
+      <button class="btn icon act up">↑</button>
+      <button class="btn icon act down">↓</button>
+    </td>
+    <td class="stack">
+      <label class="switch"><input type="checkbox" class="in is_active" ${r.is_active?'checked':''}><i></i></label>
+    </td>
+    <td class="stack">
+      <button class="btn primary save">💾 儲存</button>
+      <button class="btn danger  del">🗑️ 刪除</button>
+    </td>
+  </tr>`;
+}
+
+async function renderComboRight(){
+  if (!crBody) return;
+  crBody.innerHTML = `<tr><td colspan="6" class="help" style="padding:12px">載入中…</td></tr>`;
+  try{
+    const rows = await fetchComboRight();
+    crBody.innerHTML = rows.length ? rows.map(crRowTpl).join('')
+      : `<tr><td colspan="6" class="help" style="padding:12px">尚無資料，點「新增卡片」。</td></tr>`;
+  }catch(e){
+    crBody.innerHTML = `<tr><td colspan="6" class="help" style="padding:12px">讀取失敗：${esc(e.message)}</td></tr>`;
+  }
+}
+
+$('#cr-table')?.addEventListener('click', async (e)=>{
+  const tr = e.target.closest('tr'); if(!tr) return;
+  const id = tr.dataset.id;
+  if (e.target.classList.contains('save'))       await crSave(tr);
+  else if (e.target.classList.contains('del'))   await crDelete(id);
+  else if (e.target.classList.contains('up'))    await crMove(tr,-1);
+  else if (e.target.classList.contains('down'))  await crMove(tr,+1);
+});
+
+crRef?.addEventListener('click', renderComboRight);
+crAdd?.addEventListener('click', async ()=>{
+  try{
+    const { data: maxRow, error: e1 } = await supabase
+      .from('hl_combo_right').select('sort_order').order('sort_order',{ascending:false}).limit(1);
+    if (e1) throw e1;
+    const next = (maxRow?.[0]?.sort_order || 0) + 1;
+    const { error } = await supabase.from('hl_combo_right').insert({
+      title:'新卡片', sub:'', href:'#', sort_order: next, is_active:true
+    });
+    if (error) throw error;
+    await renderComboRight();
+  }catch(err){ alert('新增失敗：'+err.message); }
+});
+
+async function crSave(tr){
+  const id = tr.dataset.id;
+  const payload = {
+    title:      tr.querySelector('.title').value.trim(),
+    sub:        tr.querySelector('.sub').value.trim(),
+    href:       tr.querySelector('.href').value.trim() || '#',
+    sort_order: Number(tr.querySelector('.sort_order').value || 1),
+    is_active:  tr.querySelector('.is_active').checked
+  };
+  try{
+    const { error } = await supabase.from('hl_combo_right').update(payload).eq('id', id);
+    if (error) throw error;
+    await renderComboRight();
+  }catch(err){ alert('儲存失敗：'+err.message); }
+}
+
+async function crDelete(id){
+  if(!confirm('確定要刪除這張卡片？')) return;
+  try{
+    const { error } = await supabase.from('hl_combo_right').delete().eq('id', id);
+    if (error) throw error;
+    await renderComboRight();
+  }catch(err){ alert('刪除失敗：'+err.message); }
+}
+
+async function crMove(tr, dir){
+  const id  = tr.dataset.id;
+  const cur = Number(tr.querySelector('.sort_order').value || 1);
+  const rows = $$('#cr-body tr');
+  const idx = rows.indexOf(tr);
+  const swap = rows[idx + dir]; if (!swap) return;
+  const oid  = swap.dataset.id;
+  const os   = Number(swap.querySelector('.sort_order').value || 1);
+  try{
+    const { error } = await supabase.from('hl_combo_right').upsert([
+      { id, sort_order: os }, { id: oid, sort_order: cur }
+    ]);
+    if (error) throw error;
+    await renderComboRight();
+  }catch(err){ alert('移動失敗：'+err.message); }
+}
+
+/* 一鍵渲染 Combo 面板 */
+async function renderComboAdmin(){
+  await Promise.all([ renderComboLeft(), renderComboRight() ]);
 }
