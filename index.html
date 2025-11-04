@@ -271,7 +271,7 @@
 </div>
 </section>
 
-<!-- ===================== Detail Page ===================== -->
+  <!-- ===================== Detail Page ===================== -->
 <section data-page="detail" class="detail" hidden aria-labelledby="detailName">
   <!-- Sticky AppBar -->
   <header class="d-appbar">
@@ -285,139 +285,112 @@
 
   <!-- Scroll area -->
   <div class="d-scroll">
-    <!-- Hero Gallery（目前單張，之後可擴充多張橫滑） -->
+    <!-- Hero / Carousel -->
     <section class="d-hero">
-      <!-- 走馬燈軌道 -->
-  <div class="c-wrap">
-    <button id="cPrev" class="c-arrow" aria-label="Previous" hidden>‹</button>
-    <div id="detailCarousel" class="c-track" aria-roledescription="carousel"></div>
-    <button id="cNext" class="c-arrow" aria-label="Next" hidden>›</button>
-    <div id="cDots" class="c-dots" hidden></div>
-  </div>
+      <div class="c-wrap">
+        <button id="cPrev" class="c-arrow" aria-label="Previous" hidden>‹</button>
+        <div id="detailCarousel" class="c-track" aria-roledescription="carousel"></div>
+        <button id="cNext" class="c-arrow" aria-label="Next" hidden>›</button>
+        <div id="cDots" class="c-dots" hidden></div>
+      </div>
+      <!-- Riverline -->
+      <div class="riverline" aria-hidden="true"></div>
     </section>
-    
-    <!-- 圖片下方的即時資訊徽章：★ / Open now / $$ -->
-<div id="detailMeta" class="d-meta-inline"></div>
 
-<!-- 標籤列（不是卡片，純一行或多行換行的 chip/文字） -->
-<div id="detailTags" class="d-tags-inline"></div>
+    <!-- 标题带：Meta/Tags（无卡片） -->
+    <div class="d-band">
+      <div id="detailMeta" class="d-meta-inline"></div>
+      <div id="detailTags" class="d-tags-inline"></div>
+    </div>
 
-    <!-- Quick actions -->
-<nav class="d-quick">
-  <a id="actPhone"   aria-disabled="true"><i>📞</i><span>Call</span></a>
-  <a id="actWhatsApp" aria-disabled="true"><i>💬</i><span>WhatsApp</span></a>
-  <a id="actWeb"     aria-disabled="true"><i>🌐</i><span>Website</span></a>
-  <a id="actMap"     aria-disabled="true"><i>🗺️</i><span>Map</span></a>
-</nav>
+    <!-- 快速操作：横向滚动胶囊 -->
+    <nav class="d-quick d-quick--rail" aria-label="Quick actions">
+      <a id="actPhone"    aria-disabled="true"><i>📞</i><span>Call</span></a>
+      <a id="actWhatsApp" aria-disabled="true"><i>💬</i><span>WhatsApp</span></a>
+      <a id="actWeb"      aria-disabled="true"><i>🌐</i><span>Website</span></a>
+      <a id="actMap"      aria-disabled="true"><i>🗺️</i><span>Map</span></a>
+    </nav>
 
-    <!-- About -->
-    <section class="d-card">
-      <h2 class="d-h2">About</h2>
+    <!-- About（段落式，无卡底） -->
+    <section class="d-sec">
+      <h2 class="d-h2"><span class="d-mark"></span>About</h2>
       <p id="detailDesc" class="d-desc">—</p>
     </section>
-    
-    <section class="d-card" id="addressCard">
-  <div class="d-head-row">
-    <h2 class="d-h2">Address</h2>
-    <button id="btnCopyAddr" class="chip" type="button">Copy</button>
-  </div>
-  <p id="detailAddressText" class="d-address">—</p>
-</section>
 
-    <!-- Hours（Weekly table，可選） -->
-<section class="d-card" id="hoursCard">
-  <details id="hoursToggle" class="oh">
-    <summary class="oh-summary">
-      <h2 class="d-h2">Hours</h2>
-      <div class="oh-right">
-        <span id="detailOpenChip" class="chip">—</span>
-        <span id="todayHours" class="oh-today">—</span>
-        <span class="oh-caret" aria-hidden="true">⌄</span>
-      </div>
-    </summary>
-    <div id="detailHoursList" class="oh-list">
-      <!-- JS 注入 Mon–Sun -->
-    </div>
-  </details>
-</section>
-
-
-    <!-- Hours / Meta -->
-    <section class="d-card d-meta">
-      <div class="d-meta-col">
-        <div class="d-kv">
-          <div class="k">Status</div>
-          <div id="detailOpen" class="v">—</div>
-        </div>
-        <div class="d-kv">
-          <div class="k">Rating</div>
-          <div id="detailRating" class="v">—</div>
-        </div>
-      </div>
-      <div class="d-meta-col">
-        <div class="d-kv">
-          <div class="k">Price</div>
-          <div id="detailPrice" class="v">—</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Location（可放嵌入地圖；目前留白卡） -->
-<section class="d-card" id="mapCard">
-  <div class="d-head-row">
-    <h2 class="d-h2">Location</h2>
-    <a id="actMap2" class="link-inline" aria-label="Open in Maps">Open in Maps</a>
-  </div>
-  <div class="d-mapbox" aria-hidden="true">
-    <div class="d-mapph">Map preview</div>
-  </div>
-</section>
-
-        <!-- Comments preview (new) -->
-    <section class="d-card d-comments" id="detailCommentsCard">
+    <!-- Address（段落式 + 右上复制） -->
+    <section class="d-sec" id="addressCard">
       <div class="d-head-row">
-        <h2 class="d-h2">評價</h2>
-        <span id="cmtSummary" class="cmt-summary">尚無留言</span>
+        <h2 class="d-h2"><span class="d-mark"></span>Address</h2>
+        <button id="btnCopyAddr" class="chip" type="button">Copy</button>
       </div>
-      <div id="cmtPreview" class="cmt-preview cmt-empty">
-        還沒有留言，歡迎搶頭香！
-      </div>
-      <button id="btnShowComments" class="btn-line" type="button">
-        查看全部留言
-      </button>
+      <p id="detailAddressText" class="d-address">—</p>
     </section>
 
-    <!-- All comments sheet -->
-    <section id="cmtSheet" class="overlay-sheet" hidden aria-label="留言列表與新增留言">
+    <!-- Hours（可折叠） -->
+    <section class="d-sec" id="hoursCard">
+      <details id="hoursToggle" class="oh">
+        <summary class="oh-summary">
+          <h2 class="d-h2"><span class="d-mark"></span>Hours</h2>
+          <div class="oh-right">
+            <span id="detailOpenChip" class="chip">—</span>
+            <span id="todayHours" class="oh-today">—</span>
+            <span class="oh-caret" aria-hidden="true">⌄</span>
+          </div>
+        </summary>
+        <div id="detailHoursList" class="oh-list"><!-- JS 注入 --></div>
+      </details>
+      <!-- 补充信息：行内点分隔，不再用网格卡片 -->
+      <div class="d-inline-stats" aria-label="meta">
+        <span>Status: <b id="detailOpen">—</b></span>
+        <span>Rating: <b id="detailRating">—</b></span>
+        <span>Price: <b id="detailPrice">—</b></span>
+      </div>
+    </section>
+
+    <!-- Location（仅链接，无预览） -->
+    <section class="d-sec" id="mapCard">
+      <div class="d-head-row">
+        <h2 class="d-h2"><span class="d-mark"></span>Location</h2>
+        <a id="actMap2" class="link-inline" aria-label="Open in Maps">Open in Maps →</a>
+      </div>
+    </section>
+
+    <!-- Comments 预览 + 查看全部 -->
+    <section class="d-sec" id="detailCommentsCard">
+      <div class="d-head-row">
+        <h2 class="d-h2"><span class="d-mark"></span>Comments</h2>
+        <span id="cmtSummary" class="cmt-summary">No reviews</span>
+      </div>
+      <div id="cmtPreview" class="cmt-preview cmt-empty">No reviews yet. Be the first one to leave a comment.</div>
+      <button id="btnShowComments" class="btn-line" type="button">View all comments</button>
+    </section>
+
+    <!-- 全量评论抽屉（保留你的原逻辑） -->
+    <section id="cmtSheet" class="overlay-sheet" hidden aria-label="Comments">
       <div class="sheet">
         <header class="sheet-head">
-          <h3 class="sheet-title">留言</h3>
-          <button id="btnCmtClose" class="icon-btn" aria-label="關閉">✕</button>
+          <h3 class="sheet-title">Comments</h3>
+          <button id="btnCmtClose" class="icon-btn" aria-label="Close">✕</button>
         </header>
-        <div id="cmtList" class="sheet-body cmt-list">
-          <!-- JS 注入所有留言 -->
-        </div>
+        <div id="cmtList" class="sheet-body cmt-list"></div>
         <footer class="sheet-foot cmt-foot">
           <div class="cmt-input">
-            <input id="cmtText" type="text" maxlength="240" placeholder="留下你的想法（匿名）…" autocomplete="off">
+            <input id="cmtText" type="text" maxlength="240" placeholder="Leave a thought (anonymous)..." autocomplete="off">
           </div>
-          <button id="btnCmtSend" class="btn primary" type="button">送出</button>
+          <button id="btnCmtSend" class="btn primary" type="button">Send</button>
         </footer>
       </div>
     </section>
 
-    <!-- Related -->
-    <section class="d-card">
-      <h2 class="d-h2">You may also like</h2>
-      <div id="detailRecList" class="d-related">
-        <!-- JS 注入 -->
-      </div>
+    <!-- Related（横滑） -->
+    <section class="d-sec">
+      <h2 class="d-h2"><span class="d-mark"></span>You may also like</h2>
+      <div id="detailRecList" class="d-related"></div>
     </section>
 
     <div class="d-safe"></div>
   </div>
 </section>
-
 
     <!-- Map 
     <section data-page="map" aria-labelledby="h-map" class="section" hidden>
