@@ -123,6 +123,22 @@
       <span class="name">Kuching</span>
     </button>
   </div>
+  
+  <!-- Sort 觸發按鈕 -->
+<button id="btnSort" class="chip" aria-haspopup="listbox" aria-expanded="false">
+  <span class="t">Sort: Latest</span> <span class="caret">⌄</span>
+</button>
+
+<!-- Sort 下拉浮層（可放在 body 尾或 exp 區域內） -->
+<div id="sortPopover" class="sort-popover" hidden>
+  <div id="sortMask" class="sort-mask"></div>
+  <div class="sort-panel" role="listbox" id="sortList">
+    <button type="button" role="option" data-sort="latest"  aria-checked="true">🕒 Latest</button>
+    <button type="button" role="option" data-sort="hot">🔥 Popular</button>
+    <button type="button" role="option" data-sort="rating">⭐ Rating</button>
+    <button type="button" role="option" data-sort="price_asc">💸 Price</button>
+  </div>
+</div>
 
   <!-- 輕量篩選列：只留 Sort / Open / Filter -->
   <div class="filters" id="expFilters" aria-label="Filters">
