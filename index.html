@@ -126,27 +126,34 @@
   
   
 
-  <!-- 輕量篩選列：只留 Sort / Open / Filter -->
-  <div class="filters" id="expFilters" aria-label="Filters">
-    <!-- Sort 觸發按鈕 -->
-    <button id="btnSort" class="chip" aria-haspopup="listbox" aria-expanded="false">
-      <span class="t">Sort: Latest</span> <span class="caret">⌄</span>
-    </button>
+  <!-- 輕量列：Sort（文字） + Filter（文字） -->
+<div class="filters" id="expFilters" aria-label="Filters">
+  <button id="btnSort" class="sort-trigger" aria-haspopup="listbox" aria-expanded="false">
+    <span id="btnSortText">Sort: Latest</span>
+    <span class="caret" aria-hidden="true">▾</span>
+  </button>
 
-  <!-- Sort 下拉浮層（可放在 body 尾或 exp 區域內） -->
-  <div id="sortPopover" class="sort-popover" hidden>
-  <div id="sortMask" class="sort-mask"></div>
-  <div class="sort-panel" role="listbox" id="sortList">
-    <button type="button" role="option" data-sort="latest"  aria-checked="true">🕒 Latest</button>
-    <button type="button" role="option" data-sort="hot">🔥 Popular</button>
-    <button type="button" role="option" data-sort="rating">⭐ Rating</button>
-    <button type="button" role="option" data-sort="price_asc">💸 Price</button>
+  <button class="filter-trigger" id="btnOpenFilter" type="button">Filter</button>
+</div>
+
+<!-- Sort 下拉（放在 body 尾或 explore 區內皆可） -->
+<div id="sortPopover" class="sort-popover" hidden>
+  <div id="sortMask" class="sort-mask" tabindex="-1" aria-hidden="true"></div>
+  <div class="sort-panel" role="listbox" id="sortList" aria-label="Sort">
+    <button type="button" role="option" data-sort="latest"  aria-selected="true">
+      <i>🕒</i><span>Latest</span><em class="tick">✓</em>
+    </button>
+    <button type="button" role="option" data-sort="hot">
+      <i>🔥</i><span>Popular</span><em class="tick">✓</em>
+    </button>
+    <button type="button" role="option" data-sort="rating">
+      <i>⭐</i><span>Rating</span><em class="tick">✓</em>
+    </button>
+    <button type="button" role="option" data-sort="price_asc">
+      <i>💸</i><span>Price</span><em class="tick">✓</em>
+    </button>
   </div>
 </div>
-    <div class="chips chips--quick" role="group" aria-label="Quick filters">
-      <button class="chip chip--primary" id="btnOpenFilter">🎯 <span>Filter</span></button>
-    </div>
-  </div>
 
   <!-- 已套用條件摘要（JS 生成 chips，可逐一清除） -->
   <div id="activeFilters" class="active-filters" hidden></div>
@@ -182,14 +189,12 @@
 <!-- Advanced Filters Drawer (modern) -->
 <section id="advFilter" class="overlay-page tertiary" hidden aria-labelledby="h-advfilter">
   <div class="af-sheet">
-  <header class="af-header">
-  <button id="btnAdvClose" class="af-back" aria-label="Back">←</button>
-  <h2 class="af-title">Filters</h2>
-  <div class="af-actions">
-    <button id="btnAdvReset" class="af-link">Reset</button>
-    <button id="btnAdvApply" class="af-link primary" disabled>Apply</button>
-  </div>
-  </header>
+  <!-- 抽屜 Header：置中標題，左右文字按鈕 -->
+<header class="af-head">
+  <button id="afResetTop" class="af-head-btn ghost" type="button">Reset</button>
+  <h3 class="af-title">Filters</h3>
+  <button id="afApplyTop" class="af-head-btn primary" type="button">Apply</button>
+</header>
 
   <div class="settings-panel" id="afScroll">
   <!-- 頂部捲動導覽 -->
