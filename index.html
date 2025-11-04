@@ -169,9 +169,13 @@
 <!-- Advanced Filters Drawer (modern) -->
 <section id="advFilter" class="overlay-page tertiary" hidden aria-labelledby="h-advfilter">
   <div class="af-sheet">
-  <header class="subappbar settings-header">
-    <button class="icon-btn back" id="btnAdvClose" aria-label="Close">←</button>
-    <h1 id="h-advfilter" class="settings-title" tabindex="-1">Filters</h1>
+  <header class="af-header">
+  <button id="btnAdvClose" class="af-back" aria-label="Back">←</button>
+  <h2 class="af-title">Filters</h2>
+  <div class="af-actions">
+    <button id="btnAdvReset" class="af-link">Reset</button>
+    <button id="btnAdvApply" class="af-link primary" disabled>Apply</button>
+  </div>
   </header>
 
   <div class="settings-panel" id="afScroll">
