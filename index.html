@@ -173,152 +173,78 @@
     <h1 id="h-advfilter" class="settings-title" tabindex="-1">Filters</h1>
   </header>
 
-  <div class="af-wrap">
-    <!-- Tabs -->
-    <div class="af-tabs" role="tablist" aria-label="Filter sections">
-      <button class="af-tab is-active" role="tab" aria-selected="true" data-tab="#afTabRec">Recommended</button>
-      <button class="af-tab" role="tab" aria-selected="false" data-tab="#afTabCats">Categories</button>
-      <button class="af-tab" role="tab" aria-selected="false" data-tab="#afTabMore">More</button>
-      <button class="af-tab" role="tab" aria-selected="false" data-tab="#afTabSort">Sort</button>
-    </div>
-
-    <div class="af-panels">
-      <!-- Recommended (示範幾個常用條件，仍沿用你的 data-* chip) -->
-      <section id="afTabRec" class="af-panel is-active" role="tabpanel">
-        <h3 class="af-h3">Recommended</h3>
-        <div class="af-card">
-          <div class="af-row" data-toggle-chip>
-            <div class="af-left">
-              <div class="af-title">Open now</div>
-              <div class="af-sub">只顯示目前營業中</div>
-            </div>
-            <div class="af-right">
-              <button class="chip" data-open="true">🟢 Open now</button>
-            </div>
-          </div>
-
-          <div class="af-row" data-toggle-chip>
-            <div class="af-left">
-              <div class="af-title">Rating</div>
-              <div class="af-sub">最低評分</div>
-            </div>
-            <div class="af-right">
-              <div class="af-inline">
-                <button class="chip" data-rating="4.5">⭐ 4.5+</button>
-                <button class="chip" data-rating="4.0">⭐ 4.0+</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="af-row" data-toggle-chip>
-            <div class="af-left">
-              <div class="af-title">Price</div>
-              <div class="af-sub">可複選</div>
-            </div>
-            <div class="af-right">
-              <div class="af-inline">
-                <button class="chip" data-price="1">$</button>
-                <button class="chip" data-price="2">$$</button>
-                <button class="chip" data-price="3">$$$</button>
-                <button class="chip" data-price="4">$$$$</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Categories（把你原本的 chips 放到右側，就能沿用既有 JS） -->
-      <section id="afTabCats" class="af-panel" role="tabpanel">
-        <h3 class="af-h3">Categories</h3>
-        <div class="af-card">
-          <div class="af-row" data-toggle-chip>
-            <div class="af-left"><div class="af-title">Pick categories</div><div class="af-sub">可複選</div></div>
-            <div class="af-right">
-              <div id="afCats" class="af-inline">
-                <button class="chip" data-cat="Taste">🍽️ <span>Taste</span></button>
-                <button class="chip" data-cat="Nature">🏖️ <span>Nature</span></button>
-                <button class="chip" data-cat="Culture">🏛️ <span>Culture</span></button>
-                <button class="chip" data-cat="Stay">🏠 <span>Stay</span></button>
-                <button class="chip" data-cat="Local">🛍️ <span>Local</span></button>
-                <button class="chip" data-cat="Experience">💡 <span>Experience</span></button>
-              </div>
-            </div>
-          </div>
-
-          <div class="af-row" data-toggle-chip>
-            <div class="af-left"><div class="af-title">Themes</div><div class="af-sub">可複選</div></div>
-            <div class="af-right">
-              <div id="afThemes" class="af-inline">
-                <button class="chip" data-theme="Market">Market</button>
-                <button class="chip" data-theme="Heritage">Heritage</button>
-                <button class="chip" data-theme="Sunset">Sunset</button>
-                <button class="chip" data-theme="Family">Family</button>
-                <button class="chip" data-theme="Instagram">Instagram</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="af-row" data-toggle-chip>
-            <div class="af-left"><div class="af-title">Attributes</div><div class="af-sub">可複選</div></div>
-            <div class="af-right">
-              <div id="afAttrs" class="af-inline">
-                <button class="chip" data-attr="Halal">Halal</button>
-                <button class="chip" data-attr="Vegan">Vegan</button>
-                <button class="chip" data-attr="Pet-friendly">Pet-friendly</button>
-                <button class="chip" data-attr="Wheelchair">Wheelchair</button>
-                <button class="chip" data-attr="Parking">Parking</button>
-                <button class="chip" data-attr="Wi-Fi">Wi-Fi</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- More（沿用你原本的 afMore 容器） -->
-      <section id="afTabMore" class="af-panel" role="tabpanel">
-        <h3 class="af-h3">More</h3>
-        <div class="af-card">
-          <div class="af-row" data-toggle-chip>
-            <div class="af-left"><div class="af-title">Quick toggles</div><div class="af-sub">營業、評分、價位</div></div>
-            <div class="af-right">
-              <div id="afMore" class="af-inline">
-                <button class="chip" data-open="true">🟢 Open now</button>
-                <button class="chip" data-rating="4.5">⭐ 4.5+</button>
-                <button class="chip" data-rating="4.0">⭐ 4.0+</button>
-                <button class="chip" data-price="1">$</button>
-                <button class="chip" data-price="2">$$</button>
-                <button class="chip" data-price="3">$$$</button>
-                <button class="chip" data-price="4">$$$$</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Sort（維持你現有的 afSort 單選行為） -->
-      <section id="afTabSort" class="af-panel" role="tabpanel">
-        <h3 class="af-h3">Sort</h3>
-        <div class="af-card">
-          <div class="af-row" data-toggle-chip>
-            <div class="af-left"><div class="af-title">Order</div><div class="af-sub">單選</div></div>
-            <div class="af-right">
-              <div id="afSort" class="af-inline">
-                <button class="chip" data-sort="latest">Latest</button>
-                <button class="chip" data-sort="hot">Hot</button>
-                <button class="chip" data-sort="rating">Rating</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <!-- Bottom bar -->
-    <div class="af-foot">
-      <button class="af-btn ghost" id="btnAdvReset">Reset</button>
-      <button class="af-btn primary" id="btnAdvApply">Apply</button>
-    </div>
+  <div class="settings-panel" id="afScroll">
+  <!-- 頂部捲動導覽 -->
+  <div class="af-topbar" role="tablist" aria-label="Filter sections" id="afNav">
+    <button class="af-tab is-active" data-target="#sec-cats"    role="tab" aria-selected="true">Categories</button>
+    <button class="af-tab"            data-target="#sec-themes"  role="tab" aria-selected="false">Themes</button>
+    <button class="af-tab"            data-target="#sec-attrs"   role="tab" aria-selected="false">Attributes</button>
+    <button class="af-tab"            data-target="#sec-more"    role="tab" aria-selected="false">More</button>
+    <button class="af-tab"            data-target="#sec-sort"    role="tab" aria-selected="false">Sort</button>
   </div>
+
+  <!-- 內容段落（單頁捲動） -->
+  <section id="sec-cats" class="af-section" aria-labelledby="h-cats">
+    <h3 id="h-cats" class="af-h">Categories</h3>
+    <div class="chips" id="afCats">
+      <button class="chip" data-cat="Taste">🍽️ <span>Taste</span></button>
+      <button class="chip" data-cat="Nature">🏖️ <span>Nature</span></button>
+      <button class="chip" data-cat="Culture">🏛️ <span>Culture</span></button>
+      <button class="chip" data-cat="Stay">🏠 <span>Stay</span></button>
+      <button class="chip" data-cat="Local">🛍️ <span>Local</span></button>
+      <button class="chip" data-cat="Experience">💡 <span>Experience</span></button>
+    </div>
+  </section>
+
+  <section id="sec-themes" class="af-section" aria-labelledby="h-themes">
+    <h3 id="h-themes" class="af-h">Themes</h3>
+    <div class="chips" id="afThemes">
+      <button class="chip" data-theme="Market">Market</button>
+      <button class="chip" data-theme="Heritage">Heritage</button>
+      <button class="chip" data-theme="Sunset">Sunset</button>
+      <button class="chip" data-theme="Family">Family</button>
+      <button class="chip" data-theme="Instagram">Instagram</button>
+    </div>
+  </section>
+
+  <section id="sec-attrs" class="af-section" aria-labelledby="h-attrs">
+    <h3 id="h-attrs" class="af-h">Attributes</h3>
+    <div class="chips" id="afAttrs">
+      <button class="chip" data-attr="Halal">Halal</button>
+      <button class="chip" data-attr="Vegan">Vegan</button>
+      <button class="chip" data-attr="Pet-friendly">Pet-friendly</button>
+      <button class="chip" data-attr="Wheelchair">Wheelchair</button>
+      <button class="chip" data-attr="Parking">Parking</button>
+      <button class="chip" data-attr="Wi-Fi">Wi-Fi</button>
+    </div>
+  </section>
+
+  <section id="sec-more" class="af-section" aria-labelledby="h-more">
+    <h3 id="h-more" class="af-h">More</h3>
+    <div class="chips" id="afMore">
+      <button class="chip" data-open="true">🟢 Open now</button>
+      <button class="chip" data-rating="4.5">⭐ 4.5+</button>
+      <button class="chip" data-rating="4.0">⭐ 4.0+</button>
+      <button class="chip" data-price="1">$</button>
+      <button class="chip" data-price="2">$$</button>
+      <button class="chip" data-price="3">$$$</button>
+      <button class="chip" data-price="4">$$$$</button>
+    </div>
+  </section>
+
+  <section id="sec-sort" class="af-section" aria-labelledby="h-sort">
+    <h3 id="h-sort" class="af-h">Sort</h3>
+    <div class="chips" id="afSort">
+      <button class="chip" data-sort="latest">Latest</button>
+      <button class="chip" data-sort="hot">Hot</button>
+      <button class="chip" data-sort="rating">Rating</button>
+    </div>
+    <div class="af-footbar">
+      <button class="chip" id="btnAdvReset">Reset</button>
+      <button class="chip chip--primary" id="btnAdvApply">Apply</button>
+    </div>
+  </section>
+</div>
 </section>
 
 <!-- ===================== Detail Page ===================== -->
