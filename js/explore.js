@@ -382,26 +382,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // sort
-    if (state.sort === 'hot'){
-      arr.sort((a,b)=>{
-        const ra = Number(a.rating)||0, rb = Number(b.rating)||0;
-        if (rb !== ra) return rb - ra;
-        const ta = new Date(a.updated_at||0).getTime();
-        const tb = new Date(b.updated_at||0).getTime();
-        return tb - ta;
-      });
-    } else if (state.sort === 'rating'){
-      arr.sort((a,b)=> (Number(b.rating)||0) - (Number(a.rating)||0));
-    } else if (state.sort === 'price_asc'){
-      arr.sort((a,b)=> (priceLevelNum(a)||99) - (priceLevelNum(b)||99));
-    } else {
-      // latest
-      arr.sort((a,b)=>{
-        const ta = new Date(a.updated_at||0).getTime();
-        const tb = new Date(b.updated_at||0).getTime();
-        return tb - ta;
-      });
-    }
+if (state.sort === 'hot'){
+  arr.sort((a,b)=>{
+    const ra = Number(a.rating)||0, rb = Number(b.rating)||0;
+    if (rb !== ra) return rb - ra;
+    const ta = new Date(a.updated_at||0).getTime();
+    const tb = new Date(b.updated_at||0).getTime();
+    return tb - ta;
+  });
+} else if (state.sort === 'rating'){
+  arr.sort((a,b)=> (Number(b.rating)||0) - (Number(a.rating)||0));
+} else if (state.sort === 'price_asc'){
+  const priceVal = (m) => {
+    const p = priceLevelNum(m);
+    return p == null ? 999 : p; // 無價位放最後
+  };
+  arr.sort((a,b)=> priceVal(a) - priceVal(b));
+} else {
+  // latest
+  arr.sort((a,b)=>{
+    const ta = new Date(a.updated_at||0).getTime();
+    const tb = new Date(b.updated_at||0).getTime();
+    return tb - ta;
+  });
+}
 
     renderMerchants(arr);
     if (head) head.textContent = `${currentCity?.name || currentCity?.id || 'City'} — ${arr.length} places`;
@@ -558,6 +562,14 @@ document.addEventListener('DOMContentLoaded', () => {
     syncLightBarFromState();
     applyFilters();
   });
+  
+  // Filter header 文字按鈕
+document.getElementById('afApplyTop')?.addEventListener('click', ()=>{
+  btnAdvApply?.click();   // 沿用既有流程
+});
+document.getElementById('afResetTop')?.addEventListener('click', ()=>{
+  btnAdvReset?.click();
+});
 
   // ====== AF: scroll-to-section + scroll-spy（保留） ======
   const afScroll = document.getElementById('afScroll');
