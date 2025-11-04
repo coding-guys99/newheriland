@@ -528,11 +528,14 @@ async function clMove(tr, dir){
 async function fetchComboRight(){
   const { data, error } = await supabase
     .from('hl_combo_right')
-    .select('id,title,sub,href,sort_order,is_active')
-    .order('sort_order',{ ascending:true }); // 單欄位排序
-  if (error) throw error;
+    .select('*');          // 先用 * ，不要 order
+  if (error) {
+    console.error('combo_right SELECT * error:', error);
+    throw error;
+  }
   return data || [];
 }
+
 
 
 function crRowTpl(r){
