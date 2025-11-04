@@ -368,3 +368,112 @@ section[data-page="detail"] .d-scroll{ padding-bottom: var(--safe-b); }
   section[data-page="explore"] .merchant-list .badge.off{ background: color-mix(in srgb, #b00020 28%, #0b0f12 72%); }
   section[data-page="detail"].detail{ background:#0b0f12; }
 }
+
+/* ===== Modern Filter Drawer ===== */
+#afFilter, #advFilter { /* 保險，兩個 id 都吃得到 */
+  --af-bg: color-mix(in srgb, #ffffff 92%, transparent);
+  --af-line: rgba(0,0,0,.08);
+  --af-muted: #6b7280;
+  --af-accent: #2E5E4E;
+  --af-radius: 14px;
+}
+
+/* 包裹與面板 */
+.af-wrap{
+  position:relative;
+  display:grid;
+  grid-template-rows: auto 1fr auto;
+  gap:12px;
+  height:calc(100dvh - 56px);
+}
+.af-panels{
+  overflow:auto;
+  padding: 8px 12px 18px;
+}
+
+/* Tabs */
+.af-tabs{
+  position:sticky; top:0; z-index:2;
+  display:flex; gap:14px; padding:10px 12px;
+  background: linear-gradient(180deg, rgba(250,246,239,.9), rgba(250,246,239,.75));
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--af-line);
+}
+.af-tab{
+  appearance:none; background:transparent; border:0; cursor:pointer;
+  font-weight:800; padding:10px 2px; color:#233; opacity:.8;
+}
+.af-tab.is-active{ opacity:1; position:relative; }
+.af-tab.is-active::after{
+  content:""; position:absolute; left:0; right:0; bottom:-1px; height:3px;
+  border-radius:999px; background: var(--af-accent);
+}
+
+/* Panel */
+.af-panel{ display:none; }
+.af-panel.is-active{ display:block; }
+.af-h3{
+  margin:10px 2px; font-size:14px; font-weight:800; letter-spacing:.2px; color:#233;
+}
+
+/* 卡片與列 */
+.af-card{
+  background: var(--af-bg);
+  border:1px solid var(--af-line);
+  border-radius: var(--af-radius);
+  box-shadow: 0 10px 26px rgba(0,0,0,.10);
+  padding: 4px;
+}
+.af-row{
+  display:grid; grid-template-columns: 1fr auto;
+  align-items:center; gap:12px;
+  padding:12px; border-radius:12px;
+}
+.af-row + .af-row{ border-top:1px solid rgba(0,0,0,.06); }
+.af-row:active{ transform: translateY(1px); }
+
+/* 左右內容 */
+.af-left .af-title{ font-weight:800; }
+.af-left .af-sub{ color:var(--af-muted); font-size:12px; margin-top:2px; }
+.af-right{ display:flex; align-items:center; justify-content:flex-end; gap:8px; }
+.af-inline{ display:flex; flex-wrap:wrap; gap:8px; }
+
+/* 重用你現有 chip 的樣式，但降低陰影、讓它像 tag 控制 */
+.af-card .chip{
+  border:1px solid var(--af-line);
+  background:#fff;
+  padding:8px 12px; border-radius:999px; font-weight:700;
+  box-shadow: 0 4px 12px rgba(0,0,0,.05);
+}
+.af-card .chip.is-on,
+.af-card .chip[aria-pressed="true"]{
+  background: #eaf5ee;
+  box-shadow: inset 0 0 0 1px rgba(46,94,78,.22);
+}
+
+/* 底部操作條 */
+.af-foot{
+  position:sticky; bottom:0; z-index:3;
+  display:flex; gap:10px; padding:10px 12px env(safe-area-inset-bottom);
+  background: linear-gradient(180deg, rgba(250,246,239,.6), rgba(250,246,239,.92));
+  backdrop-filter: blur(10px);
+  border-top:1px solid var(--af-line);
+}
+.af-btn{
+  flex:1; appearance:none; border-radius:12px; padding:12px 14px; font-weight:800; cursor:pointer;
+  border:1px solid rgba(0,0,0,.08); background:#fff;
+}
+.af-btn.primary{ background: var(--af-accent); color:#fff; border-color:var(--af-accent); }
+.af-btn.ghost{ background: transparent; }
+
+/* 深色 */
+@media (prefers-color-scheme: dark){
+  .af-tabs{ background: linear-gradient(180deg, rgba(11,15,18,.72), rgba(11,15,18,.65)); border-bottom-color: rgba(255,255,255,.08); }
+  .af-tab{ color:#eaeef3; }
+  .af-card{ background: color-mix(in srgb, #0b0f12 78%, transparent); border-color: rgba(255,255,255,.12); }
+  .af-row + .af-row{ border-top-color: rgba(255,255,255,.08); }
+  .af-left .af-sub{ color:#93a0ad; }
+  .af-card .chip{ background: color-mix(in srgb, #0b0f12 78%, transparent); color:#eef2f6; border-color: rgba(255,255,255,.12); }
+  .af-card .chip.is-on{ background: color-mix(in srgb, #2E5E4E 28%, #0b0f12 72%); }
+  .af-foot{ background: linear-gradient(180deg, rgba(11,15,18,.55), rgba(11,15,18,.82)); border-top-color: rgba(255,255,255,.10); }
+}
