@@ -183,160 +183,77 @@ section[data-page="explore"] .merchant-list .aux{ min-width: 12px; }
    只影響 #advFilter 內部，不動其它頁面
    ========================================================= */
 
-/* --- Panel Shell --- */
+/* ===== Advanced Filter: scroll-section style ===== */
 #advFilter.overlay-page{
   position: fixed; inset: 0; z-index: 1400;
-  display: none;                           /* .active 才顯示 */
-  background: color-mix(in srgb, rgba(8,10,12,.55) 100%, transparent);
-  -webkit-backdrop-filter: blur(8px) saturate(120%);
-  backdrop-filter: blur(8px) saturate(120%);
-  grid-template-rows: auto 1fr;
+  display: none; grid-template-rows: auto 1fr;
+  background: rgba(17,24,39,.45); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
 }
 #advFilter.overlay-page.active{ display: grid; }
-#advFilter[hidden]{ display: none !important; }
+#advFilter[hidden]{ display:none !important; }
 
-/* header 沿用你現有 .subappbar 樣式即可 */
-
-/* --- Scroll Panel (glass card) --- */
-#advFilter .settings-panel{
+#afScroll{
   height: 100%;
   overflow: auto;
-  padding: 12px 12px calc(74px + env(safe-area-inset-bottom));
-  background: color-mix(in srgb, #ffffff 78%, transparent);
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-  border: 1px solid rgba(0,0,0,.06);
-  box-shadow: 0 -16px 40px rgba(0,0,0,.18);
+  background: color-mix(in srgb, #ffffff 92%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  backdrop-filter: blur(10px) saturate(120%);
+  border-top-left-radius: 16px; border-top-right-radius: 16px;
+  box-shadow: 0 -10px 40px rgba(0,0,0,.25);
 }
 
-/* --- Section titles --- */
-#advFilter .set-overline{
-  margin: 12px 6px 8px;
-  font: 800 13px/1.1 system-ui, -apple-system, "Inter", "Noto Sans TC", sans-serif;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: #566069;
-  opacity: .95;
+/* Top nav */
+.af-topbar{
+  position: sticky; top: 0; z-index: 2;
+  display: grid; grid-auto-flow: column; grid-auto-columns: max-content;
+  gap: 10px; padding: 12px 12px; margin: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.86));
+  border-bottom: 1px solid rgba(0,0,0,.06);
+  overflow-x: auto; scrollbar-width: none;
+}
+.af-topbar::-webkit-scrollbar{ display:none; }
+.af-tab{
+  appearance:none; border:1px solid rgba(0,0,0,.06); background:#fff; color:#334155;
+  padding:8px 14px; border-radius:999px; font-weight:800; cursor:pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,.06);
+  transition: transform .08s ease, box-shadow .12s ease;
+  white-space:nowrap;
+}
+.af-tab:active{ transform: translateY(1px); }
+.af-tab.is-active{
+  background:#eaf2ff; border-color: rgba(59,130,246,.35);
+  box-shadow: inset 0 0 0 1px rgba(59,130,246,.35), 0 6px 16px rgba(59,130,246,.10);
 }
 
-/* --- Chips area --- */
-#advFilter .chips{
-  display: flex; flex-wrap: wrap; gap: 10px;
-  padding: 6px 4px 12px;
+/* Sections */
+.af-section{ padding: 14px 12px 4px; }
+.af-h{
+  margin: 6px 2px 10px; font: 800 14px/1.2 system-ui, -apple-system, "Inter", "Noto Sans TC", sans-serif;
+  letter-spacing:.2px; color:#111827; text-transform:none;
 }
 
-/* 基本 chip（柔霧、輕陰影） */
-#advFilter .chip{
-  appearance: none;
-  border: 1px solid rgba(0,0,0,.08);
-  border-radius: 999px;
-  padding: 8px 12px;
-  background: color-mix(in srgb, #ffffff 86%, transparent);
-  -webkit-backdrop-filter: blur(4px) saturate(120%);
-  backdrop-filter: blur(4px) saturate(120%);
-  color: #1f2e26;
-  font-weight: 600; font-size: 14px;
-  box-shadow: 0 6px 14px rgba(0,0,0,.06);
-  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .08s ease;
-  cursor: pointer;
-  white-space: nowrap;
-}
-#advFilter .chip:active{ transform: translateY(1px); }
+/* Chips row 沿用你原本 .chips/.chip 規則；這裡微調密度 */
+#afScroll .chips{ display:flex; flex-wrap:wrap; gap:8px; }
+#afScroll .chip{ padding:8px 12px; border-radius:999px; }
+#afScroll .chip.is-on{ box-shadow: inset 0 0 0 1px rgba(46,94,78,.28); }
 
-/* Hover（輕微著色） */
-#advFilter .chip:hover{
-  background: color-mix(in srgb, #2E5E4E 8%, #ffffff 92%);
-  border-color: rgba(46,94,78,.18);
+/* Footer inside content (跟著最後一段) */
+.af-footbar{
+  display:flex; gap:10px; justify-content:space-between;
+  padding: 16px 2px 24px;
+  position: sticky; bottom: 0; z-index: 1;
+  background: linear-gradient(180deg, rgba(255,255,255,.0), rgba(255,255,255,.96) 38%);
 }
 
-/* 已選狀態（柔彩填滿 + 輕描邊） */
-#advFilter .chip.is-on,
-#advFilter .chip[aria-pressed="true"]{
-  background: color-mix(in srgb, #2E5E4E 16%, #ffffff 84%);
-  border-color: rgba(46,94,78,.35);
-  box-shadow: inset 0 0 0 1px rgba(46,94,78,.22), 0 6px 16px rgba(46,94,78,.10);
-  color: #1e3a32;
-}
-
-/* 主要操作 chip（Filter / Apply 風格一致） */
-#advFilter .chip.chip--primary{
-  background: color-mix(in srgb, #fff8e1 80%, #ffffff 20%);
-  border-color: rgba(245,158,11,.35);
-  box-shadow: inset 0 0 0 1px rgba(245,158,11,.35), 0 6px 16px rgba(0,0,0,.06);
-}
-
-/* --- Footer actions（玻璃底，固定於底部） --- */
-#advFilter .filter-footer{
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1;
-  display: grid; grid-template-columns: 1fr 1.6fr; gap: 10px;
-  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-  background: color-mix(in srgb, rgba(255,255,255,.82) 100%, transparent);
-  -webkit-backdrop-filter: blur(10px) saturate(130%);
-  backdrop-filter: blur(10px) saturate(130%);
-  border-top: 1px solid rgba(0,0,0,.06);
-}
-
-/* Reset（次要、透明） */
-#advFilter #btnAdvReset{
-  background: transparent;
-  border-color: rgba(0,0,0,.12);
-  color: #6b7280;
-  font-weight: 700;
-}
-
-/* Apply（品牌綠漸層） */
-#advFilter #btnAdvApply{
-  background: linear-gradient(180deg, #2E5E4E, #244a3e);
-  color: #fff;
-  border-color: #2E5E4E;
-  box-shadow: 0 10px 26px rgba(46,94,78,.32);
-  font-weight: 800;
-}
-#advFilter #btnAdvApply:active{ transform: translateY(1px); }
-
-/* --- 微分隔與段落節奏 --- */
-#advFilter .settings-panel > * + *{
-  border-top: 1px solid rgba(0,0,0,.04);
-  margin-top: 6px; padding-top: 6px;
-}
-
-/* --- 暗色模式 --- */
+/* Dark mode */
 @media (prefers-color-scheme: dark){
-  #advFilter.overlay-page{
-    background: color-mix(in srgb, rgba(0,0,0,.62) 100%, transparent);
-  }
-  #advFilter .settings-panel{
-    background: color-mix(in srgb, #0b0f12 78%, transparent);
-    border-color: rgba(255,255,255,.08);
-    box-shadow: 0 -16px 40px rgba(0,0,0,.55);
-  }
-  #advFilter .set-overline{ color: #a7b3bd; }
-  #advFilter .chip{
-    background: color-mix(in srgb, #0b0f12 76%, transparent);
-    color: #e6efea;
-    border-color: rgba(255,255,255,.12);
-    box-shadow: 0 6px 14px rgba(0,0,0,.35);
-  }
-  #advFilter .chip:hover{
-    background: color-mix(in srgb, #2E5E4E 16%, #0b0f12 84%);
-    border-color: rgba(46,94,78,.45);
-  }
-  #advFilter .chip.is-on,
-  #advFilter .chip[aria-pressed="true"]{
-    background: color-mix(in srgb, #2E5E4E 26%, #0b0f12 74%);
-    border-color: rgba(255,255,255,.18);
-    color: #eaf6f1;
-  }
-  #advFilter .filter-footer{
-    background: color-mix(in srgb, rgba(11,15,18,.78) 100%, transparent);
-    border-top-color: rgba(255,255,255,.08);
-  }
-}
-
-/* --- 動畫/偏好 --- */
-@media (prefers-reduced-motion: reduce){
-  #advFilter .chip,
-  #advFilter .filter-footer{ transition: none; }
+  #advFilter.overlay-page{ background: rgba(0,0,0,.55); }
+  #afScroll{ background: color-mix(in srgb, #0b0f12 78%, transparent); }
+  .af-topbar{ background: linear-gradient(180deg, rgba(11,15,18,.85), rgba(11,15,18,.78)); border-bottom-color: rgba(255,255,255,.08); }
+  .af-tab{ background: color-mix(in srgb, #0b0f12 78%, transparent); color:#e5e7eb; border-color: rgba(255,255,255,.1); }
+  .af-tab.is-active{ background: color-mix(in srgb, #1e293b 70%, transparent); box-shadow: inset 0 0 0 1px rgba(59,130,246,.45); }
+  .af-h{ color:#e5e7eb; }
+  .af-footbar{ background: linear-gradient(180deg, rgba(11,15,18,0), rgba(11,15,18,.92) 38%); }
 }
 
 /* ==================== Detail（只留基礎，其他沿用共用檔） ==================== */
