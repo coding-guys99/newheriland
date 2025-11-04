@@ -987,100 +987,152 @@ async function adMove(tr, dir){
 /* =========================
    COLLECTIONS / hl_collections CRUD
    ========================= */
-const CO_PLACEHOLDER = 'https://placehold.co/800x500?text=Collection';
+const CO_ICON_PLACEHOLDER = '🏷️';
 
+// 讀取 collections
 async function fetchCollections(){
   const { data, error } = await supabase
     .from('hl_collections')
-    .select('id,name,slug,icon,href,sort_order,is_active')
-    .order('sort_order',{ ascending:true });
+    .select('id,name,slug,icon,sort_order,is_active')
+    .order('sort_order', { ascending: true });
   if (error) throw error;
   return data || [];
 }
 
-
+// 一列的樣板
 function coRowTpl(r){
   return `
   <tr data-id="${r.id}">
-    <td><img class="bn-thumb" src="${esc(r.image_url||CO_PLACEHOLDER)}" onerror="this.src='${CO_PLACEHOLDER}'"></td>
-    <td><input class="in title" value="${esc(r.title||'')}" placeholder="主題名稱"></td>
-    <td><input class="in sub" value="${esc(r.sub||'')}" placeholder="副標"></td>
-    <td><input class="in image_url" value="${esc(r.image_url||'')}" placeholder="https://..."></td>
-    <td><input class="in href" value="${esc(r.href||'#')}" placeholder="# 或 https://..."></td>
+    <td>
+      <input class="in icon" value="${esc(r.icon ?? CO_ICON_PLACEHOLDER)}" placeholder="例：🏷️" style="width:90px">
+    </td>
+    <td>
+      <input class="in name" value="${esc(r.name || '')}" placeholder="主題名稱（name）">
+    </td>
+    <td>
+      <input class="in slug" value="${esc(r.slug || '')}" placeholder="slug（URL 代稱，例：team-building）">
+    </td>
     <td class="stack">
-      <input class="in sort_order" type="number" value="${r.sort_order||1}" style="width:80px">
+      <input class="in sort_order" type="number" value="${Number(r.sort_order || 1)}" style="width:80px">
       <button class="btn icon act up">↑</button>
       <button class="btn icon act down">↓</button>
     </td>
-    <td class="stack"><label class="switch"><input type="checkbox" class="in is_active" ${r.is_active?'checked':''}><i></i></label></td>
+    <td class="stack">
+      <label class="switch">
+        <input type="checkbox" class="in is_active" ${r.is_active ? 'checked':''}><i></i>
+      </label>
+    </td>
     <td class="stack">
       <button class="btn primary save">💾 儲存</button>
-      <button class="btn danger del">🗑️ 刪除</button>
+      <button class="btn danger  del">🗑️ 刪除</button>
     </td>
   </tr>`;
 }
 
+// 渲染列表
 async function renderCollectionsAdmin(){
   const body = $('#co-body'); if (!body) return;
-  body.innerHTML = `<tr><td colspan="8" class="help">載入中…</td></tr>`;
+  body.innerHTML = `<tr><td colspan="6" class="help" style="padding:12px">載入中…</td></tr>`;
   try{
     const rows = await fetchCollections();
-    body.innerHTML = rows.length ? rows.map(coRowTpl).join('') :
-      `<tr><td colspan="8" class="help">尚無資料，點「新增主題」。</td></tr>`;
-  }catch(e){ body.innerHTML = `<tr><td colspan="8" class="help">讀取失敗：${esc(e.message)}</td></tr>`; }
+    body.innerHTML = rows.length
+      ? rows.map(coRowTpl).join('')
+      : `<tr><td colspan="6" class="help" style="padding:12px">尚無資料，點「新增主題」。</td></tr>`;
+  }catch(e){
+    body.innerHTML = `<tr><td colspan="6" class="help" style="padding:12px">讀取失敗：${esc(e.message)}</td></tr>`;
+  }
 }
 
+// 事件委派（儲存 / 刪除 / 移動）
 $('#co-table')?.addEventListener('click', async (e)=>{
   const tr = e.target.closest('tr'); if(!tr) return;
   const id = tr.dataset.id;
-  if(e.target.classList.contains('save'))      await coSave(tr);
-  else if(e.target.classList.contains('del'))  await coDelete(id);
-  else if(e.target.classList.contains('up'))   await coMove(tr,-1);
-  else if(e.target.classList.contains('down')) await coMove(tr,+1);
+  if (e.target.classList.contains('save'))      await coSave(tr);
+  else if (e.target.classList.contains('del'))  await coDelete(id);
+  else if (e.target.classList.contains('up'))   await coMove(tr, -1);
+  else if (e.target.classList.contains('down')) await coMove(tr, +1);
 });
 
+// 新增
 $('#co-add')?.addEventListener('click', async ()=>{
   try{
-    const { data: maxRow } = await supabase.from('hl_collections').select('sort_order').order('sort_order',{ascending:false}).limit(1);
+    const { data: maxRow, error: e1 } = await supabase
+      .from('hl_collections')
+      .select('sort_order')
+      .order('sort_order', { ascending:false })
+      .limit(1);
+    if (e1) throw e1;
     const next = (maxRow?.[0]?.sort_order || 0) + 1;
+
     const { error } = await supabase.from('hl_collections').insert({
-      title:'新主題', sub:'', image_url:CO_PLACEHOLDER, href:'#', sort_order:next, is_active:true
+      name: '新主題',
+      slug: '',
+      icon: CO_ICON_PLACEHOLDER,
+      sort_order: next,
+      is_active: true
     });
-    if(error) throw error; await renderCollectionsAdmin();
-  }catch(e){ alert('新增失敗：'+e.message); }
+    if (error) throw error;
+    await renderCollectionsAdmin();
+  }catch(e){
+    alert('新增失敗：' + e.message);
+  }
 });
 
-$('#co-refresh')?.addEventListener('click', renderCollectionsAdmin);
-
+// 儲存一列
 async function coSave(tr){
   const id = tr.dataset.id;
   const payload = {
-    title: tr.querySelector('.title').value.trim(),
-    sub: tr.querySelector('.sub').value.trim(),
-    image_url: tr.querySelector('.image_url').value.trim() || CO_PLACEHOLDER,
-    href: tr.querySelector('.href').value.trim() || '#',
+    name:       tr.querySelector('.name').value.trim(),
+    slug:       tr.querySelector('.slug').value.trim(),
+    icon:       tr.querySelector('.icon').value.trim() || CO_ICON_PLACEHOLDER,
     sort_order: Number(tr.querySelector('.sort_order').value || 1),
-    is_active: tr.querySelector('.is_active').checked
+    is_active:  tr.querySelector('.is_active').checked
   };
   try{
-    const { error } = await supabase.from('hl_collections').update(payload).eq('id',id);
-    if(error) throw error; await renderCollectionsAdmin();
-  }catch(e){ alert('儲存失敗：'+e.message); }
+    const { error } = await supabase.from('hl_collections').update(payload).eq('id', id);
+    if (error) throw error;
+    await renderCollectionsAdmin();
+  }catch(e){
+    alert('儲存失敗：' + e.message);
+  }
 }
 
+// 刪除
 async function coDelete(id){
-  if(!confirm('確定要刪除？')) return;
-  await supabase.from('hl_collections').delete().eq('id',id);
-  await renderCollectionsAdmin();
+  if (!confirm('確定要刪除？')) return;
+  try{
+    const { error } = await supabase.from('hl_collections').delete().eq('id', id);
+    if (error) throw error;
+    await renderCollectionsAdmin();
+  }catch(e){
+    alert('刪除失敗：' + e.message);
+  }
 }
 
-async function coMove(tr,dir){
-  const rows=$$('#co-body tr');const idx=rows.indexOf(tr);const swap=rows[idx+dir];if(!swap)return;
-  const id=tr.dataset.id,oid=swap.dataset.id;
-  const s=Number(tr.querySelector('.sort_order').value),os=Number(swap.querySelector('.sort_order').value);
-  await supabase.from('hl_collections').upsert([{id,sort_order:os},{id:oid,sort_order:s}]);
-  await renderCollectionsAdmin();
+// 上下移（交換 sort_order）
+async function coMove(tr, dir){
+  const rows = $$('#co-body tr');
+  const idx  = rows.indexOf(tr);
+  const swap = rows[idx + dir];
+  if (!swap) return;
+
+  const id   = tr.dataset.id;
+  const oid  = swap.dataset.id;
+  const s    = Number(tr.querySelector('.sort_order').value || 1);
+  const os   = Number(swap.querySelector('.sort_order').value || 1);
+
+  try{
+    const { error } = await supabase.from('hl_collections').upsert([
+      { id,  sort_order: os },
+      { id: oid, sort_order: s }
+    ]);
+    if (error) throw error;
+    await renderCollectionsAdmin();
+  }catch(e){
+    alert('移動失敗：' + e.message);
+  }
 }
+
 
 /* =========================
    GROUPS / hl_groups CRUD
