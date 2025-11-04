@@ -768,15 +768,29 @@ async function ctMove(tr, dir){
 const AD_PLACEHOLDER = 'https://placehold.co/1200x300?text=Ad';
 
 // 改這段 fetch（更穩定）
+// 讀首頁中間位（home_mid）的廣告，含排期
 async function fetchAds(){
+  const nowIso = new Date().toISOString();
+
   const { data, error } = await supabase
     .from('hl_ads')
-    .select('id,ad_slot,image_url,href,sort_order,is_active')
-    .eq('ad_slot','home_mid')                // 只抓 home_mid 位置
-    .order('sort_order',{ ascending:true }); // 單欄位排序
+    .select('id,title,image_url,href,placement,sort_order,is_active,starts_at,end_at')
+    .eq('placement', 'home_mid')         // ← 用 placement
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true });
+
   if (error) throw error;
-  return data || [];
+
+  // 若你允許 starts_at/end_at 可以是空，這裡在前端過濾一下時間窗
+  const inWindow = (row) => {
+    const s = row.starts_at ? new Date(row.starts_at).toISOString() : null;
+    const e = row.end_at     ? new Date(row.end_at).toISOString() : null;
+    return (!s || s <= nowIso) && (!e || e >= nowIso);
+  };
+
+  return (data || []).filter(inWindow);
 }
+
 
 function adRowTpl(r){
   return `
