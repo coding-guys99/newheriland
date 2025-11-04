@@ -19,13 +19,15 @@ function showTab(name){
 
   // 首次開啟才做初始化（目前只需要 banners）
  if (!loaded[name]) {
-  if (name === 'banners')  renderBanners();
-  if (name === 'features') renderFeaturesAdmin();
-  if (name === 'combo')    renderComboAdmin();
-  if (name === 'cities')   renderCitiesAdmin();     // ← 新增
-  if (name === 'ads')      renderAdsAdmin();        // ← 新增
-  if (name === 'collections') renderCollectionsAdmin(); // 新增
-  if (name === 'groups')      renderGroupsAdmin();      // 新增
+  if (name === 'banners')    renderBanners();
+  if (name === 'features')   renderFeaturesAdmin();
+  if (name === 'combo')      renderComboAdmin();
+  if (name === 'cities')     renderCitiesAdmin();
+  if (name === 'ads')        renderAdsAdmin();
+  if (name === 'collections')renderCollectionsAdmin();
+  if (name === 'groups')     renderGroupsAdmin();
+  if (name === 'spotlight')  renderSpotlightAdmin();   // ← 新增
+  if (name === 'goods')      renderGoodsAdmin();       // ← 新增
   loaded[name] = true;
 }
 }
@@ -1064,4 +1066,209 @@ async function grMove(tr,dir){
   const s=Number(tr.querySelector('.sort_order').value),os=Number(swap.querySelector('.sort_order').value);
   await supabase.from('hl_groups').upsert([{id,sort_order:os},{id:oid,sort_order:s}]);
   await renderGroupsAdmin();
+}
+
+/* =========================
+   SPOTLIGHT / hl_spotlight CRUD
+   ========================= */
+const SP_AVATAR = 'https://placehold.co/100x100?text=SP';
+
+async function fetchSpotlight(){
+  const { data, error } = await supabase
+    .from('hl_spotlight')
+    .select('id,name,avatar_url,href,sort_order,is_active')
+    .order('sort_order',{ascending:true});
+  if (error) throw error;
+  return data || [];
+}
+
+function spRowTpl(r){
+  return `
+  <tr data-id="${r.id}">
+    <td><img class="avatar-thumb" src="${esc(r.avatar_url||SP_AVATAR)}"
+             onerror="this.src='${SP_AVATAR}'" alt="avatar"></td>
+    <td><input class="in name" value="${esc(r.name||'')}" placeholder="@account 或 名稱"></td>
+    <td><input class="in href" value="${esc(r.href||'#')}" placeholder="# 或 https://..."></td>
+    <td class="stack">
+      <input class="in sort_order" type="number" value="${Number(r.sort_order||1)}" style="width:80px">
+      <button class="btn icon act up">↑</button>
+      <button class="btn icon act down">↓</button>
+    </td>
+    <td class="stack">
+      <label class="switch"><input type="checkbox" class="in is_active" ${r.is_active?'checked':''}><i></i></label>
+    </td>
+    <td class="stack">
+      <button class="btn primary save">💾 儲存</button>
+      <button class="btn danger del">🗑️ 刪除</button>
+    </td>
+  </tr>`;
+}
+
+async function renderSpotlightAdmin(){
+  const body = $('#sp-body'); if (!body) return;
+  body.innerHTML = `<tr><td colspan="6" class="help" style="padding:12px">載入中…</td></tr>`;
+  try{
+    const rows = await fetchSpotlight();
+    body.innerHTML = rows.length ? rows.map(spRowTpl).join('')
+      : `<tr><td colspan="6" class="help" style="padding:12px">尚無資料，點「新增成員」。</td></tr>`;
+  }catch(e){
+    body.innerHTML = `<tr><td colspan="6" class="help" style="padding:12px">讀取失敗：${esc(e.message)}</td></tr>`;
+  }
+}
+
+$('#sp-table')?.addEventListener('click', async (e)=>{
+  const tr = e.target.closest('tr'); if(!tr) return;
+  const id = tr.dataset.id;
+  if (e.target.classList.contains('save'))      await spSave(tr);
+  else if (e.target.classList.contains('del'))  await spDelete(id);
+  else if (e.target.classList.contains('up'))   await spMove(tr,-1);
+  else if (e.target.classList.contains('down')) await spMove(tr,+1);
+});
+
+$('#sp-add')?.addEventListener('click', async ()=>{
+  try{
+    const { data:maxRow } = await supabase.from('hl_spotlight').select('sort_order').order('sort_order',{ascending:false}).limit(1);
+    const next = (maxRow?.[0]?.sort_order || 0) + 1;
+    const { error } = await supabase.from('hl_spotlight').insert({
+      name:'新成員', avatar_url:SP_AVATAR, href:'#', sort_order:next, is_active:true
+    });
+    if (error) throw error;
+    await renderSpotlightAdmin();
+  }catch(err){ alert('新增失敗：'+err.message); }
+});
+
+$('#sp-refresh')?.addEventListener('click', renderSpotlightAdmin);
+
+async function spSave(tr){
+  const id = tr.dataset.id;
+  const payload = {
+    name: tr.querySelector('.name').value.trim(),
+    avatar_url: tr.querySelector('.avatar-thumb').src || SP_AVATAR,
+    href: tr.querySelector('.href').value.trim() || '#',
+    sort_order: Number(tr.querySelector('.sort_order').value || 1),
+    is_active: tr.querySelector('.is_active').checked
+  };
+  try{
+    const { error } = await supabase.from('hl_spotlight').update(payload).eq('id', id);
+    if (error) throw error;
+    await renderSpotlightAdmin();
+  }catch(err){ alert('儲存失敗：'+err.message); }
+}
+
+async function spDelete(id){
+  if(!confirm('確定要刪除這位成員？')) return;
+  await supabase.from('hl_spotlight').delete().eq('id', id);
+  await renderSpotlightAdmin();
+}
+
+async function spMove(tr, dir){
+  const rows = $$('#sp-body tr');
+  const idx = rows.indexOf(tr);
+  const swap = rows[idx + dir]; if (!swap) return;
+  const id = tr.dataset.id, oid = swap.dataset.id;
+  const s = Number(tr.querySelector('.sort_order').value || 1);
+  const os= Number(swap.querySelector('.sort_order').value || 1);
+  await supabase.from('hl_spotlight').upsert([{id,sort_order:os},{id:oid,sort_order:s}]);
+  await renderSpotlightAdmin();
+}
+
+/* =========================
+   GOODS / hl_goods CRUD
+   ========================= */
+async function fetchGoods(){
+  const { data, error } = await supabase
+    .from('hl_goods')
+    .select('id,name,price,href,sort_order,is_active')
+    .order('sort_order',{ascending:true});
+  if (error) throw error;
+  return data || [];
+}
+
+function gdRowTpl(r){
+  return `
+  <tr data-id="${r.id}">
+    <td><input class="in name"  value="${esc(r.name||'')}"  placeholder="商品名稱"></td>
+    <td><input class="in price" value="${esc(r.price||'')}" placeholder="$9.9"></td>
+    <td><input class="in href"  value="${esc(r.href||'#')}"  placeholder="# 或 https://..."></td>
+    <td class="stack">
+      <input class="in sort_order" type="number" value="${Number(r.sort_order||1)}" style="width:80px">
+      <button class="btn icon act up">↑</button>
+      <button class="btn icon act down">↓</button>
+    </td>
+    <td class="stack">
+      <label class="switch"><input type="checkbox" class="in is_active" ${r.is_active?'checked':''}><i></i></label>
+    </td>
+    <td class="stack">
+      <button class="btn primary save">💾 儲存</button>
+      <button class="btn danger del">🗑️ 刪除</button>
+    </td>
+  </tr>`;
+}
+
+async function renderGoodsAdmin(){
+  const body = $('#gd-body'); if (!body) return;
+  body.innerHTML = `<tr><td colspan="6" class="help" style="padding:12px">載入中…</td></tr>`;
+  try{
+    const rows = await fetchGoods();
+    body.innerHTML = rows.length ? rows.map(gdRowTpl).join('')
+      : `<tr><td colspan="6" class="help" style="padding:12px">尚無資料，點「新增商品」。</td></tr>`;
+  }catch(e){
+    body.innerHTML = `<tr><td colspan="6" class="help" style="padding:12px">讀取失敗：${esc(e.message)}</td></tr>`;
+  }
+}
+
+$('#gd-table')?.addEventListener('click', async (e)=>{
+  const tr = e.target.closest('tr'); if(!tr) return;
+  const id = tr.dataset.id;
+  if (e.target.classList.contains('save'))      await gdSave(tr);
+  else if (e.target.classList.contains('del'))  await gdDelete(id);
+  else if (e.target.classList.contains('up'))   await gdMove(tr,-1);
+  else if (e.target.classList.contains('down')) await gdMove(tr,+1);
+});
+
+$('#gd-add')?.addEventListener('click', async ()=>{
+  try{
+    const { data:maxRow } = await supabase.from('hl_goods').select('sort_order').order('sort_order',{ascending:false}).limit(1);
+    const next = (maxRow?.[0]?.sort_order || 0) + 1;
+    const { error } = await supabase.from('hl_goods').insert({
+      name:'新商品', price:'$0', href:'#', sort_order:next, is_active:true
+    });
+    if (error) throw error;
+    await renderGoodsAdmin();
+  }catch(err){ alert('新增失敗：'+err.message); }
+});
+
+$('#gd-refresh')?.addEventListener('click', renderGoodsAdmin);
+
+async function gdSave(tr){
+  const id = tr.dataset.id;
+  const payload = {
+    name: tr.querySelector('.name').value.trim(),
+    price: tr.querySelector('.price').value.trim(),
+    href: tr.querySelector('.href').value.trim() || '#',
+    sort_order: Number(tr.querySelector('.sort_order').value || 1),
+    is_active: tr.querySelector('.is_active').checked
+  };
+  try{
+    const { error } = await supabase.from('hl_goods').update(payload).eq('id', id);
+    if (error) throw error;
+    await renderGoodsAdmin();
+  }catch(err){ alert('儲存失敗：'+err.message); }
+}
+
+async function gdDelete(id){
+  if(!confirm('確定要刪除這個商品？')) return;
+  await supabase.from('hl_goods').delete().eq('id', id);
+  await renderGoodsAdmin();
+}
+
+async function gdMove(tr, dir){
+  const rows = $$('#gd-body tr');
+  const idx = rows.indexOf(tr);
+  const swap = rows[idx + dir]; if (!swap) return;
+  const id = tr.dataset.id, oid = swap.dataset.id;
+  const s = Number(tr.querySelector('.sort_order').value || 1);
+  const os= Number(swap.querySelector('.sort_order').value || 1);
+  await supabase.from('hl_goods').upsert([{id,sort_order:os},{id:oid,sort_order:s}]);
+  await renderGoodsAdmin();
 }
