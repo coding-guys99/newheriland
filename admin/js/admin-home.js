@@ -24,6 +24,8 @@ function showTab(name){
   if (name === 'combo')    renderComboAdmin();
   if (name === 'cities')   renderCitiesAdmin();     // ← 新增
   if (name === 'ads')      renderAdsAdmin();        // ← 新增
+  if (name === 'collections') renderCollectionsAdmin(); // 新增
+  if (name === 'groups')      renderGroupsAdmin();      // 新增
   loaded[name] = true;
 }
 }
@@ -879,4 +881,187 @@ async function adMove(tr, dir){
     if (error) throw error;
     await renderAdsAdmin();
   }catch(err){ alert('移動失敗：'+err.message); }
+}
+
+/* =========================
+   COLLECTIONS / hl_collections CRUD
+   ========================= */
+const CO_PLACEHOLDER = 'https://placehold.co/800x500?text=Collection';
+
+async function fetchCollections(){
+  const { data, error } = await supabase
+    .from('hl_collections')
+    .select('id,title,sub,image_url,href,sort_order,is_active')
+    .order('sort_order',{ascending:true});
+  if (error) throw error;
+  return data || [];
+}
+
+function coRowTpl(r){
+  return `
+  <tr data-id="${r.id}">
+    <td><img class="bn-thumb" src="${esc(r.image_url||CO_PLACEHOLDER)}" onerror="this.src='${CO_PLACEHOLDER}'"></td>
+    <td><input class="in title" value="${esc(r.title||'')}" placeholder="主題名稱"></td>
+    <td><input class="in sub" value="${esc(r.sub||'')}" placeholder="副標"></td>
+    <td><input class="in image_url" value="${esc(r.image_url||'')}" placeholder="https://..."></td>
+    <td><input class="in href" value="${esc(r.href||'#')}" placeholder="# 或 https://..."></td>
+    <td class="stack">
+      <input class="in sort_order" type="number" value="${r.sort_order||1}" style="width:80px">
+      <button class="btn icon act up">↑</button>
+      <button class="btn icon act down">↓</button>
+    </td>
+    <td class="stack"><label class="switch"><input type="checkbox" class="in is_active" ${r.is_active?'checked':''}><i></i></label></td>
+    <td class="stack">
+      <button class="btn primary save">💾 儲存</button>
+      <button class="btn danger del">🗑️ 刪除</button>
+    </td>
+  </tr>`;
+}
+
+async function renderCollectionsAdmin(){
+  const body = $('#co-body'); if (!body) return;
+  body.innerHTML = `<tr><td colspan="8" class="help">載入中…</td></tr>`;
+  try{
+    const rows = await fetchCollections();
+    body.innerHTML = rows.length ? rows.map(coRowTpl).join('') :
+      `<tr><td colspan="8" class="help">尚無資料，點「新增主題」。</td></tr>`;
+  }catch(e){ body.innerHTML = `<tr><td colspan="8" class="help">讀取失敗：${esc(e.message)}</td></tr>`; }
+}
+
+$('#co-table')?.addEventListener('click', async (e)=>{
+  const tr = e.target.closest('tr'); if(!tr) return;
+  const id = tr.dataset.id;
+  if(e.target.classList.contains('save'))      await coSave(tr);
+  else if(e.target.classList.contains('del'))  await coDelete(id);
+  else if(e.target.classList.contains('up'))   await coMove(tr,-1);
+  else if(e.target.classList.contains('down')) await coMove(tr,+1);
+});
+
+$('#co-add')?.addEventListener('click', async ()=>{
+  try{
+    const { data: maxRow } = await supabase.from('hl_collections').select('sort_order').order('sort_order',{ascending:false}).limit(1);
+    const next = (maxRow?.[0]?.sort_order || 0) + 1;
+    const { error } = await supabase.from('hl_collections').insert({
+      title:'新主題', sub:'', image_url:CO_PLACEHOLDER, href:'#', sort_order:next, is_active:true
+    });
+    if(error) throw error; await renderCollectionsAdmin();
+  }catch(e){ alert('新增失敗：'+e.message); }
+});
+
+$('#co-refresh')?.addEventListener('click', renderCollectionsAdmin);
+
+async function coSave(tr){
+  const id = tr.dataset.id;
+  const payload = {
+    title: tr.querySelector('.title').value.trim(),
+    sub: tr.querySelector('.sub').value.trim(),
+    image_url: tr.querySelector('.image_url').value.trim() || CO_PLACEHOLDER,
+    href: tr.querySelector('.href').value.trim() || '#',
+    sort_order: Number(tr.querySelector('.sort_order').value || 1),
+    is_active: tr.querySelector('.is_active').checked
+  };
+  try{
+    const { error } = await supabase.from('hl_collections').update(payload).eq('id',id);
+    if(error) throw error; await renderCollectionsAdmin();
+  }catch(e){ alert('儲存失敗：'+e.message); }
+}
+
+async function coDelete(id){
+  if(!confirm('確定要刪除？')) return;
+  await supabase.from('hl_collections').delete().eq('id',id);
+  await renderCollectionsAdmin();
+}
+
+async function coMove(tr,dir){
+  const rows=$$('#co-body tr');const idx=rows.indexOf(tr);const swap=rows[idx+dir];if(!swap)return;
+  const id=tr.dataset.id,oid=swap.dataset.id;
+  const s=Number(tr.querySelector('.sort_order').value),os=Number(swap.querySelector('.sort_order').value);
+  await supabase.from('hl_collections').upsert([{id,sort_order:os},{id:oid,sort_order:s}]);
+  await renderCollectionsAdmin();
+}
+
+/* =========================
+   GROUPS / hl_groups CRUD
+   ========================= */
+const GR_PLACEHOLDER='https://placehold.co/200x200?text=Avatar';
+
+async function fetchGroups(){
+  const {data,error}=await supabase.from('hl_groups').select('id,title,sub,avatar_url,href,sort_order,is_active').order('sort_order',{ascending:true});
+  if(error)throw error;return data||[];
+}
+
+function grRowTpl(r){
+  return `
+  <tr data-id="${r.id}">
+    <td><img class="avatar-thumb" src="${esc(r.avatar_url||GR_PLACEHOLDER)}" onerror="this.src='${GR_PLACEHOLDER}'"></td>
+    <td><input class="in title" value="${esc(r.title||'')}" placeholder="名稱"></td>
+    <td><input class="in sub" value="${esc(r.sub||'')}" placeholder="副標"></td>
+    <td><input class="in href" value="${esc(r.href||'#')}" placeholder="# 或 https://..."></td>
+    <td class="stack">
+      <input class="in sort_order" type="number" value="${r.sort_order||1}" style="width:80px">
+      <button class="btn icon act up">↑</button>
+      <button class="btn icon act down">↓</button>
+    </td>
+    <td class="stack"><label class="switch"><input type="checkbox" class="in is_active" ${r.is_active?'checked':''}><i></i></label></td>
+    <td class="stack">
+      <button class="btn primary save">💾 儲存</button>
+      <button class="btn danger del">🗑️ 刪除</button>
+    </td>
+  </tr>`;
+}
+
+async function renderGroupsAdmin(){
+  const body=$('#gr-body');if(!body)return;
+  body.innerHTML=`<tr><td colspan="7" class="help">載入中…</td></tr>`;
+  try{
+    const rows=await fetchGroups();
+    body.innerHTML=rows.length?rows.map(grRowTpl).join(''):`<tr><td colspan="7" class="help">尚無資料，點「新增主題」。</td></tr>`;
+  }catch(e){body.innerHTML=`<tr><td colspan="7" class="help">讀取失敗：${esc(e.message)}</td></tr>`;}
+}
+
+$('#gr-table')?.addEventListener('click',async(e)=>{
+  const tr=e.target.closest('tr');if(!tr)return;const id=tr.dataset.id;
+  if(e.target.classList.contains('save'))await grSave(tr);
+  else if(e.target.classList.contains('del'))await grDelete(id);
+  else if(e.target.classList.contains('up'))await grMove(tr,-1);
+  else if(e.target.classList.contains('down'))await grMove(tr,+1);
+});
+
+$('#gr-add')?.addEventListener('click',async()=>{
+  try{
+    const {data:maxRow}=await supabase.from('hl_groups').select('sort_order').order('sort_order',{ascending:false}).limit(1);
+    const next=(maxRow?.[0]?.sort_order||0)+1;
+    await supabase.from('hl_groups').insert({title:'新主題',sub:'',avatar_url:GR_PLACEHOLDER,href:'#',sort_order:next,is_active:true});
+    await renderGroupsAdmin();
+  }catch(e){alert('新增失敗：'+e.message);}
+});
+
+$('#gr-refresh')?.addEventListener('click',renderGroupsAdmin);
+
+async function grSave(tr){
+  const id=tr.dataset.id;
+  const payload={
+    title:tr.querySelector('.title').value.trim(),
+    sub:tr.querySelector('.sub').value.trim(),
+    avatar_url:tr.querySelector('.avatar-thumb').src||GR_PLACEHOLDER,
+    href:tr.querySelector('.href').value.trim()||'#',
+    sort_order:Number(tr.querySelector('.sort_order').value||1),
+    is_active:tr.querySelector('.is_active').checked
+  };
+  await supabase.from('hl_groups').update(payload).eq('id',id);
+  await renderGroupsAdmin();
+}
+
+async function grDelete(id){
+  if(!confirm('確定要刪除？'))return;
+  await supabase.from('hl_groups').delete().eq('id',id);
+  await renderGroupsAdmin();
+}
+
+async function grMove(tr,dir){
+  const rows=$$('#gr-body tr');const idx=rows.indexOf(tr);const swap=rows[idx+dir];if(!swap)return;
+  const id=tr.dataset.id,oid=swap.dataset.id;
+  const s=Number(tr.querySelector('.sort_order').value),os=Number(swap.querySelector('.sort_order').value);
+  await supabase.from('hl_groups').upsert([{id,sort_order:os},{id:oid,sort_order:s}]);
+  await renderGroupsAdmin();
 }
