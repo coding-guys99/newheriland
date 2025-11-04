@@ -1,9 +1,7 @@
-// js/explore.js — 專屬 Explore 頁面的版本
-// 只要這支被載到沒有 explore 的頁面，會自動什麼都不做
+// js/explore.js — Explore（含 Sort 下拉 + Filter 抽屜整合）
 import { supabase } from './app.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 這頁真的有 explore 嗎？
   const explorePage = document.querySelector('[data-page="explore"]');
   if (!explorePage) return;
 
@@ -23,21 +21,29 @@ document.addEventListener('DOMContentLoaded', () => {
   // 輕量篩選列
   const filtersBox  = $('#expFilters');
   const chipsQuick  = $$('.chips--quick .chip', filtersBox);
-  const chipsCats   = $$('.chips--cats .chip',  filtersBox);  // 你現在 html 沒這組也沒關係
+  const chipsCats   = $$('.chips--cats .chip',  filtersBox);
   const btnOpenFilter = $('#btnOpenFilter');
+
+  // ========== Sort 下拉 ==========
+  const btnSort      = $('#btnSort');           // 觸發按鈕（文字例如：Sort）
+  const sortPopover  = $('#sortPopover');       // 浮層容器
+  const sortListBox  = $('#sortList');          // 放選項的容器（radio/按鈕）
+  const sortMask     = $('#sortMask');          // 遮罩（點擊關閉）
 
   // 進階篩選 overlay
   const advFilter   = $('#advFilter');
   const btnAdvClose = $('#btnAdvClose');
   const btnAdvApply = $('#btnAdvApply');
   const btnAdvReset = $('#btnAdvReset');
+
+  // 抽屜內各區
   const afCats   = $('#afCats');
   const afThemes = $('#afThemes');
   const afAttrs  = $('#afAttrs');
   const afMore   = $('#afMore');
-  const afSort   = $('#afSort');
+  const afSort   = $('#afSort');   // 抽屜內若有「排序」chips（可選）
 
-  // 詳情頁（注意：只有主 APP 那一頁才會有）
+  // 詳情頁
   const detailPage    = document.querySelector('[data-page="detail"]');
   const HAS_DETAIL    = !!detailPage;
   const btnDetailBack = $('#btnDetailBack');
@@ -73,23 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
     prices: new Set(),
     open: false,
     minRating: null,
-    sort: 'latest',
+    sort: 'latest',  // latest | hot | rating | price_asc
   };
   let currentCity = null;
   let allMerchants = [];
-  
-  // ---- AF: Apply/Reset 可用狀態控管（純文字版） ----
-let afDirty = false;
-function setApplyEnabled(on){
-  if (!btnAdvApply) return;
-  btnAdvApply.disabled = !on;
-  if (on) btnAdvApply.removeAttribute('aria-disabled');
-  else    btnAdvApply.setAttribute('aria-disabled','true');
-}
-function markDirty(){
-  afDirty = true;
-  setApplyEnabled(true);
-}
 
   /* ---------- 小工具 ---------- */
   const toNum = n => {
@@ -104,6 +97,25 @@ function markDirty(){
     const s = (m.priceLevel || m.price_level || '').toString();
     const cnt = (s.match(/\$/g) || []).length;
     return cnt || null;
+  }
+
+  // 篩選是否有被啟用（給 Filter 按鈕顯示小圓點/數量）
+  function activeFilterCount(){
+    let n = 0;
+    if (state.cats.size)   n += state.cats.size;
+    if (state.themes.size) n += state.themes.size;
+    if (state.attrs.size)  n += state.attrs.size;
+    if (state.prices.size) n += state.prices.size;
+    if (state.open)        n += 1;
+    if (state.minRating!=null) n += 1;
+    return n;
+  }
+  function updateFilterBadge(){
+    const c = activeFilterCount();
+    if (!btnOpenFilter) return;
+    btnOpenFilter.classList.toggle('has-active', c>0);
+    btnOpenFilter.setAttribute('data-count', c>0 ? String(c) : '');
+    btnOpenFilter.setAttribute('aria-label', c>0 ? `Filter (${c})` : 'Filter');
   }
 
   // ====== 開放時間工具 ======
@@ -343,7 +355,7 @@ function markDirty(){
     }).join('');
   }
 
-  /* ---------- 套用篩選 ---------- */
+  /* ---------- 套用篩選 & 排序 ---------- */
   function applyFilters(){
     let arr = [...allMerchants];
 
@@ -386,7 +398,10 @@ function markDirty(){
       });
     } else if (state.sort === 'rating'){
       arr.sort((a,b)=> (Number(b.rating)||0) - (Number(a.rating)||0));
+    } else if (state.sort === 'price_asc'){
+      arr.sort((a,b)=> (priceLevelNum(a)||99) - (priceLevelNum(b)||99));
     } else {
+      // latest
       arr.sort((a,b)=>{
         const ta = new Date(a.updated_at||0).getTime();
         const tb = new Date(b.updated_at||0).getTime();
@@ -396,12 +411,14 @@ function markDirty(){
 
     renderMerchants(arr);
     if (head) head.textContent = `${currentCity?.name || currentCity?.id || 'City'} — ${arr.length} places`;
+    updateFilterBadge(); // 更新 Filter 圓點/數量
+    syncSortButtonLabel(); // Sort 按鈕文字
   }
 
   /* ---------- 輕量篩選欄 ---------- */
   function bindLightFilters(){
     if (!filtersBox) return;
-    // 分類組（你目前 html 沒這組也沒關係）
+
     chipsCats.forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const cat = btn.dataset.cat;
@@ -412,7 +429,7 @@ function markDirty(){
       });
     });
 
-    // Quick chips
+    // Quick chips（包含 open / rating / sort）
     chipsQuick.forEach(btn=>{
       if (!btn.hasAttribute('aria-pressed')) btn.setAttribute('aria-pressed','false');
       btn.addEventListener('click', ()=>{
@@ -421,6 +438,7 @@ function markDirty(){
         const hasRating = btn.hasAttribute('data-rating');
 
         if (hasSort){
+          // 輕量列上的 sort（若有的話） → 單選
           $$('.chips--quick .chip[data-sort]', filtersBox).forEach(b=>{
             b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
           });
@@ -440,204 +458,222 @@ function markDirty(){
     });
   }
 
-/* ---------- Advanced Filter ---------- */
-function openAF(){
-  if (!advFilter) return;
-  // 打開時依據是否有未套用變更，決定 Apply 是否可按
-  setApplyEnabled(afDirty);
-  advFilter.hidden = false;
-  requestAnimationFrame(()=> advFilter.classList.add('active'));
-}
-function closeAF(){
-  if (!advFilter) return;
-  advFilter.classList.remove('active');
-  setTimeout(()=>{ advFilter.hidden = true; }, 150);
-}
-
-btnOpenFilter?.addEventListener('click', openAF);
-btnAdvClose?.addEventListener('click', closeAF);
-advFilter?.addEventListener('click', (e)=>{ if (e.target===advFilter) closeAF(); });
-window.addEventListener('keydown', (e)=>{ if (e.key==='Escape' && advFilter && !advFilter.hidden) closeAF(); });
-
-// 多選 chips：點了就切換、更新 state、標記 dirty
-function toggleMulti(container, attr, set){
-  container?.addEventListener('click', (e)=>{
-    const btn = e.target.closest(`.chip[${attr}]`); if (!btn) return;
-    const val = btn.getAttribute(attr);
-    const on  = btn.classList.toggle('is-on');
-    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    if (on) set.add(val); else set.delete(val);
-    markDirty();
-  });
-}
-toggleMulti(afCats,   'data-cat',   state.cats);
-toggleMulti(afThemes, 'data-theme', state.themes);
-toggleMulti(afAttrs,  'data-attr',  state.attrs);
-
-// More：open now / rating 單選 / price 多選
-afMore?.addEventListener('click', (e)=>{
-  const btn = e.target.closest('.chip'); if (!btn) return;
-
-  if (btn.hasAttribute('data-open')){
-    const on = btn.classList.toggle('is-on');
-    btn.setAttribute('aria-pressed', on ? 'true':'false');
-    state.open = on;
-    markDirty();
-    return;
+  /* ---------- Advanced Filter（抽屜） ---------- */
+  function openAF(){
+    if (!advFilter) return;
+    advFilter.hidden = false;
+    requestAnimationFrame(()=> advFilter.classList.add('active'));
   }
-  if (btn.hasAttribute('data-rating')){
-    afMore.querySelectorAll('.chip[data-rating]').forEach(b=>{
+  function closeAF(){
+    if (!advFilter) return;
+    advFilter.classList.remove('active');
+    setTimeout(()=>{ advFilter.hidden = true; }, 150);
+  }
+
+  btnOpenFilter?.addEventListener('click', openAF);
+  btnAdvClose?.addEventListener('click', closeAF);
+  advFilter?.addEventListener('click', (e)=>{ if (e.target===advFilter) closeAF(); });
+
+  window.addEventListener('keydown', (e)=>{
+    if (e.key==='Escape'){
+      if (advFilter && !advFilter.hidden) closeAF();
+      if (sortPopover && !sortPopover.hidden) closeSort();
+    }
+  });
+
+  function toggleMulti(container, attr, set){
+    container?.addEventListener('click', (e)=>{
+      const btn = e.target.closest(`.chip[${attr}]`); if (!btn) return;
+      const val = btn.getAttribute(attr);
+      const on  = btn.classList.toggle('is-on');
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      if (on) set.add(val); else set.delete(val);
+    });
+  }
+  toggleMulti(afCats,   'data-cat',   state.cats);
+  toggleMulti(afThemes, 'data-theme', state.themes);
+  toggleMulti(afAttrs,  'data-attr',  state.attrs);
+
+  // More（open / rating / price）
+  afMore?.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.chip'); if (!btn) return;
+    if (btn.hasAttribute('data-open')){
+      const on = btn.classList.toggle('is-on');
+      btn.setAttribute('aria-pressed', on ? 'true':'false');
+      state.open = on; return;
+    }
+    if (btn.hasAttribute('data-rating')){
+      afMore.querySelectorAll('.chip[data-rating]').forEach(b=>{
+        b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
+      });
+      btn.classList.add('is-on'); btn.setAttribute('aria-pressed','true');
+      state.minRating = Number(btn.getAttribute('data-rating')); return;
+    }
+    if (btn.hasAttribute('data-price')){
+      const val = Number(btn.getAttribute('data-price'));
+      const on  = btn.classList.toggle('is-on');
+      btn.setAttribute('aria-pressed', on ? 'true':'false');
+      if (on) state.prices.add(val); else state.prices.delete(val);
+    }
+  });
+
+  // 抽屜裡若有 sort chips（可選）
+  afSort?.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.chip[data-sort]'); if (!btn) return;
+    afSort.querySelectorAll('.chip[data-sort]').forEach(b=>{
       b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
     });
     btn.classList.add('is-on'); btn.setAttribute('aria-pressed','true');
-    state.minRating = Number(btn.getAttribute('data-rating'));
-    markDirty();
-    return;
-  }
-  if (btn.hasAttribute('data-price')){
-    const val = Number(btn.getAttribute('data-price'));
-    const on  = btn.classList.toggle('is-on');
-    btn.setAttribute('aria-pressed', on ? 'true':'false');
-    if (on) state.prices.add(val); else state.prices.delete(val);
-    markDirty();
-  }
-});
-
-// Sort 單選
-afSort?.addEventListener('click', (e)=>{
-  const btn = e.target.closest('.chip[data-sort]'); if (!btn) return;
-  afSort.querySelectorAll('.chip[data-sort]').forEach(b=>{
-    b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
+    state.sort = btn.getAttribute('data-sort') || 'latest';
   });
-  btn.classList.add('is-on'); btn.setAttribute('aria-pressed','true');
-  state.sort = btn.getAttribute('data-sort') || 'latest';
-  markDirty();
-});
 
-// 將 overlay 的變更同步到上方輕量列（只改視覺，不覆蓋 state）
-function syncLightBarFromState(){
-  $$('.chips--quick .chip[data-sort]', filtersBox).forEach(b=>{
-    const on = (b.dataset.sort === state.sort);
-    b.classList.toggle('is-on', on);
-    b.setAttribute('aria-pressed', on ? 'true' : 'false');
-  });
-  const lightOpen = $('.chips--quick .chip[data-open]');
-  if (lightOpen){
-    lightOpen.classList.toggle('is-on', !!state.open);
-    lightOpen.setAttribute('aria-pressed', state.open ? 'true' : 'false');
-  }
-}
-
-// Apply：套用 → 清 dirty → 關閉
-btnAdvApply?.addEventListener('click', ()=>{
-  applyFilters();
-  syncLightBarFromState();
-  afDirty = false;
-  setApplyEnabled(false);
-  closeAF();
-});
-
-// Reset：清選取 → 變更成“乾淨的預設”但需再按 Apply 才生效
-btnAdvReset?.addEventListener('click', ()=>{
-  state.cats.clear();
-  state.themes.clear();
-  state.attrs.clear();
-  state.prices.clear();
-  state.open = false;
-  state.minRating = null;
-  state.sort = 'latest';
-
-  advFilter?.querySelectorAll('.chip.is-on').forEach(b=>{
-    b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
-  });
-  const firstSort = afSort?.querySelector('.chip[data-sort="latest"]');
-  firstSort?.classList.add('is-on'); firstSort?.setAttribute('aria-pressed','true');
-
-  // 標記有變更，但不立即套用
-  afDirty = true;
-  setApplyEnabled(true);
-});
-  
-  // ====== AF: scroll-to-section + scroll-spy ======
-const afScroll = document.getElementById('afScroll');
-const afNav    = document.getElementById('afNav');
-const afTabs   = Array.from(afNav?.querySelectorAll('.af-tab') || []);
-const afSecs   = ['#sec-cats','#sec-themes','#sec-attrs','#sec-more','#sec-sort']
-  .map(s => document.querySelector(s))
-  .filter(Boolean);
-
-// 點導覽 → 平滑捲動到對應段落
-afNav?.addEventListener('click', (e)=>{
-  const btn = e.target.closest('.af-tab'); if (!btn) return;
-  const targetSel = btn.getAttribute('data-target');
-  const sec = targetSel ? document.querySelector(targetSel) : null;
-  if (!sec) return;
-  sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-});
-
-// 滾動同步高亮（優先用 IntersectionObserver）
-if (afScroll && afSecs.length){
-  const setActive = (id)=>{
-    afTabs.forEach(t=>{
-      const on = (t.getAttribute('data-target') === `#${id}`);
-      t.classList.toggle('is-active', on);
-      t.setAttribute('aria-selected', on ? 'true' : 'false');
+  function syncLightBarFromState(){
+    $$('.chips--quick .chip[data-sort]').forEach(b=>{
+      const on = (b.dataset.sort === state.sort);
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
-  };
-
-  const io = ('IntersectionObserver' in window)
-    ? new IntersectionObserver((entries)=>{
-        // 取最靠近頂端且可見的 section
-        const visible = entries
-          .filter(en => en.isIntersecting)
-          .sort((a,b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
-        if (visible) setActive(visible.target.id);
-      }, { root: afScroll, threshold: .3 })
-    : null;
-
-  if (io){
-    afSecs.forEach(sec => io.observe(sec));
-  }else{
-    // 後備方案：scroll 事件
-    afScroll.addEventListener('scroll', ()=>{
-      const top = afScroll.scrollTop + 80; // 頂部導覽高度補償
-      let current = afSecs[0].id;
-      afSecs.forEach(sec=>{
-        if (sec.offsetTop <= top) current = sec.id;
-      });
-      setActive(current);
-    }, { passive: true });
+    const lightOpen = $('.chips--quick .chip[data-open]');
+    if (lightOpen){
+      lightOpen.classList.toggle('is-on', !!state.open);
+      lightOpen.setAttribute('aria-pressed', state.open ? 'true' : 'false');
+    }
   }
-}
-  
-  // --- Modern drawer: tabs + row click ---
-(() => {
-  const drawer = document.getElementById('advFilter');
-  if (!drawer) return;
 
-  // Tabs
-  const tabs = Array.from(drawer.querySelectorAll('.af-tab'));
-  const panels = Array.from(drawer.querySelectorAll('.af-panel'));
-  drawer.querySelector('.af-tabs')?.addEventListener('click', (e)=>{
+  btnAdvApply?.addEventListener('click', ()=>{
+    applyFilters();
+    syncLightBarFromState();
+    closeAF();
+  });
+
+  btnAdvReset?.addEventListener('click', ()=>{
+    state.cats.clear();
+    state.themes.clear();
+    state.attrs.clear();
+    state.prices.clear();
+    state.open = false;
+    state.minRating = null;
+    state.sort = 'latest';
+
+    advFilter?.querySelectorAll('.chip.is-on').forEach(b=>{
+      b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
+    });
+    const firstSort = afSort?.querySelector('.chip[data-sort="latest"]');
+    firstSort?.classList.add('is-on'); firstSort?.setAttribute('aria-pressed','true');
+
+    syncLightBarFromState();
+    applyFilters();
+  });
+
+  // ====== AF: scroll-to-section + scroll-spy（保留） ======
+  const afScroll = document.getElementById('afScroll');
+  const afNav    = document.getElementById('afNav');
+  const afTabs   = Array.from(afNav?.querySelectorAll('.af-tab') || []);
+  const afSecs   = ['#sec-cats','#sec-themes','#sec-attrs','#sec-more','#sec-sort']
+    .map(s => document.querySelector(s))
+    .filter(Boolean);
+
+  afNav?.addEventListener('click', (e)=>{
     const btn = e.target.closest('.af-tab'); if (!btn) return;
-    const sel = btn.dataset.tab;
-    tabs.forEach(t => t.classList.toggle('is-active', t === btn));
-    panels.forEach(p => p.classList.toggle('is-active', p.matches(sel)));
-    // A11y
-    tabs.forEach(t => t.setAttribute('aria-selected', t === btn ? 'true':'false'));
+    const targetSel = btn.getAttribute('data-target');
+    const sec = targetSel ? document.querySelector(targetSel) : null;
+    if (!sec) return;
+    sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
-  // 讓整個 row 點了也能切換右側 chip（保留你原有的事件）
-  drawer.addEventListener('click', (e)=>{
-    const row = e.target.closest('.af-row[data-toggle-chip]');
-    if (!row) return;
-    // 如果直接點在 chip 或 chip 的子元素，就交給原本邏輯
-    if (e.target.closest('.chip')) return;
-    // 否則就找 row 內第一個 chip 模擬點擊
-    const firstChip = row.querySelector('.chip');
-    firstChip?.click();
+  if (afScroll && afSecs.length){
+    const setActive = (id)=>{
+      afTabs.forEach(t=>{
+        const on = (t.getAttribute('data-target') === `#${id}`);
+        t.classList.toggle('is-active', on);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+    };
+    const io = ('IntersectionObserver' in window)
+      ? new IntersectionObserver((entries)=>{
+          const visible = entries
+            .filter(en => en.isIntersecting)
+            .sort((a,b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (visible) setActive(visible.target.id);
+        }, { root: afScroll, threshold: .3 })
+      : null;
+
+    if (io){
+      afSecs.forEach(sec => io.observe(sec));
+    }else{
+      afScroll.addEventListener('scroll', ()=>{
+        const top = afScroll.scrollTop + 80;
+        let current = afSecs[0].id;
+        afSecs.forEach(sec=>{
+          if (sec.offsetTop <= top) current = sec.id;
+        });
+        setActive(current);
+      }, { passive: true });
+    }
+  }
+
+  // --- Modern drawer: row click（保留） ---
+  (() => {
+    const drawer = document.getElementById('advFilter');
+    if (!drawer) return;
+    const tabs = Array.from(drawer.querySelectorAll('.af-tab'));
+    const panels = Array.from(drawer.querySelectorAll('.af-panel'));
+    drawer.querySelector('.af-tabs')?.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.af-tab'); if (!btn) return;
+      const sel = btn.dataset.tab;
+      tabs.forEach(t => t.classList.toggle('is-active', t === btn));
+      panels.forEach(p => p.classList.toggle('is-active', p.matches(sel)));
+      tabs.forEach(t => t.setAttribute('aria-selected', t === btn ? 'true':'false'));
+    });
+    drawer.addEventListener('click', (e)=>{
+      const row = e.target.closest('.af-row[data-toggle-chip]');
+      if (!row) return;
+      if (e.target.closest('.chip')) return;
+      const firstChip = row.querySelector('.chip');
+      firstChip?.click();
+    });
+  })();
+
+  /* ---------- Sort 下拉：開關 & 選擇 ---------- */
+  function syncSortButtonLabel(){
+    if (!btnSort) return;
+    const map = { latest:'Latest', hot:'Popular', rating:'Rating', price_asc:'Price' };
+    const txt = map[state.sort] || 'Latest';
+    btnSort.querySelector('.t')?.replaceChildren(document.createTextNode(`Sort: ${txt}`));
+  }
+
+  function openSort(){
+    if (!sortPopover) return;
+    sortPopover.hidden = false;
+    requestAnimationFrame(()=> sortPopover.classList.add('active'));
+    btnSort?.setAttribute('aria-expanded','true');
+    // 高亮目前選中
+    sortListBox?.querySelectorAll('[data-sort]').forEach(b=>{
+      b.setAttribute('aria-checked', b.getAttribute('data-sort')===state.sort ? 'true':'false');
+      b.classList.toggle('is-on', b.getAttribute('data-sort')===state.sort);
+    });
+  }
+  function closeSort(){
+    if (!sortPopover) return;
+    sortPopover.classList.remove('active');
+    setTimeout(()=>{ sortPopover.hidden = true; }, 120);
+    btnSort?.setAttribute('aria-expanded','false');
+  }
+
+  btnSort?.addEventListener('click', ()=>{
+    const open = !(sortPopover?.hidden ?? true);
+    if (open) closeSort(); else openSort();
   });
-})();
+  sortMask?.addEventListener('click', closeSort);
+
+  sortListBox?.addEventListener('click', (e)=>{
+    const btn = e.target.closest('[data-sort]'); if (!btn) return;
+    const val = btn.getAttribute('data-sort');
+    if (!val) return;
+    state.sort = val;
+    applyFilters();   // 立即套用
+    closeSort();
+  });
 
   /* ---------- 城市切換 ---------- */
   function selectCity(id, cityObj){
@@ -664,8 +700,11 @@ if (afScroll && afSecs.length){
       allMerchants = res.data || [];
       list && (list.hidden = false);
 
-      // 輕量排序 reset
+      // 重置 sort（並同步按鈕）
       state.sort = 'latest';
+      syncSortButtonLabel();
+
+      // 若你仍保留輕量列 sort chips，這裡也同步
       $$('.chips--quick .chip[data-sort]', filtersBox).forEach(b=>{
         const on = (b.dataset.sort === 'latest');
         b.classList.toggle('is-on', on);
@@ -719,16 +758,13 @@ if (afScroll && afSecs.length){
     try{
       const m = await fetchMerchantById(id);
 
-      // ★ 這裡是你之前的坑：沒有這支就不要呼叫
       if (window.wireDetailFavorite) {
         window.wireDetailFavorite(m.id);
       }
 
-      // 名稱 / 描述
       elName && (elName.textContent = m.name || '');
       elDesc && (elDesc.textContent = m.description || '—');
 
-      // 圖片
       const imgs = Array.isArray(m.images) ? m.images.filter(Boolean) : [];
       if (!imgs.length && m.cover) imgs.push(m.cover);
       if (elCarousel){
@@ -759,7 +795,6 @@ if (afScroll && afSecs.length){
         }
       }
 
-      // meta
       const rating = (m.rating!=null) ? Number(m.rating).toFixed(1) : null;
       const openTxt = getOpenStruct(m) ? getOpenStatusText(m) : '—';
       const price   = priceLevelNum(m);
@@ -777,7 +812,6 @@ if (afScroll && afSecs.length){
       elOpen   && (elOpen.textContent   = openTxt || '—');
       elPrice  && (elPrice.textContent  = priceStr || '—');
 
-      // address
       elAddrText && (elAddrText.textContent = m.address || '—');
       if (btnCopyAddr){
         btnCopyAddr.addEventListener('click', async ()=>{
@@ -789,7 +823,6 @@ if (afScroll && afSecs.length){
         }, { once:true });
       }
 
-      // actions
       const mapHref = m.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.address)}` : null;
       setAction(actMap,  mapHref);
       setAction(actMap2, mapHref);
@@ -799,7 +832,6 @@ if (afScroll && afSecs.length){
         try{ await navigator.share?.({ title: m.name, text: m.description || '', url: location.href }); }catch(_){}
       }, { once:true });
 
-      // hours
       const hasHours = !!getOpenStruct(m) || !!m.openHours;
       if (hoursCard){
         if (hasHours){
@@ -812,73 +844,45 @@ if (afScroll && afSecs.length){
           hoursList && (hoursList.innerHTML = '');
         }
       }
-      
-      // ===== Comments (per merchant) =====
-const comments = loadComments(m.id);
-renderCmtPreview(comments);
 
-const btnShowComments = document.getElementById('btnShowComments');
-const btnCmtClose     = document.getElementById('btnCmtClose');
-const btnCmtSend      = document.getElementById('btnCmtSend');
-const cmtInput        = document.getElementById('cmtText');
-const cmtSheet        = document.getElementById('cmtSheet');
+      // ===== Comments =====
+      const comments = loadComments(m.id);
+      renderCmtPreview(comments);
+      const btnShowComments = document.getElementById('btnShowComments');
+      const btnCmtClose     = document.getElementById('btnCmtClose');
+      const btnCmtSend      = document.getElementById('btnCmtSend');
+      const cmtInput        = document.getElementById('cmtText');
+      const cmtSheet        = document.getElementById('cmtSheet');
 
-// 打開：每次都覆蓋，這樣關掉再開也OK
-if (btnShowComments) {
-  btnShowComments.onclick = () => {
-    renderCmtSheet(comments);  // 先用最新的陣列畫一次
-    openCmtSheet();
-  };
-}
-
-// 關閉：按X
-if (btnCmtClose) {
-  btnCmtClose.onclick = () => {
-    closeCmtSheet();
-  };
-}
-
-// 關閉：點遮罩
-if (cmtSheet) {
-  cmtSheet.onclick = (e) => {
-    if (e.target === cmtSheet) {
-      closeCmtSheet();
-    }
-  };
-}
-
-// 送出留言
-if (btnCmtSend) {
-  btnCmtSend.onclick = () => {
-    const text = (cmtInput?.value || '').trim();
-    if (!text) return;
-
-    // 匿名暱稱，可之後再做「設定裡自訂名稱」
-    const nick = localStorage.getItem('hl.user.nick') || '旅人';
-
-    const item = {
-      text,
-      nick,
-      ts: Date.now()
-    };
-
-    // 新的放最前面
-    comments.unshift(item);
-    saveComments(m.id, comments);
-
-    // 更新詳情頁那一條
-    renderCmtPreview(comments);
-    // 如果面板開著，也更新
-    renderCmtSheet(comments);
-
-    if (cmtInput) cmtInput.value = '';
-  };
-}
-
+      if (btnShowComments) {
+        btnShowComments.onclick = () => {
+          renderCmtSheet(comments);
+          openCmtSheet();
+        };
+      }
+      if (btnCmtClose) {
+        btnCmtClose.onclick = () => { closeCmtSheet(); };
+      }
+      if (cmtSheet) {
+        cmtSheet.onclick = (e) => { if (e.target === cmtSheet) closeCmtSheet(); };
+      }
+      if (btnCmtSend) {
+        btnCmtSend.onclick = () => {
+          const text = (cmtInput?.value || '').trim();
+          if (!text) return;
+          const nick = localStorage.getItem('hl.user.nick') || '旅人';
+          const item = { text, nick, ts: Date.now() };
+          comments.unshift(item);
+          saveComments(m.id, comments);
+          renderCmtPreview(comments);
+          renderCmtSheet(comments);
+          if (cmtInput) cmtInput.value = '';
+        };
+      }
 
       // related
-      const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
-      const related = await fetchRelated({ city_id: m.city_id, category: cats[0], exceptId: m.id, limit: 6 });
+      const catsArr = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
+      const related = await fetchRelated({ city_id: m.city_id, category: catsArr[0], exceptId: m.id, limit: 6 });
       if (recList){
         recList.innerHTML = related.map(r => {
           const cov = r.cover || (Array.isArray(r.images) ? r.images[0] : '') || '';
@@ -904,7 +908,7 @@ if (btnCmtSend) {
 
   /* ---------- Router ---------- */
   function handleHash(){
-    if (!HAS_DETAIL) return; // 沒有 detail 頁就不要攔 hash 了
+    if (!HAS_DETAIL) return;
     const h = location.hash || '';
     if (h.startsWith('#detail/')){
       const id = h.split('/')[1];
@@ -937,7 +941,6 @@ if (btnCmtSend) {
     const cities = await loadCities();
     renderWall(cities);
 
-    // 城市牆事件
     wall.addEventListener('click', (e)=>{
       const btn = e.target.closest('.citycell');
       if (!btn) return;
@@ -957,78 +960,52 @@ if (btnCmtSend) {
     list?.addEventListener('click', (e)=>{
       const card = e.target.closest('.item'); if (!card) return;
       const id = card.dataset.id; if (!id) return;
-      if (HAS_DETAIL) {
-        location.hash = `#detail/${id}`;
-      }
+      if (HAS_DETAIL) location.hash = `#detail/${id}`;
     });
     list?.addEventListener('keydown', (e)=>{
       if (e.key !== 'Enter') return;
       const card = e.target.closest('.item'); if (!card) return;
       const id = card.dataset.id; if (!id) return;
-      if (HAS_DETAIL) {
-        location.hash = `#detail/${id}`;
-      }
+      if (HAS_DETAIL) location.hash = `#detail/${id}`;
     });
 
     // 詳情返回
     btnDetailBack?.addEventListener('click', ()=>{ location.hash = '#explore'; });
 
-    // 初始路由（只在有 detail 時）
+    // 初始路由
     if (HAS_DETAIL) handleHash();
   })();
 });
 
-// === Comments (local, per merchant) =====================
+/* ---------- Comments（原樣） ---------- */
 const CMT_KEY_PREFIX = 'HL_CMTS_';
-
-function cmtKey(id){
-  return CMT_KEY_PREFIX + id;
-}
-
+function cmtKey(id){ return CMT_KEY_PREFIX + id; }
 function loadComments(merchId){
-  try {
-    const raw = localStorage.getItem(cmtKey(merchId));
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr : [];
-  } catch(e){
-    return [];
-  }
+  try { const raw = localStorage.getItem(cmtKey(merchId)); if (!raw) return []; const arr = JSON.parse(raw); return Array.isArray(arr) ? arr : []; }
+  catch(e){ return []; }
 }
-
 function saveComments(merchId, list){
-  try {
-    localStorage.setItem(cmtKey(merchId), JSON.stringify(list));
-  } catch(e){}
+  try { localStorage.setItem(cmtKey(merchId), JSON.stringify(list)); } catch(e){}
 }
-
 function maskName(nick){
-  // 如果是兩個中文字 → 留第一個 + **
-  if (/^[\u4e00-\u9fa5]{2,3}$/.test(nick)) {
-    return nick[0] + ' **';
-  }
-  // 其它就留前 1~2 字
+  if (/^[\u4e00-\u9fa5]{2,3}$/.test(nick)) return nick[0] + ' **';
   return (nick || 'Guest').slice(0, 1).toUpperCase() + ' ***';
 }
-
 function renderCmtPreview(comments){
   const card = document.getElementById('detailCommentsCard');
   const summary = document.getElementById('cmtSummary');
   const preview = document.getElementById('cmtPreview');
   if (!card || !summary || !preview) return;
-
   if (!comments.length){
     summary.textContent = '尚無留言';
     preview.classList.add('cmt-empty');
     preview.innerHTML = '還沒有留言，歡迎搶頭香！';
     return;
   }
-
   const first = comments[0];
   const name = maskName(first.nick || '旅人');
   const dt = new Date(first.ts || Date.now());
   const dateStr = dt.toLocaleDateString('zh-TW');
-
   summary.textContent = `${comments.length} 則留言`;
   preview.classList.remove('cmt-empty');
   preview.innerHTML = `
@@ -1042,7 +1019,6 @@ function renderCmtPreview(comments){
     <div class="cmt-text">${first.text}</div>
   `;
 }
-
 function renderCmtSheet(comments){
   const list = document.getElementById('cmtList');
   if (!list) return;
@@ -1066,7 +1042,6 @@ function renderCmtSheet(comments){
     `;
   }).join('');
 }
-
 function openCmtSheet(){
   const sheet = document.getElementById('cmtSheet');
   if (!sheet) return;
@@ -1074,7 +1049,6 @@ function openCmtSheet(){
   requestAnimationFrame(()=> sheet.classList.add('active'));
   document.body.classList.add('no-scroll');
 }
-
 function closeCmtSheet(){
   const sheet = document.getElementById('cmtSheet');
   if (!sheet) return;
