@@ -527,6 +527,58 @@ document.addEventListener('DOMContentLoaded', () => {
     applyFilters();
   });
   
+  // ====== AF: scroll-to-section + scroll-spy ======
+const afScroll = document.getElementById('afScroll');
+const afNav    = document.getElementById('afNav');
+const afTabs   = Array.from(afNav?.querySelectorAll('.af-tab') || []);
+const afSecs   = ['#sec-cats','#sec-themes','#sec-attrs','#sec-more','#sec-sort']
+  .map(s => document.querySelector(s))
+  .filter(Boolean);
+
+// 點導覽 → 平滑捲動到對應段落
+afNav?.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.af-tab'); if (!btn) return;
+  const targetSel = btn.getAttribute('data-target');
+  const sec = targetSel ? document.querySelector(targetSel) : null;
+  if (!sec) return;
+  sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+// 滾動同步高亮（優先用 IntersectionObserver）
+if (afScroll && afSecs.length){
+  const setActive = (id)=>{
+    afTabs.forEach(t=>{
+      const on = (t.getAttribute('data-target') === `#${id}`);
+      t.classList.toggle('is-active', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+  };
+
+  const io = ('IntersectionObserver' in window)
+    ? new IntersectionObserver((entries)=>{
+        // 取最靠近頂端且可見的 section
+        const visible = entries
+          .filter(en => en.isIntersecting)
+          .sort((a,b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+        if (visible) setActive(visible.target.id);
+      }, { root: afScroll, threshold: .3 })
+    : null;
+
+  if (io){
+    afSecs.forEach(sec => io.observe(sec));
+  }else{
+    // 後備方案：scroll 事件
+    afScroll.addEventListener('scroll', ()=>{
+      const top = afScroll.scrollTop + 80; // 頂部導覽高度補償
+      let current = afSecs[0].id;
+      afSecs.forEach(sec=>{
+        if (sec.offsetTop <= top) current = sec.id;
+      });
+      setActive(current);
+    }, { passive: true });
+  }
+}
+  
   // --- Modern drawer: tabs + row click ---
 (() => {
   const drawer = document.getElementById('advFilter');
