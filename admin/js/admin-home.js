@@ -774,7 +774,7 @@ async function fetchAds(){
 
   const { data, error } = await supabase
     .from('hl_ads')
-    .select('id,title,image_url,href,placement,sort_order,is_active,starts_at,end_at')
+    .select('id,title,image_url,href,placement,sort_order,is_active,starts_at,ends_at')
     .eq('placement', 'home_mid')         // ← 用 placement
     .eq('is_active', true)
     .order('sort_order', { ascending: true });
@@ -784,7 +784,7 @@ async function fetchAds(){
   // 若你允許 starts_at/end_at 可以是空，這裡在前端過濾一下時間窗
   const inWindow = (row) => {
     const s = row.starts_at ? new Date(row.starts_at).toISOString() : null;
-    const e = row.end_at     ? new Date(row.end_at).toISOString() : null;
+    const e = row.ends_at     ? new Date(row.ends_at).toISOString() : null;
     return (!s || s <= nowIso) && (!e || e >= nowIso);
   };
 
