@@ -394,3 +394,58 @@ section[data-page="detail"] .d-scroll{ padding-bottom: var(--safe-b); }
   .af-card .chip.is-on{ background: color-mix(in srgb, #2E5E4E 28%, #0b0f12 72%); }
   .af-foot{ background: linear-gradient(180deg, rgba(11,15,18,.55), rgba(11,15,18,.82)); border-top-color: rgba(255,255,255,.10); }
 }
+
+/* ===== Bottom-sheet overlay ===== */
+#advFilter.overlay-page{
+  position: fixed; inset: 0; z-index: 1400;
+  display: none;               /* 用 .active 控制顯示 */
+  padding: 12px;
+  background: rgba(17,24,39,.45);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  display: grid; place-items: end center;  /* 讓抽屜貼底 */
+}
+#advFilter[hidden]{ display:none !important; }
+#advFilter.overlay-page.active{ display: grid; }
+
+/* 抽屜本體 */
+#advFilter .af-sheet{
+  width: min(720px, 100%);
+  height: 70vh;                                  /* ← 70% 高度 */
+  background: color-mix(in srgb, #ffffff 92%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -20px 60px rgba(0,0,0,.25);
+
+  display: grid; grid-template-rows: auto 1fr;   /* header + body */
+  overflow: hidden;
+
+  transform: translateY(16px);                   /* 初始下移 */
+  opacity: 0;
+  transition: transform .22s ease, opacity .22s ease;
+}
+#advFilter.overlay-page.active .af-sheet{
+  transform: translateY(0);                      /* 滑上來 */
+  opacity: 1;
+}
+
+/* 內部可捲動區（沿用你現有的 settings-panel） */
+#advFilter .settings-panel{
+  overflow: auto;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  background: transparent;                       /* 由 af-sheet 負責玻璃感 */
+}
+
+/* 點遮罩可關閉：確保點擊空白區不是抽屜本體 */
+#advFilter.overlay-page{ cursor: default; }
+#advFilter.overlay-page .af-sheet{ cursor: auto; }
+
+@media (prefers-color-scheme: dark){
+  #advFilter.overlay-page{ background: rgba(0,0,0,.55); }
+  #advFilter .af-sheet{
+    background: color-mix(in srgb, #0b0f12 78%, transparent);
+    border-color: rgba(255,255,255,.08);
+  }
+}
