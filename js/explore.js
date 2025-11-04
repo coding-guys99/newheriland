@@ -24,12 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const chipsCats   = $$('.chips--cats .chip',  filtersBox);
   const btnOpenFilter = $('#btnOpenFilter');
 
-  // ========== Sort 下拉 ==========
-  const btnSort      = $('#btnSort');           // 觸發按鈕（文字例如：Sort）
-  const sortPopover  = $('#sortPopover');       // 浮層容器
-  const sortListBox  = $('#sortList');          // 放選項的容器（radio/按鈕）
-  const sortMask     = $('#sortMask');          // 遮罩（點擊關閉）
-
   // 進階篩選 overlay
   const advFilter   = $('#advFilter');
   const btnAdvClose = $('#btnAdvClose');
@@ -634,46 +628,71 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   })();
 
-  /* ---------- Sort 下拉：開關 & 選擇 ---------- */
-  function syncSortButtonLabel(){
-    if (!btnSort) return;
-    const map = { latest:'Latest', hot:'Popular', rating:'Rating', price_asc:'Price' };
-    const txt = map[state.sort] || 'Latest';
-    btnSort.querySelector('.t')?.replaceChildren(document.createTextNode(`Sort: ${txt}`));
-  }
+  /* ---------- Sort popover ---------- */
+const btnSort     = document.getElementById('btnSort');
+const btnSortText = document.getElementById('btnSortText');
+const sortPop     = document.getElementById('sortPopover');
+const sortMask    = document.getElementById('sortMask');
+const sortList    = document.getElementById('sortList');
 
-  function openSort(){
-    if (!sortPopover) return;
-    sortPopover.hidden = false;
-    requestAnimationFrame(()=> sortPopover.classList.add('active'));
-    btnSort?.setAttribute('aria-expanded','true');
-    // 高亮目前選中
-    sortListBox?.querySelectorAll('[data-sort]').forEach(b=>{
-      b.setAttribute('aria-checked', b.getAttribute('data-sort')===state.sort ? 'true':'false');
-      b.classList.toggle('is-on', b.getAttribute('data-sort')===state.sort);
-    });
-  }
-  function closeSort(){
-    if (!sortPopover) return;
-    sortPopover.classList.remove('active');
-    setTimeout(()=>{ sortPopover.hidden = true; }, 120);
-    btnSort?.setAttribute('aria-expanded','false');
-  }
+const SORT_LS_KEY = 'hl.explore.sort';
 
-  btnSort?.addEventListener('click', ()=>{
-    const open = !(sortPopover?.hidden ?? true);
-    if (open) closeSort(); else openSort();
+function applySortLabel(v){
+  const map = { latest:'Latest', hot:'Popular', rating:'Rating', price_asc:'Price' };
+  if (btnSortText) btnSortText.textContent = `Sort: ${map[v] || 'Latest'}`;
+  // 同步 list 的 aria
+  sortList?.querySelectorAll('[role="option"]').forEach(b=>{
+    const on = (b.dataset.sort === v);
+    b.setAttribute('aria-selected', on ? 'true':'false');
   });
-  sortMask?.addEventListener('click', closeSort);
+}
 
-  sortListBox?.addEventListener('click', (e)=>{
-    const btn = e.target.closest('[data-sort]'); if (!btn) return;
-    const val = btn.getAttribute('data-sort');
-    if (!val) return;
-    state.sort = val;
-    applyFilters();   // 立即套用
-    closeSort();
-  });
+function openSort(){
+  if (!btnSort || !sortPop) return;
+  // 定位：按鈕下緣
+  const r = btnSort.getBoundingClientRect();
+  const panel = sortPop.querySelector('.sort-panel');
+  sortPop.hidden = false;
+  sortPop.classList.add('is-open');
+  // 固定定位，避免滾動錯位
+  const top = r.bottom + 8;
+  const left = Math.max(12, Math.min(window.innerWidth - 12 - 300, r.left)); // 300 是預估寬
+  Object.assign(panel.style, { top: `${top}px`, left: `${left}px` });
+  btnSort.setAttribute('aria-expanded','true');
+}
+
+function closeSort(){
+  if (!sortPop) return;
+  sortPop.classList.remove('is-open');
+  sortPop.hidden = true;
+  btnSort?.setAttribute('aria-expanded','false');
+}
+
+btnSort?.addEventListener('click', (e)=>{
+  const open = sortPop && !sortPop.hidden;
+  open ? closeSort() : openSort();
+});
+
+sortMask?.addEventListener('click', closeSort);
+window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeSort(); }, { passive:true });
+
+// 選擇一個排序
+sortList?.addEventListener('click', (e)=>{
+  const btn = e.target.closest('[role="option"]'); if (!btn) return;
+  const v = btn.dataset.sort || 'latest';
+  state.sort = v;
+  localStorage.setItem(SORT_LS_KEY, v);
+  applySortLabel(v);
+  applyFilters();   // 直接套用
+  closeSort();
+});
+
+// 初始：還原上次排序
+(() => {
+  const saved = localStorage.getItem(SORT_LS_KEY);
+  if (saved) state.sort = saved;
+  applySortLabel(state.sort || 'latest');
+})();
 
   /* ---------- 城市切換 ---------- */
   function selectCity(id, cityObj){
