@@ -1,11 +1,3 @@
-async function fetchComboRight(){
-  const { data, error } = await supabase
-    .from('hl_combo_right')
-    .select('id,title,sub,href,sort_order,is_active')
-    .order('sort_order', { ascending: true });   // 單欄位排序，最穩
-  if (error) throw error;
-  return data || [];
-}
 // /admin/js/admin-home.js — Home Admin (Tabs + Hero/hl_banners CRUD)
 import { supabase } from '../../js/app.js';
 
