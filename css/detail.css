@@ -274,3 +274,25 @@
 @supports (padding: max(0px)) {
   .overlay-sheet .sheet{ padding-bottom:max(12px, env(safe-area-inset-bottom)); }
 }
+
+/* 让 overlay 永远压过 tabbar */
+.overlay-sheet{
+  z-index: 4000;            /* 高于 tabbar 的 z-index */
+}
+
+/* 打开 sheet 时暂时把 tabbar 收起（利用你已有的 body.no-scroll） */
+.no-scroll .tabbar{
+  transform: translateY(110%);
+  transition: transform .18s ease;
+  pointer-events: none;     /* 防止误触 */
+}
+
+/* 占位 & 安全区，避免底部元素被切边（双保险） */
+.overlay-sheet .sheet{
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+/* 若你的 tabbar 自身 z-index 很高，也可同步降一下（可选） */
+.tabbar{
+  z-index: 200;             /* 低于 overlay-sheet 的 4000 就行 */
+}
