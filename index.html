@@ -124,7 +124,11 @@
     </button>
   </div>
   
-  <!-- Sort 觸發按鈕 -->
+  
+
+  <!-- 輕量篩選列：只留 Sort / Open / Filter -->
+  <div class="filters" id="expFilters" aria-label="Filters">
+    <!-- Sort 觸發按鈕 -->
 <button id="btnSort" class="chip" aria-haspopup="listbox" aria-expanded="false">
   <span class="t">Sort: Latest</span> <span class="caret">⌄</span>
 </button>
@@ -139,13 +143,7 @@
     <button type="button" role="option" data-sort="price_asc">💸 Price</button>
   </div>
 </div>
-
-  <!-- 輕量篩選列：只留 Sort / Open / Filter -->
-  <div class="filters" id="expFilters" aria-label="Filters">
     <div class="chips chips--quick" role="group" aria-label="Quick filters">
-      <button class="chip" data-sort="latest" aria-pressed="true">⏱️ <span>Latest</span></button>
-      <button class="chip" data-sort="hot" aria-pressed="false">🔥 <span>Hot</span></button>
-      <button class="chip" data-open="true" aria-pressed="false">🟢 <span>Open now</span></button>
       <button class="chip chip--primary" id="btnOpenFilter">🎯 <span>Filter</span></button>
     </div>
   </div>
