@@ -33,7 +33,7 @@ window.addEventListener('message', e => { if (e?.data?.openTab) showTab(e.data.o
 /* =========================
    HERO / hl_banners CRUD
    ========================= */
-const tableBody   = $('#bn-body');
+
 const btnAdd      = $('#bn-add');
 const btnRefresh  = $('#bn-refresh');
 const PLACEHOLDER_IMG = 'https://placehold.co/1200x600?text=Banner';
@@ -120,6 +120,7 @@ function rowTpl(b){
 }
 
 async function renderBanners(){
+  const tableBody   = $('#bn-body');
   if (!tableBody) return;
   tableBody.innerHTML = '<tr><td colspan="8" style="padding:12px" class="help">載入中…</td></tr>';
   try{
