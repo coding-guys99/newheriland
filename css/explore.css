@@ -1,6 +1,6 @@
 /* =========================================================
-   HeriLand — Explore page (refined)
-   只針對 section[data-page="explore"] 與它的詳情/篩選
+   HeriLand — Explore page (clean & fixed)
+   只針對 section[data-page="explore"] 與其詳情/篩選
    ========================================================= */
 
 :root{
@@ -9,38 +9,25 @@
   --ex-line: rgba(0,0,0,.08);
   --ex-muted: #6b7280;
   --ex-text: #1f2937;
-  --ex-accent: #2E5E4E;         /* Forest green */
-  --ex-accent-2: #E6D3A2;       /* Champagne hint */
+  --ex-accent: #2E5E4E;
   --ex-radius: 14px;
   --ex-shadow: 0 10px 30px rgba(0,0,0,.10);
 }
 
-/* 根容器安全邊距（只影響 Explore 區域） */
-section[data-page="explore"]{
-  --safe-b: calc(14px + env(safe-area-inset-bottom));
-}
+section[data-page="explore"]{ --safe-b: calc(14px + env(safe-area-inset-bottom)); }
 
 /* ==================== City Wall ==================== */
 section[data-page="explore"] .citywall{
-  display:grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 80px;
-  gap: 6px;
-  padding: 8px 10px 12px;
+  display:grid; grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 80px; gap: 6px; padding: 8px 10px 12px;
   background: transparent;
 }
-
 section[data-page="explore"] .citycell{
-  appearance:none;
-  border:1px solid var(--ex-line);
-  background: linear-gradient(180deg,#fff, #fafafa);
-  border-radius: 12px;
-  cursor:pointer;
-  display:grid;
-  grid-template-rows: 1fr auto;
-  place-items:center;
-  padding: 8px 6px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.06);
+  appearance:none; border:1px solid var(--ex-line);
+  background: linear-gradient(180deg,#fff,#fafafa);
+  border-radius: 12px; cursor:pointer;
+  display:grid; grid-template-rows: 1fr auto; place-items:center;
+  padding: 8px 6px; box-shadow: 0 6px 18px rgba(0,0,0,.06);
   transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
   position:relative;
 }
@@ -48,12 +35,9 @@ section[data-page="explore"] .citycell:active{ transform: translateY(1px); }
 section[data-page="explore"] .citycell .ico{ font-size:20px; line-height:1; opacity:.95 }
 section[data-page="explore"] .citycell .name{ font:800 12px/1.2 system-ui; letter-spacing:.2px; }
 section[data-page="explore"] .citycell .count{ font-size:11px; color:var(--ex-muted) }
-
 section[data-page="explore"] .citycell[aria-selected="true"]{
   background: linear-gradient(180deg,#ffffff,#f6fbf8);
-  box-shadow:
-    inset 0 0 0 1px rgba(46,94,78,.25),
-    0 10px 24px rgba(46,94,78,.18);
+  box-shadow: inset 0 0 0 1px rgba(46,94,78,.25), 0 10px 24px rgba(46,94,78,.18);
 }
 section[data-page="explore"] .citycell[aria-selected="true"]::after{
   content:""; position:absolute; left:50%; bottom:-7px; transform:translateX(-50%);
@@ -65,11 +49,9 @@ section[data-page="explore"] .citycell[aria-selected="true"]::before{
   width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent;
   border-top:7px solid #fff;
 }
-
-/* All Sarawak — 橫跨整列 */
+/* All Sarawak 橫跨整列 */
 section[data-page="explore"] .citycell--all{
-  grid-column: 1 / -1;
-  min-height: 48px;
+  grid-column: 1 / -1; min-height: 48px;
   display:grid; grid-template-columns:auto 1fr auto; align-items:center;
   padding: 8px 10px; gap: 6px;
 }
@@ -84,36 +66,27 @@ section[data-page="explore"] .citycell--all .count{ justify-self:end; color:var(
     box-shadow: 0 8px 22px rgba(0,0,0,.45);
   }
   section[data-page="explore"] .citycell[aria-selected="true"]{
-    box-shadow:
-      inset 0 0 0 1px rgba(46,94,78,.45),
-      0 10px 24px rgba(0,0,0,.6);
+    box-shadow: inset 0 0 0 1px rgba(46,94,78,.45), 0 10px 24px rgba(0,0,0,.6);
   }
 }
 
 /* ==================== Filters bar（輕量） ==================== */
 section[data-page="explore"] #expFilters{
   position: sticky; top: 6px; z-index: 5;
-  display:grid; gap: 8px; padding: 8px 10px 10px;
+  display:grid; gap: 8px; padding: 8px 10px 10px; margin: 0 6px 6px;
   background: linear-gradient(180deg, rgba(248,246,239,.92), rgba(248,246,239,.82));
-  backdrop-filter: blur(6px) saturate(120%);
-  border-radius: 12px; margin: 0 6px 6px;
+  backdrop-filter: blur(6px) saturate(120%); border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0,0,0,.06);
 }
 section[data-page="explore"] #expFilters .chips{ padding: 2px 4px; }
-
-/* 讓 Filter chip 更醒目 */
 section[data-page="explore"] #btnOpenFilter{
-  background: #fff8e6;
-  border-color: rgba(234,179,8,.35);
+  background: #fff8e6; border-color: rgba(234,179,8,.35);
   box-shadow: inset 0 0 0 1px rgba(234,179,8,.35), 0 6px 16px rgba(0,0,0,.06);
 }
 
-/* ==================== Result head ==================== */
+/* Result head */
 section[data-page="explore"] #resultHead{
-  margin: 10px 12px 8px;
-  font: 800 16px/1.2 system-ui;
-  letter-spacing:.2px;
-  color: var(--ex-text);
+  margin: 10px 12px 8px; font: 800 16px/1.2 system-ui; letter-spacing:.2px; color: var(--ex-text);
 }
 
 /* ==================== Skeleton ==================== */
@@ -123,13 +96,11 @@ section[data-page="explore"] #skList{
 section[data-page="explore"] #skList .sk-row{
   height: 78px; border-radius: var(--ex-radius);
   background: linear-gradient(90deg, rgba(0,0,0,.05), rgba(0,0,0,.08), rgba(0,0,0,.05));
-  background-size: 200% 100%;
-  animation: ex-shimmer 1.1s linear infinite;
+  background-size: 200% 100%; animation: ex-shimmer 1.1s linear infinite;
   border: 1px solid var(--ex-line);
 }
 @keyframes ex-shimmer{ to{ background-position:-200% 0; } }
-/* skeleton 一旦有 hidden 就一定藏起來 */
-.skeleton-list[hidden] { display: none !important; }
+.skeleton-list[hidden]{ display: none !important; }
 
 /* ==================== Merchant list ==================== */
 section[data-page="explore"] .merchant-list{
@@ -137,139 +108,29 @@ section[data-page="explore"] .merchant-list{
   background: var(--ex-card);
   border: 1px solid var(--ex-line);
   border-radius: var(--ex-radius);
-  overflow:hidden;
-  box-shadow: var(--ex-shadow);
+  overflow:hidden; box-shadow: var(--ex-shadow);
 }
-
 section[data-page="explore"] .merchant-list .item{
-  display:grid;
-  grid-template-columns: 96px 1fr auto;
-  gap: 12px;
-  padding: 12px 14px;
-  align-items: center;
+  display:grid; grid-template-columns: 96px 1fr auto; gap: 12px;
+  padding: 12px 14px; align-items: center;
 }
-section[data-page="explore"] .merchant-list .item + .item{
-  border-top: 1px solid rgba(0,0,0,.06);
-}
-
+section[data-page="explore"] .merchant-list .item + .item{ border-top: 1px solid rgba(0,0,0,.06); }
 section[data-page="explore"] .merchant-list .thumb{
   width:96px; height:72px; border-radius:12px; background:#e5e7eb center/cover no-repeat;
 }
-
 section[data-page="explore"] .merchant-list .meta .t{
   margin:0 0 2px; font:800 16px/1.25 system-ui; color: var(--ex-text);
 }
-section[data-page="explore"] .merchant-list .meta .sub{
-  font: 12px/1.3 system-ui; color: var(--ex-muted);
-}
-
-/* badges（配合你 JS 輸出 <span class="badge">） */
-section[data-page="explore"] .merchant-list .badges{
-  display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;
-}
+section[data-page="explore"] .merchant-list .meta .sub{ font: 12px/1.3 system-ui; color: var(--ex-muted); }
+section[data-page="explore"] .merchant-list .badges{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
 section[data-page="explore"] .merchant-list .badge{
   display:inline-flex; align-items:center; gap:4px;
-  padding:2px 8px; border-radius:999px;
-  font:600 12px/1 system-ui; background:#f1f5f9; color:#1f2937;
+  padding:2px 8px; border-radius:999px; font:600 12px/1 system-ui;
+  background:#f1f5f9; color:#1f2937;
 }
 section[data-page="explore"] .merchant-list .badge.ok{ background:#e8f9ef; color:#0b6a3a; }
 section[data-page="explore"] .merchant-list .badge.off{ background:#fff2f2; color:#b00020; }
-
-/* 右側留白欄（可放箭頭/距離） */
 section[data-page="explore"] .merchant-list .aux{ min-width: 12px; }
-
-/* =========================================================
-   Explore — Advanced Filters v2 (Glass & Calm)
-   只影響 #advFilter 內部，不動其它頁面
-   ========================================================= */
-
-/* ===== Advanced Filter: scroll-section style ===== */
-#advFilter.overlay-page{
-  position: fixed; inset: 0; z-index: 1400;
-  display: none; grid-template-rows: auto 1fr;
-  background: rgba(17,24,39,.45); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-}
-#advFilter.overlay-page.active{ display: grid; }
-#advFilter[hidden]{ display:none !important; }
-
-#afScroll{
-  height: 100%;
-  overflow: auto;
-  background: color-mix(in srgb, #ffffff 92%, transparent);
-  -webkit-backdrop-filter: blur(10px) saturate(120%);
-  backdrop-filter: blur(10px) saturate(120%);
-  border-top-left-radius: 16px; border-top-right-radius: 16px;
-  box-shadow: 0 -10px 40px rgba(0,0,0,.25);
-}
-
-/* Top nav */
-.af-topbar{
-  position: sticky; top: 0; z-index: 2;
-  display: grid; grid-auto-flow: column; grid-auto-columns: max-content;
-  gap: 10px; padding: 12px 12px; margin: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.86));
-  border-bottom: 1px solid rgba(0,0,0,.06);
-  overflow-x: auto; scrollbar-width: none;
-}
-.af-topbar::-webkit-scrollbar{ display:none; }
-.af-tab{
-  appearance:none; border:1px solid rgba(0,0,0,.06); background:#fff; color:#334155;
-  padding:8px 14px; border-radius:999px; font-weight:800; cursor:pointer;
-  box-shadow: 0 6px 16px rgba(0,0,0,.06);
-  transition: transform .08s ease, box-shadow .12s ease;
-  white-space:nowrap;
-}
-.af-tab:active{ transform: translateY(1px); }
-.af-tab.is-active{
-  background:#eaf2ff; border-color: rgba(59,130,246,.35);
-  box-shadow: inset 0 0 0 1px rgba(59,130,246,.35), 0 6px 16px rgba(59,130,246,.10);
-}
-
-/* Sections */
-.af-section{ padding: 14px 12px 4px; }
-.af-h{
-  margin: 6px 2px 10px; font: 800 14px/1.2 system-ui, -apple-system, "Inter", "Noto Sans TC", sans-serif;
-  letter-spacing:.2px; color:#111827; text-transform:none;
-}
-
-/* Chips row 沿用你原本 .chips/.chip 規則；這裡微調密度 */
-#afScroll .chips{ display:flex; flex-wrap:wrap; gap:8px; }
-#afScroll .chip{ padding:8px 12px; border-radius:999px; }
-#afScroll .chip.is-on{ box-shadow: inset 0 0 0 1px rgba(46,94,78,.28); }
-
-/* Footer inside content (跟著最後一段) */
-.af-footbar{
-  display:flex; gap:10px; justify-content:space-between;
-  padding: 16px 2px 24px;
-  position: sticky; bottom: 0; z-index: 1;
-  background: linear-gradient(180deg, rgba(255,255,255,.0), rgba(255,255,255,.96) 38%);
-}
-
-/* Dark mode */
-@media (prefers-color-scheme: dark){
-  #advFilter.overlay-page{ background: rgba(0,0,0,.55); }
-  #afScroll{ background: color-mix(in srgb, #0b0f12 78%, transparent); }
-  .af-topbar{ background: linear-gradient(180deg, rgba(11,15,18,.85), rgba(11,15,18,.78)); border-bottom-color: rgba(255,255,255,.08); }
-  .af-tab{ background: color-mix(in srgb, #0b0f12 78%, transparent); color:#e5e7eb; border-color: rgba(255,255,255,.1); }
-  .af-tab.is-active{ background: color-mix(in srgb, #1e293b 70%, transparent); box-shadow: inset 0 0 0 1px rgba(59,130,246,.45); }
-  .af-h{ color:#e5e7eb; }
-  .af-footbar{ background: linear-gradient(180deg, rgba(11,15,18,0), rgba(11,15,18,.92) 38%); }
-}
-
-/* ==================== Detail（只留基礎，其他沿用共用檔） ==================== */
-section[data-page="detail"].detail{
-  background: #f7f7f8;
-  min-height:100%;
-}
-section[data-page="detail"] .d-appbar{
-  position: sticky; top:0; z-index:10;
-  display:flex; align-items:center; gap:10px;
-  padding:10px 12px; background:#fff; border-bottom:1px solid var(--ex-line);
-}
-section[data-page="detail"] .d-title{
-  margin:0; font:700 16px/1.2 system-ui; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-section[data-page="detail"] .d-scroll{ padding-bottom: var(--safe-b); }
 
 @media (prefers-color-scheme: dark){
   section[data-page="explore"] .merchant-list{
@@ -283,225 +144,108 @@ section[data-page="detail"] .d-scroll{ padding-bottom: var(--safe-b); }
   section[data-page="explore"] .merchant-list .badge{ background: color-mix(in srgb, #0b0f12 70%, transparent); color:#e5e7eb; }
   section[data-page="explore"] .merchant-list .badge.ok{ background: color-mix(in srgb, #0a6a33 40%, #0b0f12 60%); }
   section[data-page="explore"] .merchant-list .badge.off{ background: color-mix(in srgb, #b00020 28%, #0b0f12 72%); }
-  section[data-page="detail"].detail{ background:#0b0f12; }
 }
 
-/* ===== Modern Filter Drawer ===== */
-#afFilter, #advFilter { /* 保險，兩個 id 都吃得到 */
-  --af-bg: color-mix(in srgb, #ffffff 92%, transparent);
-  --af-line: rgba(0,0,0,.08);
-  --af-muted: #6b7280;
-  --af-accent: #2E5E4E;
-  --af-radius: 14px;
+/* ==================== Detail（基礎） ==================== */
+section[data-page="detail"].detail{ background:#f7f7f8; min-height:100%; }
+section[data-page="detail"] .d-appbar{
+  position: sticky; top:0; z-index:10;
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px; background:#fff; border-bottom:1px solid var(--ex-line);
 }
+section[data-page="detail"] .d-title{
+  margin:0; font:700 16px/1.2 system-ui; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+section[data-page="detail"] .d-scroll{ padding-bottom: var(--safe-b); }
+@media (prefers-color-scheme: dark){ section[data-page="detail"].detail{ background:#0b0f12; } }
 
-/* 包裹與面板 */
-.af-wrap{
-  position:relative;
-  display:grid;
-  grid-template-rows: auto 1fr auto;
-  gap:12px;
-  height:calc(100dvh - 56px);
-}
-.af-panels{
-  overflow:auto;
-  padding: 8px 12px 18px;
-}
+/* =========================================================
+   Advanced Filter — Bottom Sheet (70% height, fixed bottom)
+   適配你現有的 HTML：#advFilter > header.subappbar + .settings-panel
+   ========================================================= */
 
-/* Tabs */
-.af-tabs{
-  position:sticky; top:0; z-index:2;
-  display:flex; gap:14px; padding:10px 12px;
-  background: linear-gradient(180deg, rgba(250,246,239,.9), rgba(250,246,239,.75));
-  backdrop-filter: blur(6px);
-  border-bottom: 1px solid var(--af-line);
-}
-.af-tab{
-  appearance:none; background:transparent; border:0; cursor:pointer;
-  font-weight:800; padding:10px 2px; color:#233; opacity:.8;
-}
-.af-tab.is-active{ opacity:1; position:relative; }
-.af-tab.is-active::after{
-  content:""; position:absolute; left:0; right:0; bottom:-1px; height:3px;
-  border-radius:999px; background: var(--af-accent);
-}
+#advFilter[hidden]{ display:none !important; }
 
-/* Panel */
-.af-panel{ display:none; }
-.af-panel.is-active{ display:block; }
-.af-h3{
-  margin:10px 2px; font-size:14px; font-weight:800; letter-spacing:.2px; color:#233;
-}
-
-/* 卡片與列 */
-.af-card{
-  background: var(--af-bg);
-  border:1px solid var(--af-line);
-  border-radius: var(--af-radius);
-  box-shadow: 0 10px 26px rgba(0,0,0,.10);
-  padding: 4px;
-}
-.af-row{
-  display:grid; grid-template-columns: 1fr auto;
-  align-items:center; gap:12px;
-  padding:12px; border-radius:12px;
-}
-.af-row + .af-row{ border-top:1px solid rgba(0,0,0,.06); }
-.af-row:active{ transform: translateY(1px); }
-
-/* 左右內容 */
-.af-left .af-title{ font-weight:800; }
-.af-left .af-sub{ color:var(--af-muted); font-size:12px; margin-top:2px; }
-.af-right{ display:flex; align-items:center; justify-content:flex-end; gap:8px; }
-.af-inline{ display:flex; flex-wrap:wrap; gap:8px; }
-
-/* 重用你現有 chip 的樣式，但降低陰影、讓它像 tag 控制 */
-.af-card .chip{
-  border:1px solid var(--af-line);
-  background:#fff;
-  padding:8px 12px; border-radius:999px; font-weight:700;
-  box-shadow: 0 4px 12px rgba(0,0,0,.05);
-}
-.af-card .chip.is-on,
-.af-card .chip[aria-pressed="true"]{
-  background: #eaf5ee;
-  box-shadow: inset 0 0 0 1px rgba(46,94,78,.22);
-}
-
-/* 底部操作條 */
-.af-foot{
-  position:sticky; bottom:0; z-index:3;
-  display:flex; gap:10px; padding:10px 12px env(safe-area-inset-bottom);
-  background: linear-gradient(180deg, rgba(250,246,239,.6), rgba(250,246,239,.92));
-  backdrop-filter: blur(10px);
-  border-top:1px solid var(--af-line);
-}
-.af-btn{
-  flex:1; appearance:none; border-radius:12px; padding:12px 14px; font-weight:800; cursor:pointer;
-  border:1px solid rgba(0,0,0,.08); background:#fff;
-}
-.af-btn.primary{ background: var(--af-accent); color:#fff; border-color:var(--af-accent); }
-.af-btn.ghost{ background: transparent; }
-
-/* 深色 */
-@media (prefers-color-scheme: dark){
-  .af-tabs{ background: linear-gradient(180deg, rgba(11,15,18,.72), rgba(11,15,18,.65)); border-bottom-color: rgba(255,255,255,.08); }
-  .af-tab{ color:#eaeef3; }
-  .af-card{ background: color-mix(in srgb, #0b0f12 78%, transparent); border-color: rgba(255,255,255,.12); }
-  .af-row + .af-row{ border-top-color: rgba(255,255,255,.08); }
-  .af-left .af-sub{ color:#93a0ad; }
-  .af-card .chip{ background: color-mix(in srgb, #0b0f12 78%, transparent); color:#eef2f6; border-color: rgba(255,255,255,.12); }
-  .af-card .chip.is-on{ background: color-mix(in srgb, #2E5E4E 28%, #0b0f12 72%); }
-  .af-foot{ background: linear-gradient(180deg, rgba(11,15,18,.55), rgba(11,15,18,.82)); border-top-color: rgba(255,255,255,.10); }
-}
-
-/* ===== Bottom-sheet overlay ===== */
 #advFilter.overlay-page{
   position: fixed; inset: 0; z-index: 1400;
-  display: none;               /* 用 .active 控制顯示 */
-  padding: 12px;
+  display: none;                         /* 用 .active 控制顯示 */
   background: rgba(17,24,39,.45);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  display: grid; place-items: end center;  /* 讓抽屜貼底 */
+
+  /* 讓「下方」是面板，上方是可點擊的遮罩 */
+  display: grid;
+  grid-template-rows: 1fr auto auto;     /* row1 遮罩 | row2 header | row3 panel */
+  align-items: end;
 }
-#advFilter[hidden]{ display:none !important; }
+
+/* 顯示 */
 #advFilter.overlay-page.active{ display: grid; }
 
-/* 抽屜本體 */
-#advFilter .af-sheet{
-  width: min(720px, 100%);
-  height: 70vh;                                  /* ← 70% 高度 */
-  background: color-mix(in srgb, #ffffff 92%, transparent);
+/* 點遮罩關閉（你 JS 用 e.target === advFilter） */
+#advFilter.overlay-page{ cursor: default; }
+#advFilter.overlay-page > *{ cursor: auto; }
+
+/* bottom-sheet 高度（含 header） */
+#advFilter.overlay-page .subappbar.settings-header{
+  /* header 外觀 */
+  background: color-mix(in srgb, #ffffff 94%, transparent);
   -webkit-backdrop-filter: blur(12px) saturate(120%);
   backdrop-filter: blur(12px) saturate(120%);
   border: 1px solid rgba(0,0,0,.08);
+  border-bottom: none;
   border-radius: 16px 16px 0 0;
-  box-shadow: 0 -20px 60px rgba(0,0,0,.25);
-
-  display: grid; grid-template-rows: auto 1fr;   /* header + body */
-  overflow: hidden;
-
-  transform: translateY(16px);                   /* 初始下移 */
-  opacity: 0;
+  box-shadow: 0 -10px 40px rgba(0,0,0,.25);
+  padding: 12px 14px;
+  /* 動畫起點 */
+  transform: translateY(16px); opacity: 0;
   transition: transform .22s ease, opacity .22s ease;
 }
-#advFilter.overlay-page.active .af-sheet{
-  transform: translateY(0);                      /* 滑上來 */
-  opacity: 1;
-}
 
-/* 內部可捲動區（沿用你現有的 settings-panel） */
-#advFilter .settings-panel{
-  overflow: auto;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom));
-  background: transparent;                       /* 由 af-sheet 負責玻璃感 */
-}
-
-/* 點遮罩可關閉：確保點擊空白區不是抽屜本體 */
-#advFilter.overlay-page{ cursor: default; }
-#advFilter.overlay-page .af-sheet{ cursor: auto; }
-
-@media (prefers-color-scheme: dark){
-  #advFilter.overlay-page{ background: rgba(0,0,0,.55); }
-  #advFilter .af-sheet{
-    background: color-mix(in srgb, #0b0f12 78%, transparent);
-    border-color: rgba(255,255,255,.08);
-  }
-}
-
-/* ===== Advanced Filter — Bottom Sheet (70%) ===== */
-#advFilter.overlay-page{
-  position: fixed; inset: 0; z-index: 1400;
-  display: none;                           /* 用 .active 控制 */
-  padding: 12px;
-  background: rgba(17,24,39,.45);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  display: grid; place-items: end center;  /* ⬅ 抽屜貼底 */
-}
-#advFilter[hidden]{ display:none !important; }
-#advFilter.overlay-page.active{ display: grid; }
-
-/* 底部抽屜本體 */
-#advFilter .af-sheet{
-  width: min(720px, 100%);
-  height: 70vh;                            /* ⬅ 佔 70% 視窗高 */
+/* 內容滾動區：限制高度為 70vh - header 高度 */
+#advFilter.overlay-page .settings-panel{
   background: color-mix(in srgb, #ffffff 92%, transparent);
   -webkit-backdrop-filter: blur(12px) saturate(120%);
   backdrop-filter: blur(12px) saturate(120%);
-  border: 1px solid rgba(0,0,0,.08);
-  border-radius: 16px 16px 0 0;
-  box-shadow: 0 -20px 60px rgba(0,0,0,.25);
-  display: grid; grid-template-rows: auto 1fr; /* header + body */
-  overflow: hidden;
-
-  /* 初始放在螢幕外底部 → 加 .active 往上滑進來 */
-  transform: translateY(100%);
-  opacity: 0;
-  transition: transform .26s cubic-bezier(.22,.61,.36,1), opacity .26s ease;
+  border-left: 1px solid rgba(0,0,0,.08);
+  border-right: 1px solid rgba(0,0,0,.08);
+  border-bottom: 1px solid rgba(0,0,0,.08);
+  box-shadow: 0 -12px 44px rgba(0,0,0,.18);
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  overflow: auto;
+  max-height: calc(70vh - 56px);         /* 56px ≈ header */
+  /* 動畫起點 */
+  transform: translateY(16px); opacity: 0;
+  transition: transform .22s ease, opacity .22s ease;
 }
-#advFilter.overlay-page.active .af-sheet{
+
+/* 進場：由下往上滑入 */
+#advFilter.overlay-page.active .settings-header,
+#advFilter.overlay-page.active .settings-panel{
   transform: translateY(0);
   opacity: 1;
+  will-change: transform;
 }
 
-/* 內部可滾動區（你的 settings-panel） */
-#advFilter .settings-panel{
-  overflow: auto;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom));
-  background: transparent;                 /* 玻璃感由 af-sheet 提供 */
-  overscroll-behavior: contain;
+/* footer（若你的內容內有 .filter-footer）跟著面板一起 */
+#advFilter .filter-footer{
+  position: sticky; bottom: 0; z-index: 1;
+  background: linear-gradient(180deg, rgba(255,255,255,.0), rgba(255,255,255,.96) 38%);
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid rgba(0,0,0,.06);
 }
 
-/* 點遮罩可關閉（避免點到抽屜本體） */
-#advFilter.overlay-page{ cursor: default; }
-#advFilter .af-sheet{ cursor: auto; }
-
+/* 深色模式 */
 @media (prefers-color-scheme: dark){
   #advFilter.overlay-page{ background: rgba(0,0,0,.55); }
-  #advFilter .af-sheet{
+  #advFilter .settings-header,
+  #advFilter .settings-panel{
     background: color-mix(in srgb, #0b0f12 78%, transparent);
-    border-color: rgba(255,255,255,.08);
+    border-color: rgba(255,255,255,.10);
+    box-shadow: 0 -12px 40px rgba(0,0,0,.6);
+  }
+  #advFilter .filter-footer{
+    background: linear-gradient(180deg, rgba(11,15,18,0), rgba(11,15,18,.92) 38%);
+    border-top-color: rgba(255,255,255,.10);
   }
 }
