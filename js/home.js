@@ -398,53 +398,32 @@ async function renderCollections(){
 async function fetchGroupThemesFromSupabase(){
   try {
     const { data, error } = await supabase
-      .from('hl_group_themes')
-      .select('*')
+      .from('hl_groups') // ← 修正表名
+      .select('id,name,slug,image_url,href,sort_order,is_active')
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
 
     if (error) throw error;
-    if (!data?.length) {
-      // fallback：轉你原本的 HOME_DATA.groups
-      return HOME_DATA.groups.map(g => ({
-        name: g.name,
-        img: g.img,
-        href: g.href
-      }));
-    }
 
-    return data.map(g => {
-      const href = g.href && g.href.trim()
-        ? g.href
-        : `#explore?theme=${encodeURIComponent(g.slug)}`;
-      return {
-        name: g.name,
-        img: g.image_url,
-        href
-      };
-    });
+    // 轉成前端原本吃的格式
+    return (data || []).map(r => ({
+      name: r.name,                         // 顯示名稱
+      img:  safeSrc(r.image_url),          // 圖片
+      href: safeHref(r.href || `#explore?group=${encodeURIComponent(r.slug || r.name)}`)
+    }));
   } catch (err) {
     console.warn('fetchGroupThemesFromSupabase failed, use fallback', err);
-    return HOME_DATA.groups.map(g => ({
-      name: g.name,
-      img: g.img,
-      href: g.href
-    }));
+    return HOME_DATA.groups; // 退回假資料
   }
 }
 
 async function renderGroups(){
-  const row = $('#groupRow'); 
-  if (!row) return;
-
+  const row = $('#groupRow'); if(!row) return;
   const groups = await fetchGroupThemesFromSupabase();
-
   row.innerHTML = groups.map(g =>
     `<a class="card" href="${g.href}">
-       <img src="${g.img}" alt="${g.name}">
-       <div class="ttl">${g.name}</div>
-     </a>`
-  ).join('');
+       <img src="${g.img}" alt=""><div class="ttl">${g.name}</div>
+     </a>`).join('');
 }
 /* -------------------- /group themes -------------------- */
 
@@ -505,58 +484,37 @@ async function renderSpotlight(){
 async function fetchLocalGoodsFromSupabase(){
   try {
     const { data, error } = await supabase
-      .from('hl_local_goods')
-      .select('*')
+      .from('hl_goods') // ← 修正表名
+      .select('id,name,price,href,sort_order,is_active')
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
 
     if (error) throw error;
-    if (!data?.length) {
-      // fallback 吃舊的
-      return HOME_DATA.goods.map(g => ({
-        name: g.name,
-        price: g.price,
-        href: g.href,
-        image_url: ''
-      }));
-    }
 
-    return data.map(g => ({
-      name: g.name,
-      price: g.price || '',
-      href: g.href,
-      image_url: g.image_url || ''
+    return (data || []).map(r => ({
+      name: r.name,
+      price: r.price ?? '',               // 可能是字串或數字
+      href: safeHref(r.href)
     }));
   } catch (err) {
     console.warn('fetchLocalGoodsFromSupabase failed, use fallback', err);
-    return HOME_DATA.goods.map(g => ({
-      name: g.name,
-      price: g.price,
-      href: g.href,
-      image_url: ''
-    }));
+    return HOME_DATA.goods;
   }
 }
 
 async function renderGoods(){
-  const row = $('#goodsRow'); 
-  if (!row) return;
-
+  const row = $('#goodsRow'); if(!row) return;
   const goods = await fetchLocalGoodsFromSupabase();
-
   row.innerHTML = goods.map(g =>
     `<a class="goods" href="${g.href}">
-      ${g.image_url 
-        ? `<div class="ph"><img src="${g.image_url}" alt="${g.name}"></div>`
-        : `<div class="ph"></div>`
-      }
+      <div class="ph"></div>
       <div class="meta">
         <div class="name">${g.name}</div>
-        <div class="price">${g.price || ''}</div>
+        <div class="price">${g.price}</div>
       </div>
-    </a>`
-  ).join('');
+    </a>`).join('');
 }
+
 /* -------------------- /local goods -------------------- */
 
 document.addEventListener('DOMContentLoaded', async ()=>{
