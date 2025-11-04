@@ -128,6 +128,8 @@ section[data-page="explore"] #skList .sk-row{
   border: 1px solid var(--ex-line);
 }
 @keyframes ex-shimmer{ to{ background-position:-200% 0; } }
+/* skeleton 一旦有 hidden 就一定藏起來 */
+.skeleton-list[hidden] { display: none !important; }
 
 /* ==================== Merchant list ==================== */
 section[data-page="explore"] .merchant-list{
