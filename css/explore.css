@@ -250,174 +250,102 @@ section[data-page="detail"] .d-scroll{ padding-bottom: var(--safe-b); }
   }
 }
 
-/* =============== Advanced Filter — interior polish =============== */
-
-/* Header 手把（不改 HTML） */
-#advFilter .settings-header{
-  position: relative;
-}
-#advFilter .settings-header::before{
-  content:"";
-  position:absolute; left:50%; transform:translateX(-50%);
-  top:6px; width:36px; height:4px; border-radius:999px;
-  background: rgba(0,0,0,.15);
+/* =============== Advanced Filter — Airy Minimal =============== */
+/* 調色：維持你原本綠色當品牌重點 */
+#advFilter {
+  --af-surface: #fff;
+  --af-border: rgba(0,0,0,.10);
+  --af-text: #0f172a;
+  --af-muted: #64748b;
+  --af-accent: #2E5E4E; /* forest green */
 }
 @media (prefers-color-scheme: dark){
-  #advFilter .settings-header::before{ background: rgba(255,255,255,.28); }
+  #advFilter {
+    --af-surface: color-mix(in srgb, #0b0f12 78%, transparent);
+    --af-border: rgba(255,255,255,.12);
+    --af-text:   #e5e7eb;
+    --af-muted:  #94a3b8;
+  }
 }
 
-/* 頁面標題 & 次標題（維持你原本的 h1/h2） */
-#advFilter .settings-title,
-#advFilter .subappbar h1,
-#advFilter .subappbar h2{
-  font-weight: 800;
-  letter-spacing: .2px;
+/* header 手把 + 標題 */
+#advFilter .settings-header{ position:relative; padding-top:12px; }
+#advFilter .settings-header::before{
+  content:""; position:absolute; top:6px; left:50%; transform:translateX(-50%);
+  width:36px; height:4px; border-radius:999px; background: var(--af-border);
+}
+#advFilter .settings-title{
+  font-weight:800; letter-spacing:.2px; color:var(--af-text);
 }
 
-/* Tabs 列（Categories / Themes / ...） */
+/* 整體留白、去卡片化：以分隔線 + 空氣感組版 */
+#advFilter .settings-panel{
+  background: transparent;
+  padding: 4px 14px calc(16px + env(safe-area-inset-bottom));
+}
+#advFilter .af-section{
+  padding: 18px 0 8px;
+  border-top: 1px solid var(--af-border);
+}
+#advFilter .af-section:first-child{ border-top: 0; padding-top: 6px; }
+#advFilter .af-h{
+  margin: 0 0 12px;
+  font: 800 16px/1.25 system-ui;
+  color: var(--af-text);
+}
+
+/* 上方分段導航：文字 + 下劃線指示（不再用膠囊） */
 #advFilter .af-topbar{
-  display:flex; gap:8px; padding:10px 12px 8px;
-  background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.82));
-  border-bottom: 1px solid rgba(0,0,0,.06);
+  display:flex; gap:14px; padding: 8px 2px 0;
+  background: transparent; border-bottom:1px solid var(--af-border);
   overflow-x:auto; scrollbar-width:none;
 }
 #advFilter .af-topbar::-webkit-scrollbar{ display:none; }
 #advFilter .af-tab{
-  appearance:none; border:1px solid rgba(0,0,0,.06);
-  background:#fff; color:#1f2937; font-weight:800;
-  padding:8px 12px; border-radius:999px; white-space:nowrap;
-  box-shadow: 0 3px 10px rgba(0,0,0,.06);
-  transition: transform .08s ease, box-shadow .12s ease, background .12s ease;
+  appearance:none; background:transparent; border:0; cursor:pointer;
+  padding:10px 2px; font-weight:800; color: var(--af-muted);
+  position:relative; white-space:nowrap;
 }
-#advFilter .af-tab:active{ transform: translateY(1px); }
-#advFilter .af-tab.is-active{
-  background:#eaf2ff; border-color: rgba(59,130,246,.35);
-  box-shadow: inset 0 0 0 1px rgba(59,130,246,.28), 0 6px 14px rgba(59,130,246,.12);
-}
-@media (prefers-color-scheme: dark){
-  #advFilter .af-topbar{
-    background: linear-gradient(180deg, rgba(11,15,18,.86), rgba(11,15,18,.78));
-    border-bottom-color: rgba(255,255,255,.08);
-  }
-  #advFilter .af-tab{
-    background: color-mix(in srgb, #0b0f12 78%, transparent);
-    color:#e5e7eb; border-color: rgba(255,255,255,.10);
-    box-shadow: 0 6px 14px rgba(0,0,0,.45);
-  }
-  #advFilter .af-tab.is-active{
-    background: color-mix(in srgb, #1f2a3a 70%, transparent);
-    box-shadow: inset 0 0 0 1px rgba(59,130,246,.45);
-  }
+#advFilter .af-tab.is-active{ color: var(--af-text); }
+#advFilter .af-tab.is-active::after{
+  content:""; position:absolute; left:0; right:0; bottom:-1px; height:3px;
+  border-radius:999px; background: var(--af-accent);
 }
 
-/* 區塊標題與分隔 */
-#advFilter .af-section{
-  padding: 14px 12px 8px;
-}
-#advFilter .af-h{
-  margin: 8px 2px 10px;
-  font: 800 16px/1.25 system-ui;
-  color:#0f172a;
-}
-#advFilter .af-divider{
-  height:1px; margin: 8px 0 12px;
-  background: linear-gradient(90deg, transparent, rgba(0,0,0,.06), transparent);
-  border:0;
-}
-@media (prefers-color-scheme: dark){
-  #advFilter .af-h{ color:#e5e7eb; }
-  #advFilter .af-divider{
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
-  }
-}
-
-/* 內容區塊用柔和卡片承載（可選，維持乾淨） */
-#advFilter .af-card{
-  background: color-mix(in srgb, #ffffff 92%, transparent);
-  border:1px solid rgba(0,0,0,.06);
-  border-radius: 14px;
-  padding: 10px;
-  box-shadow: 0 10px 24px rgba(0,0,0,.08);
-}
-@media (prefers-color-scheme: dark){
-  #advFilter .af-card{
-    background: color-mix(in srgb, #0b0f12 78%, transparent);
-    border-color: rgba(255,255,255,.10);
-    box-shadow: 0 10px 28px rgba(0,0,0,.55);
-  }
-}
-
-/* Chips（共用你現有 .chip，這裡只細修） */
+/* Chips：描邊圓角、無陰影；選中填充 8% accent */
 #advFilter .chips{ display:flex; flex-wrap:wrap; gap:10px; }
 #advFilter .chip{
-  border:1px solid rgba(0,0,0,.08);
-  background:#fff;
-  padding:10px 14px;
-  border-radius:999px;
-  font-weight:700;
-  box-shadow: 0 4px 12px rgba(0,0,0,.05);
-  transition: transform .06s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;
+  border:1px solid var(--af-border);
+  background: transparent;
+  color: var(--af-text);
+  padding:10px 14px; border-radius:999px; font-weight:700;
+  transition: background .12s ease, border-color .12s ease, color .12s ease, transform .06s ease;
 }
 #advFilter .chip:active{ transform: translateY(1px); }
 #advFilter .chip.is-on,
 #advFilter .chip[aria-pressed="true"]{
-  background:#eaf5ee;                         /* 綠系淡底 */
-  border-color: rgba(46,94,78,.28);
-  box-shadow: inset 0 0 0 1px rgba(46,94,78,.22), 0 6px 16px rgba(46,94,78,.10);
-}
-#advFilter .chip i,
-#advFilter .chip .emoji{ margin-right:6px; }
-@media (prefers-color-scheme: dark){
-  #advFilter .chip{
-    background: color-mix(in srgb, #0b0f12 78%, transparent);
-    color:#e5e7eb; border-color: rgba(255,255,255,.12);
-    box-shadow: 0 6px 14px rgba(0,0,0,.45);
-  }
-  #advFilter .chip.is-on,
-  #advFilter .chip[aria-pressed="true"]{
-    background: color-mix(in srgb, #2E5E4E 28%, #0b0f12 72%);
-    border-color: rgba(46,94,78,.5);
-    box-shadow: inset 0 0 0 1px rgba(46,94,78,.55);
-  }
+  background: color-mix(in srgb, var(--af-accent) 8%, transparent);
+  border-color: color-mix(in srgb, var(--af-accent) 50%, transparent);
+  color: var(--af-accent);
 }
 
-/* 單選組（評分/排序/價格）：視覺一致 */
-#advFilter .chips[data-group="single"] .chip{
-  opacity:.86;
-}
-#advFilter .chips[data-group="single"] .chip.is-on{
-  opacity:1;
-}
+/* 單選組（排序/評分/價格）微調對齊 */
+#advFilter .chips[data-group="single"] .chip{ min-width:66px; justify-content:center; }
 
-/* “More” 裡的 Open now / Rating / Price 類型更聚焦 */
+/* “More” 內的 Open now 徽標留白一致 */
 #advFilter .chip[data-open]{ padding-left:12px; }
-#advFilter .chip[data-rating],
-#advFilter .chip[data-price]{ min-width:64px; justify-content:center; }
 
-/* 內文底部操作列（如果你的內容裡有） */
+/* 面板底部操作（如果你有按鈕區；維持極簡） */
 #advFilter .filter-footer{
-  position: sticky; bottom:0; z-index: 1;
-  background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.96) 42%);
+  position: sticky; bottom: 0; z-index: 1;
   padding: 10px 0 calc(12px + env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(0,0,0,.06);
+  background: linear-gradient(180deg, rgba(255,255,255,0), var(--af-surface) 42%);
+  border-top: 1px solid var(--af-border);
 }
 #advFilter .filter-footer .btn{
   appearance:none; border-radius:12px; padding:12px 14px; font-weight:800; cursor:pointer;
-  border:1px solid rgba(0,0,0,.08); background:#fff; margin-right:8px;
+  border:1px solid var(--af-border); background: var(--af-surface); color: var(--af-text);
 }
 #advFilter .filter-footer .btn.primary{
-  background:#2E5E4E; color:#fff; border-color:#2E5E4E;
-}
-@media (prefers-color-scheme: dark){
-  #advFilter .filter-footer{
-    background: linear-gradient(180deg, rgba(11,15,18,0), rgba(11,15,18,.92) 42%);
-    border-top-color: rgba(255,255,255,.10);
-  }
-  #advFilter .filter-footer .btn{
-    background: color-mix(in srgb, #0b0f12 78%, transparent);
-    color:#e5e7eb; border-color: rgba(255,255,255,.12);
-  }
-  #advFilter .filter-footer .btn.primary{
-    background:#2E5E4E; border-color:#2E5E4E; color:#fff;
-  }
+  background: var(--af-accent); color:#fff; border-color: var(--af-accent);
 }
