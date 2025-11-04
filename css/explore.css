@@ -449,3 +449,59 @@ section[data-page="detail"] .d-scroll{ padding-bottom: var(--safe-b); }
     border-color: rgba(255,255,255,.08);
   }
 }
+
+/* ===== Advanced Filter — Bottom Sheet (70%) ===== */
+#advFilter.overlay-page{
+  position: fixed; inset: 0; z-index: 1400;
+  display: none;                           /* 用 .active 控制 */
+  padding: 12px;
+  background: rgba(17,24,39,.45);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  display: grid; place-items: end center;  /* ⬅ 抽屜貼底 */
+}
+#advFilter[hidden]{ display:none !important; }
+#advFilter.overlay-page.active{ display: grid; }
+
+/* 底部抽屜本體 */
+#advFilter .af-sheet{
+  width: min(720px, 100%);
+  height: 70vh;                            /* ⬅ 佔 70% 視窗高 */
+  background: color-mix(in srgb, #ffffff 92%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -20px 60px rgba(0,0,0,.25);
+  display: grid; grid-template-rows: auto 1fr; /* header + body */
+  overflow: hidden;
+
+  /* 初始放在螢幕外底部 → 加 .active 往上滑進來 */
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform .26s cubic-bezier(.22,.61,.36,1), opacity .26s ease;
+}
+#advFilter.overlay-page.active .af-sheet{
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* 內部可滾動區（你的 settings-panel） */
+#advFilter .settings-panel{
+  overflow: auto;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  background: transparent;                 /* 玻璃感由 af-sheet 提供 */
+  overscroll-behavior: contain;
+}
+
+/* 點遮罩可關閉（避免點到抽屜本體） */
+#advFilter.overlay-page{ cursor: default; }
+#advFilter .af-sheet{ cursor: auto; }
+
+@media (prefers-color-scheme: dark){
+  #advFilter.overlay-page{ background: rgba(0,0,0,.55); }
+  #advFilter .af-sheet{
+    background: color-mix(in srgb, #0b0f12 78%, transparent);
+    border-color: rgba(255,255,255,.08);
+  }
+}
