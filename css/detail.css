@@ -119,3 +119,158 @@
   .d-scroll{max-width:720px;margin:0 auto;}
   .c-track{border-radius:16px;}
 }
+
+/* ================= Bottom Sheet (Comments) ================ */
+.overlay-sheet{
+  position:fixed; inset:0; z-index:60;
+  display:grid; place-items:end center;
+  background:rgba(0,0,0,.35);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  opacity:0; pointer-events:none;
+  transition: opacity .18s ease;
+}
+.overlay-sheet.active{ opacity:1; pointer-events:auto; }
+
+/* 卡片本体 */
+.overlay-sheet .sheet{
+  width:clamp(280px, 100%, 720px);
+  background:#fff;
+  border-radius:18px 18px 0 0;
+  box-shadow:0 -10px 30px rgba(0,0,0,.18);
+  transform: translateY(16px);
+  transition: transform .22s cubic-bezier(.2,.8,.2,1);
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+.overlay-sheet.active .sheet{ transform: translateY(0); }
+
+/* 顶部拖拽手柄 */
+.sheet-grip{
+  width:44px; height:5px; border-radius:999px;
+  background:rgba(0,0,0,.12);
+  margin:8px auto 2px; pointer-events:none;
+}
+
+/* Sheet 头部 */
+.sheet-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 14px 6px;
+}
+.sheet-title{
+  margin:0; font-size:16px; font-weight:800; letter-spacing:.2px;
+}
+#btnCmtClose{
+  width:32px; height:32px; border-radius:8px;
+  background:transparent; border:0; cursor:pointer; font-size:16px;
+}
+#btnCmtClose:hover{ background:rgba(0,0,0,.06); }
+
+/* 内容滚动区 */
+.sheet-body{
+  max-height:min(62vh, 520px);
+  overflow:auto;
+  padding:6px 14px 10px;
+}
+
+/* 空态 */
+.cmt-list:empty::before{
+  content:"還沒有留言，當第一個吧 🥳";
+  display:block; color:#6b7280; font-size:13px;
+  padding:8px 2px 16px;
+}
+
+/* 评论项（头像 + 内容卡） */
+.cmt-item{
+  display:grid; grid-template-columns:auto 1fr; gap:10px;
+  padding:0; margin-bottom:10px;
+}
+.cmt-avatar{
+  width:36px; height:36px; flex:0 0 36px;
+  border-radius:999px; background:#2E5E4E; color:#fff;
+  display:grid; place-items:center; font-weight:700; font-size:14px;
+  letter-spacing:.02em; box-shadow:0 3px 10px rgba(46,94,78,.2);
+}
+.cmt-item .body,
+.cmt-item .cmt-body{ /* 兼容你的旧类名 */
+  background:rgba(0,0,0,.035);
+  border:1px solid rgba(0,0,0,.06);
+  border-radius:12px;
+  padding:8px 10px;
+}
+.cmt-item .top{
+  display:flex; align-items:baseline; gap:6px; margin-bottom:4px;
+}
+.cmt-item .name{ font-weight:700; font-size:13px; color:#111827; }
+.cmt-item .time{ font-size:11px; color:#94a3b8; }
+.cmt-item .body{ font-size:13px; color:#374151; line-height:1.45; white-space:pre-wrap; }
+
+/* 输入区固定在底部 */
+.sheet-foot{
+  position:sticky; bottom:0;
+  display:flex; gap:8px; align-items:center;
+  padding:10px 12px 12px;
+  background:linear-gradient(#fff, #fff);
+  border-top:1px solid rgba(0,0,0,.06);
+}
+.cmt-input{ flex:1; }
+#cmtText{
+  width:100%;
+  border:1px solid rgba(0,0,0,.08);
+  background:#fff; color:#111827;
+  border-radius:999px; padding:10px 14px;
+  font-size:14px; outline:none;
+  transition: box-shadow .15s ease, border-color .15s ease;
+}
+#cmtText:focus{
+  border-color:rgba(46,94,78,.35);
+  box-shadow:0 0 0 4px rgba(46,94,78,.12);
+}
+
+/* 发送按钮（主色） */
+.btn.primary#btnCmtSend{
+  border:0; border-radius:999px; padding:10px 14px;
+  font-weight:700; font-size:14px;
+  color:#fff; background:#2E5E4E;
+  box-shadow:0 8px 18px rgba(46,94,78,.28);
+  transition: transform .06s ease, filter .15s ease;
+}
+.btn.primary#btnCmtSend:active{ transform: translateY(1px); }
+.btn.primary#btnCmtSend:disabled{ opacity:.45; box-shadow:none; }
+
+/* ===== 优化旧的预览块/按钮（可选） ===== */
+#detailCommentsCard .btn-line{
+  margin-top:8px; border-radius:10px; padding:10px 12px;
+}
+
+/* ================= Dark mode ================= */
+@media (prefers-color-scheme: dark){
+  .overlay-sheet{ background:rgba(0,0,0,.55); }
+  .overlay-sheet .sheet{
+    background:rgba(14,18,22,.96);
+    box-shadow:0 -12px 40px rgba(0,0,0,.5);
+  }
+  .sheet-grip{ background:rgba(255,255,255,.18); }
+  .sheet-title{ color:#e5e7eb; }
+  #btnCmtClose:hover{ background:rgba(255,255,255,.06); }
+  .cmt-item .body,
+  .cmt-item .cmt-body{
+    background:rgba(255,255,255,.04);
+    border-color:rgba(255,255,255,.08);
+  }
+  .cmt-item .name{ color:#e5e7eb; }
+  .cmt-item .body{ color:#cbd5e1; }
+  #cmtText{
+    background:rgba(255,255,255,.06);
+    color:#fff; border-color:rgba(255,255,255,.12);
+  }
+  #cmtText:focus{
+    border-color:rgba(46,94,78,.6);
+    box-shadow:0 0 0 4px rgba(46,94,78,.2);
+  }
+  .sheet-foot{ background:linear-gradient(rgba(14,18,22,.96), rgba(14,18,22,.96)); border-top-color:rgba(255,255,255,.08); }
+}
+
+/* ============ iOS 安全区 & 拖拽感 ============ */
+@supports (padding: max(0px)) {
+  .overlay-sheet .sheet{ padding-bottom:max(12px, env(safe-area-inset-bottom)); }
+}
