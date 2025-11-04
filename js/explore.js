@@ -526,6 +526,35 @@ document.addEventListener('DOMContentLoaded', () => {
     syncLightBarFromState();
     applyFilters();
   });
+  
+  // --- Modern drawer: tabs + row click ---
+(() => {
+  const drawer = document.getElementById('advFilter');
+  if (!drawer) return;
+
+  // Tabs
+  const tabs = Array.from(drawer.querySelectorAll('.af-tab'));
+  const panels = Array.from(drawer.querySelectorAll('.af-panel'));
+  drawer.querySelector('.af-tabs')?.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.af-tab'); if (!btn) return;
+    const sel = btn.dataset.tab;
+    tabs.forEach(t => t.classList.toggle('is-active', t === btn));
+    panels.forEach(p => p.classList.toggle('is-active', p.matches(sel)));
+    // A11y
+    tabs.forEach(t => t.setAttribute('aria-selected', t === btn ? 'true':'false'));
+  });
+
+  // 讓整個 row 點了也能切換右側 chip（保留你原有的事件）
+  drawer.addEventListener('click', (e)=>{
+    const row = e.target.closest('.af-row[data-toggle-chip]');
+    if (!row) return;
+    // 如果直接點在 chip 或 chip 的子元素，就交給原本邏輯
+    if (e.target.closest('.chip')) return;
+    // 否則就找 row 內第一個 chip 模擬點擊
+    const firstChip = row.querySelector('.chip');
+    firstChip?.click();
+  });
+})();
 
   /* ---------- 城市切換 ---------- */
   function selectCity(id, cityObj){
