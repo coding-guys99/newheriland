@@ -766,16 +766,16 @@ async function ctMove(tr, dir){
    ADS / hl_ads CRUD
    ========================= */
 const AD_PLACEHOLDER = 'https://placehold.co/1200x300?text=Ad';
+const AD_PLACEMENTS = ['home_mid','home_top','home_bottom'];
 
-// 改這段 fetch（更穩定）
-// 讀首頁中間位（home_mid）的廣告，含排期
+/* ---- 前台讀取（只取 home_mid + 時間窗過濾）---- */
 async function fetchAds(){
   const nowIso = new Date().toISOString();
 
   const { data, error } = await supabase
     .from('hl_ads')
     .select('id,title,image_url,href,placement,sort_order,is_active,starts_at,ends_at')
-    .eq('placement', 'home_mid')         // ← 用 placement
+    .eq('placement', 'home_mid')
     .eq('is_active', true)
     .order('sort_order', { ascending: true });
 
@@ -784,7 +784,7 @@ async function fetchAds(){
     throw error;
   }
 
-  // ✅ 若 starts_at / ends_at 允許空值，這裡在前端篩掉過期/未開始的
+  // 允許 starts_at/ends_at 為空，前端做時間窗過濾
   const inWindow = (row) => {
     const s = row.starts_at ? new Date(row.starts_at).toISOString() : null;
     const e = row.ends_at   ? new Date(row.ends_at).toISOString()   : null;
@@ -794,27 +794,67 @@ async function fetchAds(){
   return (data || []).filter(inWindow);
 }
 
-
+/* ---- 後台：列出全部廣告（依 placement、sort_order） ---- */
+async function fetchAdsAdmin(){
+  const { data, error } = await supabase
+    .from('hl_ads')
+    .select('id,title,image_url,href,placement,sort_order,is_active,starts_at,ends_at')
+    .order('placement', { ascending: true })
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
 
 function adRowTpl(r){
   return `
   <tr data-id="${r.id}">
     <td>
-      <select class="in position">
-        ${['home_mid','home_top','home_bottom'].map(p => `<option value="${p}" ${r.position===p?'selected':''}>${p}</option>`).join('')}
+      <select class="in placement">
+        ${AD_PLACEMENTS.map(p => `<option value="${p}" ${r.placement===p?'selected':''}>${p}</option>`).join('')}
       </select>
     </td>
-    <td><img class="bn-thumb" src="${esc(r.image_url||AD_PLACEHOLDER)}" alt="preview" onerror="this.src='${AD_PLACEHOLDER}'"></td>
-    <td><input class="in image_url" value="${esc(r.image_url||'')}" placeholder="https://..."></td>
-    <td><input class="in href"      value="${esc(r.href||'#')}"     placeholder="# 或 https://..."></td>
+
+    <td>
+      <img class="bn-thumb" src="${esc(r.image_url||AD_PLACEHOLDER)}" alt="preview"
+           onerror="this.src='${AD_PLACEHOLDER}'">
+    </td>
+
+    <td>
+      <input class="in title" value="${esc(r.title||'')}" placeholder="廣告標題（可空）">
+    </td>
+
+    <td>
+      <input class="in image_url" value="${esc(r.image_url||'')}" placeholder="https://...">
+    </td>
+
+    <td>
+      <input class="in href" value="${esc(r.href||'#')}" placeholder="# 或 https://...">
+    </td>
+
+    <td class="stack">
+      <input class="in starts_at" type="datetime-local"
+             value="${r.starts_at ? new Date(r.starts_at).toISOString().slice(0,16) : ''}">
+      <small class="help">開始</small>
+    </td>
+
+    <td class="stack">
+      <input class="in ends_at" type="datetime-local"
+             value="${r.ends_at ? new Date(r.ends_at).toISOString().slice(0,16) : ''}">
+      <small class="help">結束</small>
+    </td>
+
     <td class="stack">
       <input class="in sort_order" type="number" value="${Number(r.sort_order||1)}" style="width:80px">
-      <button class="btn icon act up">↑</button>
-      <button class="btn icon act down">↓</button>
+      <button class="btn icon act up"   title="上移">↑</button>
+      <button class="btn icon act down" title="下移">↓</button>
     </td>
+
     <td class="stack">
-      <label class="switch"><input type="checkbox" class="in is_active" ${r.is_active?'checked':''}><i></i></label>
+      <label class="switch" title="上架">
+        <input type="checkbox" class="in is_active" ${r.is_active?'checked':''}><i></i>
+      </label>
     </td>
+
     <td class="stack">
       <button class="btn primary save">💾 儲存</button>
       <button class="btn danger  del">🗑️ 刪除</button>
@@ -824,16 +864,17 @@ function adRowTpl(r){
 
 async function renderAdsAdmin(){
   const adBody = $('#ad-body'); if (!adBody) return;
-  adBody.innerHTML = `<tr><td colspan="7" class="help" style="padding:12px">載入中…</td></tr>`;
+  adBody.innerHTML = `<tr><td colspan="11" class="help" style="padding:12px">載入中…</td></tr>`;
   try{
-    const rows = await fetchAds();
+    const rows = await fetchAdsAdmin();
     adBody.innerHTML = rows.length ? rows.map(adRowTpl).join('')
-      : `<tr><td colspan="7" class="help" style="padding:12px">尚無資料，點右上角「新增廣告」。</td></tr>`;
+      : `<tr><td colspan="11" class="help" style="padding:12px">尚無資料，點右上角「新增廣告」。</td></tr>`;
   }catch(e){
-    adBody.innerHTML = `<tr><td colspan="7" class="help" style="padding:12px">讀取失敗：${esc(e.message)}</td></tr>`;
+    adBody.innerHTML = `<tr><td colspan="11" class="help" style="padding:12px">讀取失敗：${esc(e.message)}</td></tr>`;
   }
 }
 
+/* 即時預覽圖 */
 $('#ad-table')?.addEventListener('input', (e)=>{
   const tr = e.target.closest('tr'); if(!tr) return;
   if (e.target.classList.contains('image_url')){
@@ -841,6 +882,7 @@ $('#ad-table')?.addEventListener('input', (e)=>{
   }
 });
 
+/* 點擊：儲存/刪除/上下移 */
 $('#ad-table')?.addEventListener('click', async (e)=>{
   const tr = e.target.closest('tr'); if(!tr) return;
   const id = tr.dataset.id;
@@ -850,15 +892,31 @@ $('#ad-table')?.addEventListener('click', async (e)=>{
   else if (e.target.classList.contains('down')) await adMove(tr,+1);
 });
 
+/* 重新整理 / 新增 */
 $('#ad-refresh')?.addEventListener('click', renderAdsAdmin);
+
 $('#ad-add')?.addEventListener('click', async ()=>{
   try{
+    // 以 home_mid 為預設 placement，找到下一個 sort
     const { data: maxRow, error: e1 } = await supabase
-      .from('hl_ads').select('sort_order').eq('position','home_mid').order('sort_order',{ascending:false}).limit(1);
+      .from('hl_ads')
+      .select('sort_order')
+      .eq('placement','home_mid')
+      .order('sort_order',{ascending:false})
+      .limit(1);
     if (e1) throw e1;
+
     const next = (maxRow?.[0]?.sort_order || 0) + 1;
+
     const { error } = await supabase.from('hl_ads').insert({
-      position: 'home_mid', image_url: AD_PLACEHOLDER, href:'#', sort_order: next, is_active:true
+      title: '',
+      image_url: AD_PLACEHOLDER,
+      href:'#',
+      placement: 'home_mid',    // ✅ 用 placement
+      sort_order: next,
+      is_active:true,
+      starts_at: null,
+      ends_at: null
     });
     if (error) throw error;
     await renderAdsAdmin();
@@ -867,13 +925,27 @@ $('#ad-add')?.addEventListener('click', async ()=>{
 
 async function adSave(tr){
   const id = tr.dataset.id;
-  const payload = {
-    position:  tr.querySelector('.position').value,
-    image_url: tr.querySelector('.image_url').value.trim() || AD_PLACEHOLDER,
-    href:      tr.querySelector('.href').value.trim() || '#',
-    sort_order: Number(tr.querySelector('.sort_order').value || 1),
-    is_active: tr.querySelector('.is_active').checked
+
+  // 轉 datetime-local → ISO
+  const toIsoOrNull = (v)=>{
+    const s = v?.trim();
+    if(!s) return null;
+    // local -> ISO（補秒；瀏覽器輸出已是 local time 的 "YYYY-MM-DDTHH:mm"）
+    const d = new Date(s);
+    return isNaN(d.getTime()) ? null : d.toISOString();
   };
+
+  const payload = {
+    title:      tr.querySelector('.title').value.trim(),
+    image_url:  tr.querySelector('.image_url').value.trim() || AD_PLACEHOLDER,
+    href:       tr.querySelector('.href').value.trim() || '#',
+    placement:  tr.querySelector('.placement').value, // ✅
+    sort_order: Number(tr.querySelector('.sort_order').value || 1),
+    is_active:  tr.querySelector('.is_active').checked,
+    starts_at:  toIsoOrNull(tr.querySelector('.starts_at').value),
+    ends_at:    toIsoOrNull(tr.querySelector('.ends_at').value)
+  };
+
   try{
     const { error } = await supabase.from('hl_ads').update(payload).eq('id', id);
     if (error) throw error;
@@ -893,19 +965,24 @@ async function adDelete(id){
 async function adMove(tr, dir){
   const id  = tr.dataset.id;
   const cur = Number(tr.querySelector('.sort_order').value || 1);
+
   const rows = $$('#ad-body tr');
   const idx = rows.indexOf(tr);
   const swap = rows[idx + dir]; if (!swap) return;
+
   const oid  = swap.dataset.id;
   const os   = Number(swap.querySelector('.sort_order').value || 1);
+
   try{
     const { error } = await supabase.from('hl_ads').upsert([
-      { id, sort_order: os }, { id: oid, sort_order: cur }
+      { id,  sort_order: os },
+      { id: oid, sort_order: cur }
     ]);
     if (error) throw error;
     await renderAdsAdmin();
   }catch(err){ alert('移動失敗：'+err.message); }
 }
+
 
 /* =========================
    COLLECTIONS / hl_collections CRUD
