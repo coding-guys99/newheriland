@@ -1137,88 +1137,160 @@ async function coMove(tr, dir){
 /* =========================
    GROUPS / hl_groups CRUD
    ========================= */
-const GR_PLACEHOLDER='https://placehold.co/200x200?text=Avatar';
+const GR_PLACEHOLDER = 'https://placehold.co/800x500?text=Group';
 
 async function fetchGroups(){
-  const {data,error}=await supabase.from('hl_groups').select('id,title,sub,avatar_url,href,sort_order,is_active').order('sort_order',{ascending:true});
-  if(error)throw error;return data||[];
+  const { data, error } = await supabase
+    .from('hl_groups')
+    .select('id,name,slug,image_url,href,sort_order,is_active')
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+  return data || [];
 }
 
-function grRowTpl(r){
+function grpRowTpl(r){
   return `
   <tr data-id="${r.id}">
-    <td><img class="avatar-thumb" src="${esc(r.avatar_url||GR_PLACEHOLDER)}" onerror="this.src='${GR_PLACEHOLDER}'"></td>
-    <td><input class="in title" value="${esc(r.title||'')}" placeholder="名稱"></td>
-    <td><input class="in sub" value="${esc(r.sub||'')}" placeholder="副標"></td>
-    <td><input class="in href" value="${esc(r.href||'#')}" placeholder="# 或 https://..."></td>
+    <td>
+      <img class="bn-thumb"
+           src="${esc(r.image_url || GR_PLACEHOLDER)}"
+           alt="preview"
+           onerror="this.src='${GR_PLACEHOLDER}'">
+    </td>
+    <td><input class="in name"      value="${esc(r.name || '')}"       placeholder="主題名稱（name）"></td>
+    <td><input class="in slug"      value="${esc(r.slug || '')}"       placeholder="slug（例：friends）"></td>
+    <td><input class="in image_url" value="${esc(r.image_url || '')}"  placeholder="https://..."></td>
+    <td><input class="in href"      value="${esc(r.href || '#')}"      placeholder="# 或 https://..."></td>
     <td class="stack">
-      <input class="in sort_order" type="number" value="${r.sort_order||1}" style="width:80px">
+      <input  class="in sort_order" type="number" value="${Number(r.sort_order || 1)}" style="width:80px">
       <button class="btn icon act up">↑</button>
       <button class="btn icon act down">↓</button>
     </td>
-    <td class="stack"><label class="switch"><input type="checkbox" class="in is_active" ${r.is_active?'checked':''}><i></i></label></td>
+    <td class="stack">
+      <label class="switch">
+        <input type="checkbox" class="in is_active" ${r.is_active ? 'checked' : ''}><i></i>
+      </label>
+    </td>
     <td class="stack">
       <button class="btn primary save">💾 儲存</button>
-      <button class="btn danger del">🗑️ 刪除</button>
+      <button class="btn danger  del">🗑️ 刪除</button>
     </td>
   </tr>`;
 }
 
 async function renderGroupsAdmin(){
-  const body=$('#gr-body');if(!body)return;
-  body.innerHTML=`<tr><td colspan="7" class="help">載入中…</td></tr>`;
+  const body = $('#gr-body'); if (!body) return;
+  body.innerHTML = `<tr><td colspan="8" class="help" style="padding:12px">載入中…</td></tr>`;
   try{
-    const rows=await fetchGroups();
-    body.innerHTML=rows.length?rows.map(grRowTpl).join(''):`<tr><td colspan="7" class="help">尚無資料，點「新增主題」。</td></tr>`;
-  }catch(e){body.innerHTML=`<tr><td colspan="7" class="help">讀取失敗：${esc(e.message)}</td></tr>`;}
+    const rows = await fetchGroups();
+    body.innerHTML = rows.length
+      ? rows.map(grpRowTpl).join('')
+      : `<tr><td colspan="8" class="help" style="padding:12px">尚無資料，點「新增主題」。</td></tr>`;
+  }catch(e){
+    body.innerHTML = `<tr><td colspan="8" class="help" style="padding:12px">讀取失敗：${esc(e.message)}</td></tr>`;
+  }
 }
 
-$('#gr-table')?.addEventListener('click',async(e)=>{
-  const tr=e.target.closest('tr');if(!tr)return;const id=tr.dataset.id;
-  if(e.target.classList.contains('save'))await grSave(tr);
-  else if(e.target.classList.contains('del'))await grDelete(id);
-  else if(e.target.classList.contains('up'))await grMove(tr,-1);
-  else if(e.target.classList.contains('down'))await grMove(tr,+1);
+// 即時預覽圖片
+$('#gr-table')?.addEventListener('input', (e)=>{
+  const tr = e.target.closest('tr'); if (!tr) return;
+  if (e.target.classList.contains('image_url')){
+    tr.querySelector('img').src = e.target.value.trim() || GR_PLACEHOLDER;
+  }
 });
 
-$('#gr-add')?.addEventListener('click',async()=>{
+// 事件委派：儲存 / 刪除 / 上下移
+$('#gr-table')?.addEventListener('click', async (e)=>{
+  const tr = e.target.closest('tr'); if(!tr) return;
+  const id = tr.dataset.id;
+  if (e.target.classList.contains('save'))      await grSave(tr);
+  else if (e.target.classList.contains('del'))  await grDelete(id);
+  else if (e.target.classList.contains('up'))   await grMove(tr, -1);
+  else if (e.target.classList.contains('down')) await grMove(tr, +1);
+});
+
+// 新增
+$('#gr-add')?.addEventListener('click', async ()=>{
   try{
-    const {data:maxRow}=await supabase.from('hl_groups').select('sort_order').order('sort_order',{ascending:false}).limit(1);
-    const next=(maxRow?.[0]?.sort_order||0)+1;
-    await supabase.from('hl_groups').insert({title:'新主題',sub:'',avatar_url:GR_PLACEHOLDER,href:'#',sort_order:next,is_active:true});
+    const { data: maxRow, error: e1 } = await supabase
+      .from('hl_groups')
+      .select('sort_order')
+      .order('sort_order', { ascending:false })
+      .limit(1);
+    if (e1) throw e1;
+    const next = (maxRow?.[0]?.sort_order || 0) + 1;
+
+    const { error } = await supabase.from('hl_groups').insert({
+      name: '新多人主題',
+      slug: '',
+      image_url: GR_PLACEHOLDER,
+      href: '#',
+      sort_order: next,
+      is_active: true
+    });
+    if (error) throw error;
     await renderGroupsAdmin();
-  }catch(e){alert('新增失敗：'+e.message);}
+  }catch(err){
+    alert('新增失敗：' + err.message);
+  }
 });
 
-$('#gr-refresh')?.addEventListener('click',renderGroupsAdmin);
-
+// 儲存
 async function grSave(tr){
-  const id=tr.dataset.id;
-  const payload={
-    title:tr.querySelector('.title').value.trim(),
-    sub:tr.querySelector('.sub').value.trim(),
-    avatar_url:tr.querySelector('.avatar-thumb').src||GR_PLACEHOLDER,
-    href:tr.querySelector('.href').value.trim()||'#',
-    sort_order:Number(tr.querySelector('.sort_order').value||1),
-    is_active:tr.querySelector('.is_active').checked
+  const id = tr.dataset.id;
+  const payload = {
+    name:       tr.querySelector('.name').value.trim(),
+    slug:       tr.querySelector('.slug').value.trim(),
+    image_url:  tr.querySelector('.image_url').value.trim() || GR_PLACEHOLDER,
+    href:       tr.querySelector('.href').value.trim() || '#',
+    sort_order: Number(tr.querySelector('.sort_order').value || 1),
+    is_active:  tr.querySelector('.is_active').checked
   };
-  await supabase.from('hl_groups').update(payload).eq('id',id);
-  await renderGroupsAdmin();
+  try{
+    const { error } = await supabase.from('hl_groups').update(payload).eq('id', id);
+    if (error) throw error;
+    await renderGroupsAdmin();
+  }catch(err){
+    alert('儲存失敗：' + err.message);
+  }
 }
 
+// 刪除
 async function grDelete(id){
-  if(!confirm('確定要刪除？'))return;
-  await supabase.from('hl_groups').delete().eq('id',id);
-  await renderGroupsAdmin();
+  if (!confirm('確定要刪除？')) return;
+  try{
+    const { error } = await supabase.from('hl_groups').delete().eq('id', id);
+    if (error) throw error;
+    await renderGroupsAdmin();
+  }catch(err){
+    alert('刪除失敗：' + err.message);
+  }
 }
 
-async function grMove(tr,dir){
-  const rows=$$('#gr-body tr');const idx=rows.indexOf(tr);const swap=rows[idx+dir];if(!swap)return;
-  const id=tr.dataset.id,oid=swap.dataset.id;
-  const s=Number(tr.querySelector('.sort_order').value),os=Number(swap.querySelector('.sort_order').value);
-  await supabase.from('hl_groups').upsert([{id,sort_order:os},{id:oid,sort_order:s}]);
-  await renderGroupsAdmin();
+// 上下移（交換排序）
+async function grMove(tr, dir){
+  const rows = $$('#gr-body tr');
+  const idx  = rows.indexOf(tr);
+  const swap = rows[idx + dir];
+  if (!swap) return;
+
+  const id  = tr.dataset.id;
+  const oid = swap.dataset.id;
+  const s   = Number(tr.querySelector('.sort_order').value || 1);
+  const os  = Number(swap.querySelector('.sort_order').value || 1);
+
+  try{
+    const { error } = await supabase.from('hl_groups').upsert([
+      { id,  sort_order: os },
+      { id: oid, sort_order: s }
+    ]);
+    if (error) throw error;
+    await renderGroupsAdmin();
+  }catch(err){
+    alert('移動失敗：' + err.message);
+  }
 }
+
 
 /* =========================
    SPOTLIGHT / hl_spotlight CRUD
