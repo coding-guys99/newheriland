@@ -41,50 +41,82 @@ function compact(o){
   return out;
 }
 
-/* ==================== Photos (max 10) ==================== */
-function initPhotos(){
-  const btnPick   = $('#btnPostPickPhotos');
-  const input     = $('#postPhotosInput');
-  const drop      = $('#postDrop');
-  const grid      = $('#postPhotosGrid');
+/* ==================== Media (photos + videos, max 10, append not override) ==================== */
+function initMedia(){
+  const btnPick = $('#btnPostPickPhotos');      // 继续沿用你的按钮 id
+  const input   = $('#postPhotosInput');        // ↑ 改了 accept
+  const drop    = $('#postDrop');
+  const grid    = $('#postPhotosGrid');
 
   if (!input || !grid || !drop) return;
 
   const MAX = 10;
 
-  const getFiles = ()=> Array.from(input.files || []);
-  const setFiles = (filesArr)=>{
-    const dt = new DataTransfer();
-    filesArr.slice(0, MAX).forEach(f => dt.items.add(f));
-    input.files = dt.files;
+  // 用 state 数组维护所有已选媒体；避免 DataTransfer 覆盖 + 索引错位
+  /** @type {Array<{id:string,file:File,kind:'image'|'video',url:string}>} */
+  let state = [];
+
+  const kindOf = (file)=> file.type.startsWith('video/') ? 'video' : 'image';
+
+  const addFiles = (files)=> {
+    const fresh = Array.from(files || []);
+    for (const f of fresh){
+      if (!f.type.startsWith('image/') && !f.type.startsWith('video/')) continue;
+      if (state.length >= MAX) break;
+      state.push({
+        id: crypto.randomUUID ? crypto.randomUUID() : (Date.now() + Math.random()).toString(36),
+        file: f,
+        kind: kindOf(f),
+        url: URL.createObjectURL(f)
+      });
+    }
   };
 
-  function render(){
-    const files = getFiles();
+  const removeById = (id)=>{
+    const i = state.findIndex(x=>x.id===id);
+    if (i>=0){
+      try{ URL.revokeObjectURL(state[i].url); }catch(_){}
+      state.splice(i,1);
+    }
+  };
+
+  const render = ()=>{
     grid.innerHTML = '';
-    files.slice(0,MAX).forEach((file, idx)=>{
-      const url = URL.createObjectURL(file);
+    state.slice(0,MAX).forEach((item, idx)=>{
       const cell = document.createElement('div');
       cell.className = 'ph';
-      cell.style.backgroundImage = `url("${url}")`;
 
-      // Cover badge
-      if (idx===0){
+      if (item.kind === 'image'){
+        cell.style.backgroundImage = `url("${item.url}")`;
+        cell.classList.add('ph-img');
+      }else{
+        cell.classList.add('ph-vid');
+        const v = document.createElement('video');
+        v.src = item.url;
+        v.muted = true;
+        v.loop = true;
+        v.playsInline = true;
+        v.autoplay = true;    // 静音可自动播
+        v.controls = false;
+        cell.appendChild(v);
+      }
+
+      // Cover 标记（第一个）
+      if (idx === 0){
         const badge = document.createElement('span');
         badge.className = 'ph-badge';
         badge.textContent = 'Cover';
         cell.appendChild(badge);
       }
 
-      // Delete
+      // 删除
       const del = document.createElement('button');
       del.className = 'ph-del';
       del.type = 'button';
       del.textContent = '×';
       del.title = 'Remove';
       del.addEventListener('click', ()=>{
-        const arr = getFiles().filter((_,i)=> i!==idx);
-        setFiles(arr);
+        removeById(item.id);
         render();
       });
       cell.appendChild(del);
@@ -92,16 +124,23 @@ function initPhotos(){
       grid.appendChild(cell);
     });
 
-    // 仍可加上 count 提示
-    drop.querySelector('.dz-s')?.replaceChildren(
-      document.createTextNode(`JPG / PNG, up to ${MAX} images · ${Math.min(files.length, MAX)}/${MAX}`)
-    );
-  }
+    // 更新计数提示
+    const s = drop.querySelector('.dz-s');
+    if (s) s.textContent = `JPG/PNG/MP4 等，最多 ${MAX} 个 · ${Math.min(state.length, MAX)}/${MAX}`;
+  };
 
+  // 点击选取
   btnPick?.addEventListener('click', ()=> input.click());
-  input.addEventListener('change', render);
 
-  // Drag & drop
+  // 选择后「追加」而不是覆盖
+  input.addEventListener('change', ()=>{
+    addFiles(input.files);
+    // 清空 input.value 以允许选择同一文件再次触发 change
+    input.value = '';
+    render();
+  });
+
+  // 拖放
   ['dragenter','dragover'].forEach(ev=>{
     drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.add('is-drag'); }, false);
   });
@@ -110,41 +149,50 @@ function initPhotos(){
   });
   drop.addEventListener('click', ()=> input.click());
   drop.addEventListener('drop', (e)=>{
-    const dropped = Array.from(e.dataTransfer?.files || []).filter(f=> f.type.startsWith('image/'));
-    if (!dropped.length) return;
-    const merged = getFiles().concat(dropped).slice(0, MAX);
-    setFiles(merged);
+    const dtf = Array.from(e.dataTransfer?.files || []);
+    addFiles(dtf);
     render();
   });
 
-  // public method (for submit)
+  // 对外接口（提交与重置）
   return {
-    files: ()=> getFiles().slice(0,MAX),
-    clear: ()=> { setFiles([]); render(); },
+    files: ()=> state.map(x=>x.file).slice(0,MAX),
+    clear: ()=> { state.forEach(x=>{ try{ URL.revokeObjectURL(x.url); }catch(_){}}); state = []; render(); },
     render
   };
 }
 
-async function uploadPhotos(files){
+async function uploadMedia(files){
   const results = [];
   const list = Array.from(files||[]).slice(0,10);
+
   for (const f of list){
     try{
       if (!supabase){
-        results.push({ url: URL.createObjectURL(f) });
+        // 未接后端时：直接回传 Blob URL（仅预览用，发布不会有公网 URL）
+        results.push({ url: URL.createObjectURL(f), type: f.type });
         continue;
       }
-      const ext = (f.name.split('.').pop()||'jpg').toLowerCase();
-      const path = `posts/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const isVideo = f.type.startsWith('video/');
+      const ext = (f.name.split('.').pop() || (isVideo ? 'mp4' : 'jpg')).toLowerCase();
+      const dir = 'posts';
+      const path = `${dir}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+
+      // 建议你在 Supabase 里创建 bucket：post-media（统一图片/影片）
       const { error: upErr } = await supabase
-        .storage.from('post-photos')
-        .upload(path, f, { cacheControl: '3600', upsert:false, contentType: f.type || 'image/jpeg' });
+        .storage.from('post-media')
+        .upload(path, f, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: f.type || (isVideo ? 'video/mp4' : 'image/jpeg')
+        });
       if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from('post-photos').getPublicUrl(path);
-      results.push({ url: pub?.publicUrl || '' });
+
+      const { data: pub } = supabase.storage.from('post-media').getPublicUrl(path);
+      results.push({ url: pub?.publicUrl || '', type: f.type });
     }catch(err){
-      console.warn('[uploadPhotos]', err);
-      results.push({ url: '' });
+      console.warn('[uploadMedia] failed:', err);
+      results.push({ url: '', type: f.type });
     }
   }
   return results;
@@ -259,54 +307,64 @@ function initPlace(){
 }
 
 /* ==================== Submit / Draft ==================== */
+// 依赖：supabase、showToast、compact、makePostId、nowIso、uploadMedia
+// 以及页面初始化时传进来的 ctx：{ media }  —— ctx.media 是 initMedia() 的返回对象
 async function handleSubmit(e, ctx){
   e.preventDefault();
-  const { photos } = ctx;
-  const form = e.currentTarget;
 
+  // 1) 取 DOM
+  const form  = e.currentTarget;
+  const media = ctx?.media;                 // ← 关键：用 ctx.media，不要再用 ctx.photos
   const title = $('#postTitle')?.value?.trim() || '';
   const body  = $('#postBody')?.value?.trim()  || '';
-  const tags  = (()=>{ try{ return JSON.parse($('#postTags')?.value || '[]'); }catch(_){ return []; } })();
+  const tags  = (()=>{ try{ return JSON.parse($('#postTags')?.value || '[]'); }catch{ return []; } })();
 
-  if (!title && !body && photos.files().length===0){
+  // 2) 基本校验
+  const mediaCount = media?.files()?.length || 0;
+  if (!title && !body && mediaCount === 0){
     $('#postTitle')?.focus();
     showToast('至少需要標題、內文或照片其一','error');
     return;
   }
-  if ((body||'').length > 500){
+  if (body.length > 500){
     $('#postBody')?.focus();
     showToast('內文最多 500 字','error');
     return;
   }
 
-  // 上傳照片
-  let images = [], cover = '';
+  // 3) 上传媒体（图片 + 影片，合计最多 10 个）
+  let photos = [], videos = [], cover = '';
   try{
-    const uploaded = await uploadPhotos(photos.files());
-    images = uploaded.map(x=>x.url).filter(Boolean);
-    cover  = images[0] || '';
+    const uploaded = await uploadMedia(media?.files()); // [{url, type}, ...]
+    // 拆分：如果你的資料表没有 videos 欄位，可直接刪掉下兩行與 payload.videos
+    photos = uploaded.filter(x => /^image\//.test(x.type)).map(x => x.url).filter(Boolean);
+    videos = uploaded.filter(x => /^video\//.test(x.type)).map(x => x.url).filter(Boolean);
+    cover  = photos[0] || videos[0] || '';              // 優先用圖片作封面
   }catch(err){
-    console.warn('[submit] photo upload failed, continue:', err);
+    console.warn('[submit] media upload failed, continue:', err);
   }
 
+  // 4) 地點（可選）
   const place_id   = $('#postPlaceId')?.value?.trim() || null;
-  const place_text = $('#postPlace')?.value?.trim() || '';
+  const place_text = $('#postPlace')?.value?.trim()   || '';
 
+  // 5) 組 payload（自動去掉 null/undefined）
   const payload = compact({
     id: makePostId(title),
     title: title || null,
     body:  body  || null,
-    tags,                    // JSONB array
-    photos: images,          // JSONB array
+    tags,                     // JSONB array
+    photos,                   // JSONB array (圖片)
+    videos,                   // JSONB array (影片) —— 若表里沒有此欄位就刪掉
     cover: cover || null,
     place_id,
     place_text,
-    status: 'pending',       // 也可用 'published' 視你的審核流程
+    status: 'pending',        // 看你的審核流程
     created_at: nowIso(),
     updated_at: nowIso(),
   });
 
-  // 本地 fallback 佇列
+  // 6) 無後端時：本地佇列
   if (!supabase){
     const key = 'add_queue_posts';
     const q = JSON.parse(localStorage.getItem(key) || '[]');
@@ -314,16 +372,17 @@ async function handleSubmit(e, ctx){
     localStorage.setItem(key, JSON.stringify(q));
     showToast('已暫存於本地（未連接後端）','success');
     form.reset();
-    ctx.reset();
+    ctx?.media?.clear?.();
     return;
   }
 
+  // 7) 寫入資料庫
   try{
     const { error } = await supabase.from('posts').insert(payload);
     if (error) throw error;
     showToast('已發布，等待審核/同步 ✓','success');
     form.reset();
-    ctx.reset();
+    ctx?.media?.clear?.();
   }catch(err){
     console.error('[submit] save failed:', err);
     showToast(err?.message || '儲存失敗，已加入離線佇列','error');
@@ -360,7 +419,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if (!page) return;
 
   // Photos
-  const photos = initPhotos();
+  const media = initMedia();
   photos?.render?.();
 
   // Body counter + autosize
@@ -377,7 +436,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   form?.addEventListener('submit', (e)=> handleSubmit(e, {
     photos,
     reset(){
-      photos?.clear?.();
+      media?.clear?.();
       $('#postBodyCount') && ($('#postBodyCount').textContent = '0');
     }
   }));
