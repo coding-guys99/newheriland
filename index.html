@@ -398,7 +398,7 @@
 <section data-page="posts" class="posts" hidden aria-labelledby="h-posts">
   <!-- Sticky AppBar（沿用你現有 appbar 風格也可拿掉） -->
   <header class="p-appbar">
-    <h1 id="h-posts" class="p-title">Community</h1>
+    <h1 id="h-posts" class="p-title" data-focusable-heading >Community</h1>
     <div class="p-actions">
       <button class="icon-btn" id="btnPostsRefresh" aria-label="Refresh">⟲</button>
     </div>
@@ -407,7 +407,7 @@
   <div class="p-scroll">
     <!-- 工具列：排序 + #Tag 捲動列（可選） -->
     <div class="p-toolbar" role="region" aria-label="Posts tools">
-      <div class="p-sort">
+      <div class="p-sort" role="group" aria-label="Sort posts">
         <button class="chip is-on" data-sort="latest" aria-pressed="true">Latest</button>
         <button class="chip" data-sort="hot" aria-pressed="false">Popular</button>
       </div>
@@ -437,8 +437,27 @@
       <button id="btnPostsMore" class="btn">載入更多</button>
       <div id="postsMoreSk" class="p-more-sk" hidden></div>
     </div>
+    
+    <div id="postsSentinel" class="p-sentinel" aria-hidden="true"></div>
 
     <div class="p-safe"></div>
+    
+    <template id="postCardTpl">
+  <article class="post">
+    <header class="post-hd">
+      <div class="post-author"></div>
+      <time class="post-time" datetime=""></time>
+    </header>
+    <div class="post-media"></div>
+    <div class="post-body"></div>
+    <div class="post-tags"></div>
+    <footer class="post-ft">
+      <button class="btn ghost btn-like" type="button">♡</button>
+      <a class="link-inline btn-place" href="#" target="_blank" rel="noopener"></a>
+    </footer>
+  </article>
+</template>
+    
   </div>
 </section>
 
