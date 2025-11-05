@@ -1,17 +1,28 @@
-// add.js — integrated & fixed to match your HTML (tags, categories, photos, hours, cities)
+// add-post.js — Contribute: Post composer (photos, title, body, #tags, place)
 // Requirements: app.js must export `supabase`
 
 import { supabase } from './app.js';
 
+/* ==================== Mini DOM helpers ==================== */
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-/* ========================= Helpers ========================= */
-const slug = (s='') => (s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
-const autosize = (el)=>{ if(!el) return; el.style.height='auto'; el.style.height = Math.min(240, el.scrollHeight)+'px'; };
+/* ==================== Utils ==================== */
+const slug = (s='') => (s||'').toLowerCase().trim()
+  .replace(/[#]+/g,'')                // 去掉 # 符號，避免進 id
+  .replace(/[^a-z0-9]+/g,'-')
+  .replace(/(^-|-$)/g,'');
+
+const autosize = (el)=>{
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = Math.min(320, el.scrollHeight) + 'px';
+};
+
+const nowIso = () => new Date().toISOString();
 
 function showToast(msg, kind='info'){
-  const toast = $('#addToast');
+  const toast = $('#postToast');
   if (!toast){ console[kind==='error'?'error':'log'](msg); return; }
   toast.textContent = msg;
   toast.dataset.kind = kind;
@@ -20,71 +31,183 @@ function showToast(msg, kind='info'){
   showToast._t = setTimeout(()=> toast.hidden = true, 2400);
 }
 
-const makeId = (cityId, name) => `${(cityId||'xx').toLowerCase()}-${slug(name)}-${Date.now().toString(36).slice(-5)}`;
+const makePostId = (title='post') =>
+  `post-${slug(title)||'untitled'}-${Date.now().toString(36).slice(-6)}`;
 
-// 移除 null/undefined 的鍵，保留空陣列（給 JSONB）
-function compact(obj){
+/* 去掉 null/undefined；保留空陣列/空字串（利於 JSONB） */
+function compact(o){
   const out = {};
-  for (const [k,v] of Object.entries(obj)){
-    if (v === null || v === undefined) continue;
-    out[k] = v;
-  }
+  for (const [k,v] of Object.entries(o)) if (v !== undefined && v !== null) out[k]=v;
   return out;
 }
 
-/* ========================= Cities ========================= */
-async function populateCitySelect(){
-  const sel = $('#fCity');
-  if (!sel) return;
-  sel.innerHTML = `<option value="" disabled selected>Loading…</option>`;
-  try{
-    const { data, error } = await supabase
-      .from('cities')
-      .select('id,name,sort_order')
-      .order('sort_order', { ascending: true });
-    if (error) throw error;
-    const rows = data || [];
-    if (!rows.length) throw new Error('No cities');
-    sel.innerHTML = `<option value="" disabled selected>Select a city</option>` +
-      rows.map(c => `<option value="${c.id}">${c.name || c.id}</option>`).join('');
-  }catch(e){
-    const fallback = [
-      {id:'kuching', name:'Kuching'},
-      {id:'miri',    name:'Miri'},
-      {id:'sibu',    name:'Sibu'},
-      {id:'mukah',   name:'Mukah'},
-    ];
-    sel.innerHTML = `<option value="" disabled selected>Select a city</option>` +
-      fallback.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+/* ==================== Photos (max 10) ==================== */
+function initPhotos(){
+  const btnPick   = $('#btnPostPickPhotos');
+  const input     = $('#postPhotosInput');
+  const drop      = $('#postDrop');
+  const grid      = $('#postPhotosGrid');
+
+  if (!input || !grid || !drop) return;
+
+  const MAX = 10;
+
+  const getFiles = ()=> Array.from(input.files || []);
+  const setFiles = (filesArr)=>{
+    const dt = new DataTransfer();
+    filesArr.slice(0, MAX).forEach(f => dt.items.add(f));
+    input.files = dt.files;
+  };
+
+  function render(){
+    const files = getFiles();
+    grid.innerHTML = '';
+    files.slice(0,MAX).forEach((file, idx)=>{
+      const url = URL.createObjectURL(file);
+      const cell = document.createElement('div');
+      cell.className = 'ph';
+      cell.style.backgroundImage = `url("${url}")`;
+
+      // Cover badge
+      if (idx===0){
+        const badge = document.createElement('span');
+        badge.className = 'ph-badge';
+        badge.textContent = 'Cover';
+        cell.appendChild(badge);
+      }
+
+      // Delete
+      const del = document.createElement('button');
+      del.className = 'ph-del';
+      del.type = 'button';
+      del.textContent = '×';
+      del.title = 'Remove';
+      del.addEventListener('click', ()=>{
+        const arr = getFiles().filter((_,i)=> i!==idx);
+        setFiles(arr);
+        render();
+      });
+      cell.appendChild(del);
+
+      grid.appendChild(cell);
+    });
+
+    // 仍可加上 count 提示
+    drop.querySelector('.dz-s')?.replaceChildren(
+      document.createTextNode(`JPG / PNG, up to ${MAX} images · ${Math.min(files.length, MAX)}/${MAX}`)
+    );
   }
+
+  btnPick?.addEventListener('click', ()=> input.click());
+  input.addEventListener('change', render);
+
+  // Drag & drop
+  ['dragenter','dragover'].forEach(ev=>{
+    drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.add('is-drag'); }, false);
+  });
+  ['dragleave','drop'].forEach(ev=>{
+    drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.remove('is-drag'); }, false);
+  });
+  drop.addEventListener('click', ()=> input.click());
+  drop.addEventListener('drop', (e)=>{
+    const dropped = Array.from(e.dataTransfer?.files || []).filter(f=> f.type.startsWith('image/'));
+    if (!dropped.length) return;
+    const merged = getFiles().concat(dropped).slice(0, MAX);
+    setFiles(merged);
+    render();
+  });
+
+  // public method (for submit)
+  return {
+    files: ()=> getFiles().slice(0,MAX),
+    clear: ()=> { setFiles([]); render(); },
+    render
+  };
 }
 
-/* ========================= Tags input ========================= */
-// <div id="tagBox"><input id="fTagInput"></div> + hidden <input id="fTags">
-function initTagInput(){
-  const box = $('#tagBox'); const input = $('#fTagInput'); const hidden = $('#fTags');
+async function uploadPhotos(files){
+  const results = [];
+  const list = Array.from(files||[]).slice(0,10);
+  for (const f of list){
+    try{
+      if (!supabase){
+        results.push({ url: URL.createObjectURL(f) });
+        continue;
+      }
+      const ext = (f.name.split('.').pop()||'jpg').toLowerCase();
+      const path = `posts/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: upErr } = await supabase
+        .storage.from('post-photos')
+        .upload(path, f, { cacheControl: '3600', upsert:false, contentType: f.type || 'image/jpeg' });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from('post-photos').getPublicUrl(path);
+      results.push({ url: pub?.publicUrl || '' });
+    }catch(err){
+      console.warn('[uploadPhotos]', err);
+      results.push({ url: '' });
+    }
+  }
+  return results;
+}
+
+/* ==================== Body counter & autosize ==================== */
+function initBodyCounter(){
+  const ta = $('#postBody');
+  const counter = $('#postBodyCount');
+  if (!ta || !counter) return;
+  const MAX = parseInt(ta.getAttribute('maxlength')||'500',10) || 500;
+
+  const update = ()=>{
+    const n = (ta.value || '').length;
+    counter.textContent = String(n);
+    autosize(ta);
+  };
+  ta.addEventListener('input', update);
+  update();
+}
+
+/* ==================== Tags (#chips) ==================== */
+function initTags(){
+  const box = $('#postTagBox');
+  const input = $('#postTagInput');
+  const hidden = $('#postTags');
   if (!box || !input || !hidden) return;
 
-  function renderHidden(){
-    const tags = $$('.tag', box).map(ch => ch.dataset.tag || ch.textContent.trim()).filter(Boolean);
-    hidden.value = JSON.stringify(tags);
-  }
-  function addTag(txt){
-    const t = (txt||'').trim();
+  const maxTags = 12;
+
+  const norm = (t)=> {
+    let s = (t||'').trim();
+    if (!s) return '';
+    if (s.startsWith('#')) s = s.slice(1);
+    s = s.replace(/\s+/g,'-');
+    return slug(s);
+  };
+
+  const current = ()=> $$('.tag', box).map(t => t.dataset.tag);
+
+  const renderHidden = ()=> hidden.value = JSON.stringify(current());
+
+  const addTag = (raw)=>{
+    const t = norm(raw);
     if (!t) return;
-    const exists = $$('.tag', box).some(ch => (ch.dataset.tag||ch.textContent).toLowerCase() === t.toLowerCase());
-    if (exists) return;
-    const chip = document.createElement('button');
-    chip.type = 'button';
+    const has = current().some(x => x.toLowerCase()===t.toLowerCase());
+    if (has || current().length >= maxTags) return;
+    const chip = document.createElement('span');
     chip.className = 'tag';
     chip.dataset.tag = t;
-    chip.innerHTML = `${t} <span aria-hidden="true">×</span>`;
-    chip.addEventListener('click', ()=>{ chip.remove(); renderHidden(); });
+    chip.innerHTML = `#${t} <button type="button" aria-label="Remove tag">×</button>`;
+    chip.querySelector('button').addEventListener('click', ()=>{ chip.remove(); renderHidden(); });
     box.insertBefore(chip, input);
     renderHidden();
-  }
+  };
+
   input.addEventListener('keydown', (e)=>{
     if (e.key === 'Enter'){
+      e.preventDefault();
+      if (input.value.trim()) addTag(input.value);
+      input.value = '';
+    }else if (e.key === ' ' && input.value.startsWith('#')){
+      // 空白也視為結束一個 tag
       e.preventDefault();
       addTag(input.value);
       input.value = '';
@@ -93,307 +216,179 @@ function initTagInput(){
       if (last){ last.remove(); renderHidden(); }
     }
   });
-}
 
-/* ========================= Category chips ========================= */
-// <div id="catChips"> + hidden <input id="fCategory">
-function initCategoryChips(){
-  const wrap = $('#catChips'); const hidden = $('#fCategory');
-  if (!wrap || !hidden) return;
-  wrap.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.chip'); if (!btn) return;
-    $$('.chip', wrap).forEach(c=> c.classList.remove('is-on'));
-    btn.classList.add('is-on');
-    hidden.value = btn.dataset.cat || btn.textContent.trim();
-  });
-}
-
-/* ========================= Photos ========================= */
-// #btnPickPhotos -> #fPhotos (hidden) -> preview in #photoGrid (max 10)
-function initPhotos(){
-  const pick = $('#btnPickPhotos');
-  const input = $('#fPhotos');
-  const grid  = $('#photoGrid');
-  if (!input || !grid) return;
-
-  pick?.addEventListener('click', ()=> input.click());
-
-  function render(files){
-    grid.innerHTML = '';
-    Array.from(files||[]).slice(0,10).forEach((file, idx)=>{
-      const url = URL.createObjectURL(file);
-      const cell = document.createElement('div');
-      cell.className = 'thumb';
-      cell.style.backgroundImage = `url("${url}")`;
-      const del = document.createElement('button');
-      del.type='button'; del.className='del'; del.textContent='×';
-      del.addEventListener('click', ()=>{
-        const dt = new DataTransfer();
-        Array.from(input.files).forEach((f,i)=>{ if(i!==idx) dt.items.add(f); });
-        input.files = dt.files;
-        render(input.files);
-      });
-      cell.appendChild(del);
-      if (idx===0){
-        const badge = document.createElement('span');
-        badge.className='cover-badge'; badge.textContent='Cover';
-        cell.appendChild(badge);
-      }
-      grid.appendChild(cell);
-    });
-  }
-  input.addEventListener('change', ()=> render(input.files));
-}
-
-async function uploadPhotos(files){
-  const results = [];
-  const arr = Array.from(files||[]).slice(0,10);
-  for (const f of arr){
-    if (!supabase){
-      results.push({ url: URL.createObjectURL(f) });
-      continue;
+  // 也支援貼上多個（用空白/逗號分割）
+  input.addEventListener('paste', (e)=>{
+    const txt = (e.clipboardData?.getData('text')||'').trim();
+    if (!txt) return;
+    const parts = txt.split(/[\s,，]+/).filter(Boolean);
+    if (parts.length>1){
+      e.preventDefault();
+      parts.forEach(p=> addTag(p));
+      renderHidden();
     }
-    try{
-      const ext = (f.name.split('.').pop()||'jpg').toLowerCase();
-      const path = `merchants/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error: upErr } = await supabase.storage.from('merchant-photos').upload(path, f, {
-        cacheControl: '3600', upsert: false, contentType: f.type || 'image/jpeg'
-      });
-      if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from('merchant-photos').getPublicUrl(path);
-      results.push({ url: pub?.publicUrl || '' });
-    }catch(err){
-      console.error('upload error:', err);
-      results.push({ url: URL.createObjectURL(f) });
-    }
-  }
-  return results;
+  });
+
+  // 初始同步
+  renderHidden();
 }
 
-/* ========================= Opening Hours (Google-like) ========================= */
-// IMPORTANT: never set <input type="time"> to 24:00. Use 23:59 for UI; serialize back to 24:00.
-function ohMakeChip(open='09:00', close='18:00'){
-  const chip = document.createElement('span');
-  chip.className = 'oh-chip';
-  chip.innerHTML = `
-    <input type="time" class="oh-open" value="${open}">
-    <span>–</span>
-    <input type="time" class="oh-close" value="${close}">
-    <button type="button" class="oh-del" title="Remove">×</button>
-  `;
-  chip.querySelector('.oh-del').addEventListener('click', ()=> chip.remove());
-  return chip;
-}
-function ohSetRowMode(row, mode){
-  const box  = row.querySelector('.oh-ranges');
-  const note = row.querySelector('.oh-note');
-  if (mode==='open' || mode==='special'){
-    box.innerHTML = '';
-    const add = document.createElement('button');
-    add.type='button'; add.className='oh-add'; add.textContent='＋ Add range';
-    add.addEventListener('click', ()=>{
-      if (box.querySelectorAll('.oh-chip').length>=3) return;
-      box.insertBefore(ohMakeChip(), add);
-    });
-    box.append(ohMakeChip(), add);
-    note.disabled = (mode!=='special');
-    if (mode!=='special') note.value='';
-  }else if(mode==='24h'){
-    box.innerHTML='';
-    const c = ohMakeChip('00:00','23:59'); // UI 用 23:59，序列化時轉回 24:00
-    c.querySelectorAll('input').forEach(i=> i.disabled=true);
-    box.appendChild(c);
-    note.disabled = true; note.value='';
-  }else{ // closed
-    box.innerHTML = '<em style="color:#666">Closed</em>';
-    note.disabled = true; note.value='';
-  }
-}
-function initHoursEditor(root = $('#ohTable')){
-  if (!root) return;
-  root.querySelectorAll('.oh-row').forEach(row=>{
-    const sel = row.querySelector('.oh-mode');
-    ohSetRowMode(row, sel.value || 'open');
-    sel.addEventListener('change', ()=> ohSetRowMode(row, sel.value));
+/* ==================== Place ==================== */
+function initPlace(){
+  const input = $('#postPlace');
+  const hidden = $('#postPlaceId');
+  const btnClr = $('#btnClearPlace');
+  if (!input) return;
+
+  // 你之後可以在這裡掛 autocomplete，選中後：
+  // hidden.value = merchant.id; input.value = merchant.name; btnClr.hidden = false;
+
+  btnClr?.addEventListener('click', ()=>{
+    input.value = '';
+    if (hidden) hidden.value = '';
+    btnClr.hidden = true;
   });
 
-  const setAll = (fn)=> root.querySelectorAll('.oh-row').forEach(fn);
+  input.addEventListener('input', ()=>{
+    if (hidden && input.value.trim()!=='' ) hidden.value = ''; // 手改文字即清掉 place_id
+    if (btnClr) btnClr.hidden = (input.value.trim()==='');
+  });
 
-  $('#btnOH247')?.addEventListener('click', ()=>{
-    setAll(row=>{
-      row.querySelector('.oh-mode').value='24h';
-      ohSetRowMode(row,'24h');
-    });
-  });
-  $('#btnOHWeekday')?.addEventListener('click', ()=>{
-    setAll(row=>{
-      const d = row.getAttribute('data-day');
-      if (['mon','tue','wed','thu','fri'].includes(d)){
-        row.querySelector('.oh-mode').value='open';
-        ohSetRowMode(row,'open');
-        const chip = row.querySelector('.oh-chip');
-        chip.querySelector('.oh-open').value = '09:00';
-        chip.querySelector('.oh-close').value = '19:00';
-      }
-    });
-  });
-  $('#btnOHWeekend')?.addEventListener('click', ()=>{
-    setAll(row=>{
-      const d = row.getAttribute('data-day');
-      if (['sat','sun'].includes(d)){
-        row.querySelector('.oh-mode').value='open';
-        ohSetRowMode(row,'open');
-        const chip = row.querySelector('.oh-chip');
-        chip.querySelector('.oh-open').value = '09:00';
-        chip.querySelector('.oh-close').value = '13:00';
-      }
-    });
-  });
-  $('#btnOHClear')?.addEventListener('click', ()=>{
-    setAll(row=>{
-      row.querySelector('.oh-mode').value='closed';
-      ohSetRowMode(row,'closed');
-    });
-  });
-}
-function getOpenDaysJSON(root = $('#ohTable')){
-  if (!root) return {};
-  const out = {};
-  root.querySelectorAll('.oh-row').forEach(row=>{
-    const day  = row.getAttribute('data-day');
-    const mode = row.querySelector('.oh-mode').value;
-    const note = row.querySelector('.oh-note').value.trim();
-
-    if (mode==='closed'){ out[day]={closed:true, ranges:[]}; return; }
-    if (mode==='24h'){ out[day]={closed:false, ranges:[{open:'00:00',close:'24:00'}]}; return; }
-
-    const ranges=[];
-    row.querySelectorAll('.oh-chip').forEach(c=>{
-      const o = c.querySelector('.oh-open')?.value;
-      let cl = c.querySelector('.oh-close')?.value;
-      if (cl === '24:00') cl = '23:59'; // 保護 UI 值
-      if (o && cl) ranges.push({open:o, close:cl});
-    });
-    out[day]={closed:false, ranges};
-    if (mode==='special' && note) out[day].note = note;
-  });
-  return out;
+  // 初始狀態
+  if (btnClr) btnClr.hidden = (input.value.trim()==='');
 }
 
-/* ========================= Submit ========================= */
-async function handleSubmit(e){
+/* ==================== Submit / Draft ==================== */
+async function handleSubmit(e, ctx){
   e.preventDefault();
+  const { photos } = ctx;
   const form = e.currentTarget;
 
-  const name   = $('#fName')?.value?.trim();
-  const city   = $('#fCity')?.value?.trim();
-  const addr   = $('#fAddress')?.value?.trim();
-  if (!name){ $('#fName')?.focus(); showToast('請輸入商家名稱','error'); return; }
-  if (!city){ $('#fCity')?.focus(); showToast('請選擇城市','error'); return; }
-  if (!addr){ $('#fAddress')?.focus(); showToast('請輸入地址','error'); return; }
+  const title = $('#postTitle')?.value?.trim() || '';
+  const body  = $('#postBody')?.value?.trim()  || '';
+  const tags  = (()=>{ try{ return JSON.parse($('#postTags')?.value || '[]'); }catch(_){ return []; } })();
 
-  // Category & Tags
-  const category = $('#fCategory')?.value || '';
-  const tagsJSON = $('#fTags')?.value || '[]';
-  let tags = [];
-  try{ tags = JSON.parse(tagsJSON); }catch(_){}
-
-  // Socials
-  const socials = {
-    instagram: $('#fIG')?.value?.trim() || '',
-    facebook:  $('#fFB')?.value?.trim() || '',
-    tiktok:    $('#fTT')?.value?.trim() || '',
-    youtube:   $('#fYT')?.value?.trim() || ''
-  };
-
-  // Hours JSON
-  const open_days = getOpenDaysJSON();
-  $('#fOpenDays') && ($('#fOpenDays').value = JSON.stringify(open_days));
-
-  // Photos
-  const fileInput = $('#fPhotos');
-  let images = [], cover = '';
-  try{
-    if (fileInput?.files?.length){
-      const uploaded = await uploadPhotos(fileInput.files);
-      images = uploaded.map(x => x.url).filter(Boolean);
-      cover = images[0] || '';
-    }
-  }catch(err){
-    console.warn('photo upload failed (continue):', err);
+  if (!title && !body && photos.files().length===0){
+    $('#postTitle')?.focus();
+    showToast('至少需要標題、內文或照片其一','error');
+    return;
+  }
+  if ((body||'').length > 500){
+    $('#postBody')?.focus();
+    showToast('內文最多 500 字','error');
+    return;
   }
 
-  // 讀 WhatsApp（如果你在 HTML 增加了 #fWhatsApp）
-  const whatsapp = $('#fWhatsApp')?.value?.trim() || null;
+  // 上傳照片
+  let images = [], cover = '';
+  try{
+    const uploaded = await uploadPhotos(photos.files());
+    images = uploaded.map(x=>x.url).filter(Boolean);
+    cover  = images[0] || '';
+  }catch(err){
+    console.warn('[submit] photo upload failed, continue:', err);
+  }
 
-  // Build payload（刪掉 featured，避免 400）
-  let payload = {
-    id: makeId(city, name),
-    name,
-    city_id: city,
-    category: category || null,
-    tags,                             // JSONB (array of strings)
-    address: addr,
-    // 你目前以「地址為主」→ 不送 lat/lng（避免 NOT NULL 錯誤）
+  const place_id   = $('#postPlaceId')?.value?.trim() || null;
+  const place_text = $('#postPlace')?.value?.trim() || '';
+
+  const payload = compact({
+    id: makePostId(title),
+    title: title || null,
+    body:  body  || null,
+    tags,                    // JSONB array
+    photos: images,          // JSONB array
     cover: cover || null,
-    images,                           // JSONB
-    open_days,                        // JSONB (new structure)
-    rating: null,
-    // 目前沒有價格欄位，先不送；若你未來加價位再補
-    phone: $('#fPhone')?.value?.trim() || '',
-    whatsapp: whatsapp || undefined,  // 有填才送欄位
-    website: $('#fWebsite')?.value?.trim() || '',
-    socials,                          // JSONB
-    description: $('#fDesc')?.value?.trim() || '',
-    status: 'pending',
-    updated_at: new Date().toISOString()
-  };
+    place_id,
+    place_text,
+    status: 'pending',       // 也可用 'published' 視你的審核流程
+    created_at: nowIso(),
+    updated_at: nowIso(),
+  });
 
-  // 壓縮掉 null/undefined 欄位
-  payload = compact(payload);
-
+  // 本地 fallback 佇列
   if (!supabase){
-    const key = 'add_queue_merchants';
+    const key = 'add_queue_posts';
     const q = JSON.parse(localStorage.getItem(key) || '[]');
     q.push(payload);
     localStorage.setItem(key, JSON.stringify(q));
-    showToast('已暫存於本地（未連接後端）', 'success');
+    showToast('已暫存於本地（未連接後端）','success');
     form.reset();
-    $('#photoGrid') && ($('#photoGrid').innerHTML = '');
+    ctx.reset();
     return;
   }
 
   try{
-    const { error } = await supabase.from('merchants').insert(payload);
+    const { error } = await supabase.from('posts').insert(payload);
     if (error) throw error;
-    showToast('已送出，待審核上架 ✓', 'success');
+    showToast('已發布，等待審核/同步 ✓','success');
     form.reset();
-    $('#photoGrid') && ($('#photoGrid').innerHTML = '');
+    ctx.reset();
   }catch(err){
-    console.error('Save failed:', err);
-    showToast(err?.message || '儲存失敗，已加入離線佇列', 'error');
-    const key = 'add_queue_merchants';
+    console.error('[submit] save failed:', err);
+    showToast(err?.message || '儲存失敗，已加入離線佇列','error');
+    const key = 'add_queue_posts';
     const q = JSON.parse(localStorage.getItem(key) || '[]');
     q.push(payload);
     localStorage.setItem(key, JSON.stringify(q));
   }
 }
 
-/* ========================= Bootstrap ========================= */
+function handleSaveDraft(ctx){
+  const title = $('#postTitle')?.value?.trim() || '';
+  const body  = $('#postBody')?.value?.trim()  || '';
+  const tags  = (()=>{ try{ return JSON.parse($('#postTags')?.value || '[]'); }catch(_){ return []; } })();
+  const place_id   = $('#postPlaceId')?.value?.trim() || null;
+  const place_text = $('#postPlace')?.value?.trim() || '';
+
+  // 暫存「尚未上傳」的照片檔名不易保存；草稿只存文字/標籤/地點即可
+  const draft = compact({
+    id: makePostId(title),
+    title, body, tags, place_id, place_text,
+    _ts: Date.now()
+  });
+  const key = 'draft_posts_v1';
+  const list = JSON.parse(localStorage.getItem(key)||'[]');
+  list.unshift(draft);
+  localStorage.setItem(key, JSON.stringify(list.slice(0,50)));
+  showToast('已存為草稿','success');
+}
+
+/* ==================== Bootstrap ==================== */
 document.addEventListener('DOMContentLoaded', ()=>{
-  // Only run on Add page
-  if (!document.querySelector('[data-page="add"]')) return;
+  const page = document.querySelector('[data-page="add"].add-post');
+  if (!page) return;
 
-  populateCitySelect();
-  initCategoryChips();
-  initTagInput();
-  initPhotos();
-  initHoursEditor();
+  // Photos
+  const photos = initPhotos();
+  photos?.render?.();
 
-  const form = $('#addForm');
-  form?.addEventListener('submit', handleSubmit);
+  // Body counter + autosize
+  initBodyCounter();
 
-  // auto-resize desc
-  const fDesc = $('#fDesc');
-  if (fDesc){ autosize(fDesc); fDesc.addEventListener('input', ()=> autosize(fDesc)); }
+  // Tags
+  initTags();
+
+  // Place
+  initPlace();
+
+  // Form submit
+  const form = $('#postForm');
+  form?.addEventListener('submit', (e)=> handleSubmit(e, {
+    photos,
+    reset(){
+      photos?.clear?.();
+      $('#postBodyCount') && ($('#postBodyCount').textContent = '0');
+    }
+  }));
+
+  // Save draft
+  $('#btnPostSaveDraft')?.addEventListener('click', ()=> handleSaveDraft({}));
+
+  // 讓標題、內文在 iOS 輸入時也有小延遲的視覺回饋
+  ['#postTitle','#postBody'].forEach(sel=>{
+    const el = $(sel);
+    el?.addEventListener('input', ()=> el.classList.add('is-dirty'), { passive:true });
+    el?.addEventListener('blur',  ()=> el.classList.remove('is-dirty'));
+  });
 });
