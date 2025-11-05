@@ -1,259 +1,302 @@
 /* =========================================================
-   HeriLand — Add Page (Add a place)
-   僅以 CSS 美化表單與區塊；不改 JS / HTML 結構
+   Add Page (Create Merchant) — Single-page, light sections
+   不改 JS，僅視覺；沿用你現有變數與按鈕風格
    ========================================================= */
-
-:root {
-  --add-bg: #F6F1E6;               /* 奶油底 */
-  --add-card: #FFFFFF;             /* 卡片白 */
-  --add-line: rgba(0,0,0,.08);
-  --add-soft-line: rgba(0,0,0,.06);
-  --add-heading: #1F2937;
-  --add-text: #374151;
-  --add-subtle: #6B7280;
-  --add-radius-outer: 16px;        /* 大卡片圓角 */
-  --add-radius: 12px;              /* 元件圓角 */
-  --add-shadow: 0 12px 40px rgba(0,0,0,.08);
-  --add-soft-shadow: 0 6px 20px rgba(0,0,0,.06);
-  --brand: #2E5E4E;                /* 主色同 detail */
-  --brand-weak: #E7F3EF;           /* 主色淡面 */
-  --accent: #2563EB;
-  --danger: #B91C1C;
-  --good: #166534;
+:root{
+  --add-bg: #FAF7EF;           /* 淺奶油底，與首頁一致 */
+  --panel: #fff;               /* 面板白 */
+  --line: rgba(0,0,0,.08);     /* 細分隔線 */
+  --muted: #6b7280;
+  --radius: 14px;
+  --radius-sm: 12px;
+  --focus: #2E5E4E;            /* 主色描邊 */
 }
 
-/* 整頁背景與安全區 */
-[data-page="add"] {
+.add{
   background: var(--add-bg);
   min-height: 100dvh;
-}
-[data-page="add"] .page {
-  padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+  padding: 10px 12px 0;
 }
 
-/* 頁標題（沿用你現有的 h1） */
-[data-page="add"] h1,
-[data-page="add"] .title {
-  font-size: 26px;
+.add h1{
+  font-size: 24px;
+  line-height: 1.25;
   font-weight: 800;
-  color: var(--add-heading);
-  letter-spacing: .2px;
-  margin: 8px 12px 14px;
+  margin: 6px 4px 14px;
 }
 
-/* 區塊卡片（Basic / Opening hours / Photos …） */
-[data-page="add"] .card,
-[data-page="add"] .section {
-  background: var(--add-card);
-  border: 1px solid var(--add-line);
-  border-radius: var(--add-radius-outer);
-  box-shadow: var(--add-soft-shadow);
-  padding: 14px 12px;
-  margin: 0 12px 14px;
+/* -------- 共用卡片：轉為「輕面板 + 標題 + 分隔」 -------- */
+.add .card{
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.04);
 }
 
-/* 區塊標題列 */
-[data-page="add"] .card > .h,
-[data-page="add"] .section > .h,
-[data-page="add"] .card > h2,
-[data-page="add"] h2.section-title {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 10px;
-  font-size: 17px;
+.add .card-hd{
+  font-size: 15px;
   font-weight: 800;
   margin: 2px 2px 10px;
-  color: var(--add-heading);
 }
 
-/* 表單欄位群組（label/控件/說明） */
-[data-page="add"] .field { margin: 12px 2px; }
-[data-page="add"] .label,
-[data-page="add"] label {
-  display: inline-flex; align-items: center; gap: 6px;
+/* -------- Grid 佈局 -------- */
+.add .grid{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.add .grid .span-2{ grid-column: span 1; }
+
+@media (min-width: 680px){
+  .add .grid{
+    grid-template-columns: 1fr 1fr;
+  }
+  .add .grid .span-2{ grid-column: span 2; }
+}
+
+/* -------- 欄位 -------- */
+.add .fld{
+  display: grid;
+  gap: 6px;
+}
+
+.add .k{
   font-size: 13px;
   font-weight: 700;
-  color: var(--add-subtle);
-  margin: 4px 0 6px;
+  color: #1f2937;
 }
-[data-page="add"] .label .req { color: var(--danger); }
+.add .k b{ color: #b91c1c; }
 
-/* 文字框 / 下拉 / 多行 */
-[data-page="add"] input[type="text"],
-[data-page="add"] input[type="tel"],
-[data-page="add"] input[type="url"],
-[data-page="add"] input[type="search"],
-[data-page="add"] select,
-[data-page="add"] textarea {
+.add input[type="text"],
+.add input[type="tel"],
+.add input[type="url"],
+.add textarea,
+.add select{
   width: 100%;
-  border: 1px solid var(--add-soft-line);
+  padding: 11px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(0,0,0,.12);
   background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 2px 0 rgba(0,0,0,.02) inset;
-  padding: 12px 14px;
-  font-size: 16px;
-  color: var(--add-text);
+  font-size: 15px;
+  line-height: 1.35;
   outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  transition: box-shadow .15s ease, border-color .15s ease;
 }
-[data-page="add"] textarea { min-height: 110px; resize: vertical; }
+.add textarea{ resize: vertical; min-height: 96px; }
 
-/* 聚焦 & 錯誤 */
-[data-page="add"] input:focus,
-[data-page="add"] select:focus,
-[data-page="add"] textarea:focus {
-  border-color: color-mix(in oklab, var(--brand) 35%, #0000);
-  box-shadow:
-    0 0 0 3px color-mix(in oklab, var(--brand) 14%, #0000);
+.add input:focus,
+.add textarea:focus,
+.add select:focus{
+  border-color: color-mix(in oklab, var(--focus) 45%, #0000);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus) 18%, #0000);
 }
-[data-page="add"] .is-error input,
-[data-page="add"] .is-error select,
-[data-page="add"] .is-error textarea {
-  border-color: color-mix(in oklab, var(--danger) 55%, #0000);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--danger) 12%, #0000);
-}
-[data-page="add"] .hint { font-size: 12px; color: var(--add-subtle); margin-top: 6px; }
 
-/* 類別 Chips（Taste / Nature / …） */
-[data-page="add"] .chips { display: flex; flex-wrap: wrap; gap: 10px; }
-[data-page="add"] .chip {
-  display: inline-flex; align-items: center; gap: 8px;
+.add .err{
+  color: #b91c1c;
+  font-size: 12px;
+  min-height: 16px;
+}
+
+/* -------- Category chips -------- */
+.add .chips-line{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.add .chip{
+  border: 1px solid rgba(0,0,0,.12);
+  background: #fff;
+  border-radius: 999px;
   padding: 8px 12px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: transform .06s ease, background .15s ease, border-color .15s ease;
+}
+.add .chip:active{ transform: translateY(1px); }
+.add .chip.is-on{
+  background: color-mix(in oklab, var(--focus) 14%, #fff);
+  border-color: color-mix(in oklab, var(--focus) 30%, #fff);
+  color: #18362E;
+}
+
+/* -------- Tags token input -------- */
+.add .tagbox{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+  border: 1px dashed rgba(0,0,0,.14);
+  border-radius: var(--radius-sm);
+  background: #fff;
+}
+.add .tagbox input{
+  border: 0;
+  outline: 0;
+  min-width: 120px;
+  font-size: 14px;
+  background: transparent;
+  padding: 6px 2px;
+}
+.add .tag{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
   border-radius: 999px;
-  border: 1px dashed var(--add-soft-line);
-  background: #fff;
-  color: #111;
-  font-weight: 700; font-size: 14px;
-  transition: transform .05s ease, background .15s ease, border-color .15s ease;
+  background: #f3f4f6;
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
 }
-[data-page="add"] .chip:active { transform: translateY(1px); }
-[data-page="add"] .chip.is-on,
-[data-page="add"] .chip[aria-pressed="true"] {
-  background: var(--brand-weak);
-  border-color: color-mix(in oklab, var(--brand) 30%, #0000);
+.add .tag button{
+  border: 0; background: transparent; cursor: pointer; font-size: 14px; line-height: 1;
 }
 
-/* 小膠囊按鈕（像「Add range」「Clear all」） */
-[data-page="add"] .btn-pill {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 8px 14px 9px;
-  border-radius: 999px;
-  border: 1px solid var(--add-soft-line);
-  background: #fff;
-  color: #111; font-weight: 700; font-size: 14px;
+/* -------- Opening hours -------- */
+.add .oh-toolbar{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 10px;
 }
-[data-page="add"] .btn-pill.primary {
-  background: var(--brand);
-  color: #fff; border-color: transparent;
-  box-shadow: 0 6px 18px rgba(46,94,78,.22);
+.add .oh-table{
+  display: grid;
+  gap: 10px;
 }
-[data-page="add"] .btn-pill.ghost { background: #fff; }
-
-/* 區塊內分割線（淡） */
-[data-page="add"] .divider {
-  height: 1px; background: var(--add-soft-line);
-  margin: 12px 0;
-}
-
-/* Opening hours 編輯器 */
-[data-page="add"] .hours { display: grid; gap: 12px; }
-[data-page="add"] .hours-row {
-  border: 1px dashed var(--add-soft-line);
-  background: #fff;
-  border-radius: 14px;
+.add .oh-row{
+  display: grid;
+  grid-template-columns: auto 120px 1fr;
+  align-items: center;
+  gap: 10px;
   padding: 10px;
+  border: 1px dashed rgba(0,0,0,.12);
+  border-radius: var(--radius-sm);
+  background: #fff;
 }
-[data-page="add"] .hours-top {
-  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px;
+.add .oh-day{
+  font-weight: 800;
+  width: 44px;
 }
-[data-page="add"] .hours-day { font-weight: 800; color: var(--add-heading); }
-[data-page="add"] .hours-state select {
-  background: #F3F4F6; border: 0; border-radius: 999px; padding: 8px 12px;
+.add .oh-mode{
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: #f7f7f8;
 }
-[data-page="add"] .hours-range {
-  display: inline-flex; gap: 8px; align-items: center;
-  border: 1px dashed var(--add-soft-line);
-  background: #fff; padding: 8px; border-radius: 999px;
+.add .oh-ranges{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
-[data-page="add"] .hours-range input {
-  width: 84px; text-align: center;
-  border-radius: 10px; border: 1px solid var(--add-soft-line);
-  padding: 8px 10px; font-variant-numeric: tabular-nums;
-}
-[data-page="add"] .hours-add { margin-top: 10px; }
-
-/* Photos 區（不改 JS） */
-[data-page="add"] .uploader {
-  border: 1px dashed var(--add-soft-line);
-  background: linear-gradient(180deg, #fff, #FBFBFB);
-  border-radius: 14px;
-  padding: 16px;
-  text-align: center;
-  color: var(--add-subtle);
-}
-[data-page="add"] .uploader .btn-pill { margin-top: 8px; }
-
-/* 表單尾端操作列 */
-[data-page="add"] .form-actions {
-  position: sticky; bottom: calc(12px + env(safe-area-inset-bottom));
-  display: flex; gap: 10px; justify-content: flex-end;
-  padding: 8px 12px;
-  background:
-    linear-gradient(180deg, rgba(246,241,230,0), var(--add-bg) 40% 100%);
-}
-[data-page="add"] .btn {
-  appearance: none; border: 0; border-radius: 12px;
-  padding: 12px 16px; font-weight: 800; font-size: 15px; cursor: pointer;
-}
-[data-page="add"] .btn.primary {
-  background: var(--brand); color: #fff;
-  box-shadow: 0 10px 26px rgba(46,94,78,.25);
-}
-[data-page="add"] .btn.ghost {
-  background: #fff; color: var(--add-heading);
-  border: 1px solid var(--add-soft-line);
+.add .oh-note{
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border: 1px dashed rgba(0,0,0,.14);
+  border-radius: 10px;
+  background: #fafafa;
 }
 
-/* 讓內容不被 Tabbar 擋住（你的 tabbar 是 overlay） */
-[data-page="add"] .page-end-safe {
-  height: calc(90px + env(safe-area-inset-bottom));   /* 覆蓋 tabbar 高度 */
+/* 你原本時間 chip 的外觀（範例） */
+.add .time-chip{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:8px 10px; border-radius:999px;
+  border:1px dashed rgba(0,0,0,.18); background:#fff; font-weight:700; font-size:13px;
 }
 
-/* 深色模式 */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --add-bg: #0B0F12;
-    --add-card: rgba(16,21,26,.78);
-    --add-line: rgba(255,255,255,.06);
-    --add-soft-line: rgba(255,255,255,.08);
-    --add-heading: #F3F4F6;
-    --add-text: #E5E7EB;
-    --add-subtle: #9CA3AF;
-    --add-shadow: 0 18px 40px rgba(0,0,0,.45);
-    --add-soft-shadow: 0 10px 28px rgba(0,0,0,.38);
-    --brand-weak: color-mix(in oklab, var(--brand) 24%, #000);
+/* -------- Photos -------- */
+.add .photos-bar{
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.add .muted{ color: var(--muted); font-size: 12px; }
+
+.add .photo-grid{
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px;
+}
+.add .ph{
+  position: relative; padding-top: 100%;
+  border-radius: 12px; overflow: hidden;
+  background: #e5e7eb center/cover no-repeat;
+}
+.add .ph .badge{
+  position: absolute; left: 6px; top: 6px;
+  background: #111827; color: #fff;
+  font-size: 11px; padding: 3px 6px; border-radius: 999px;
+  opacity: .85;
+}
+.add .ph button.del{
+  position: absolute; right: 6px; top: 6px;
+  width: 28px; height: 28px; border-radius: 999px;
+  background: rgba(0,0,0,.55); color: #fff; border:0; cursor:pointer;
+}
+
+/* -------- 置底行動列（覆蓋在內容上方） -------- */
+.add .form-actions[data-sticky]{
+  position: fixed;
+  left: 0; right: 0;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 10px;
+  z-index: 40;
+  pointer-events: none;   /* 底層不吃點擊 */
+}
+.add .form-actions[data-sticky] .btn{
+  pointer-events: auto;   /* 只有按鈕吃點擊 */
+}
+.add .form-actions .btn{
+  height: 46px; border-radius: 14px; font-weight: 800;
+}
+.add .form-actions .btn.primary{
+  background: var(--focus); color: #fff; border: 0;
+}
+.add .form-actions .btn.ghost{
+  background: rgba(255,255,255,.7);
+  border: 1px solid rgba(0,0,0,.08);
+  backdrop-filter: blur(10px);
+}
+
+/* 避免被行動列 & Tabbar 擋住 */
+.add form{ padding-bottom: 120px; }
+.add .safe-bottom{ height: calc(16px + env(safe-area-inset-bottom)); }
+
+/* -------- Toast（沿用你原本結構） -------- */
+.add .toast{
+  position: fixed; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  background: #111827; color: #fff;
+  border-radius: 12px; padding: 10px 14px; font-size: 13px;
+  box-shadow: 0 12px 28px rgba(0,0,0,.24);
+  z-index: 50;
+}
+
+/* -------- Dark mode -------- */
+@media (prefers-color-scheme: dark){
+  .add{ background: #0b0f12; }
+  .add .card{
+    background: rgba(11,15,18,.65);
+    border-color: rgba(255,255,255,.05);
+    box-shadow: 0 12px 32px rgba(0,0,0,.35);
   }
-  [data-page="add"] .card,
-  [data-page="add"] .section { backdrop-filter: blur(8px); }
-  [data-page="add"] input[type="text"],
-  [data-page="add"] input[type="tel"],
-  [data-page="add"] input[type="url"],
-  [data-page="add"] input[type="search"],
-  [data-page="add"] select,
-  [data-page="add"] textarea {
-    background: rgba(255,255,255,.06);
-    border-color: var(--add-soft-line);
-    color: var(--add-text);
+  .add .k{ color: #e5e7eb; }
+  .add input, .add textarea, .add select{
+    background: rgba(15,23,42,.35);
+    color: #fff;
+    border-color: rgba(148,163,184,.22);
   }
-  [data-page="add"] .chip { background: rgba(255,255,255,.06); border-color: var(--add-soft-line); color: #f3f4f6; }
-  [data-page="add"] .chip.is-on { background: var(--brand-weak); }
-  [data-page="add"] .btn-pill { background: rgba(255,255,255,.08); color: #f3f4f6; }
-  [data-page="add"] .btn.ghost { background: rgba(255,255,255,.06); color: #f3f4f6; }
-  [data-page="add"] .uploader { background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03)); }
-}
-
-/* 平板以上：欄位兩欄排 */
-@media (min-width: 720px) {
-  [data-page="add"] .grid-2 {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  .add .tagbox{ background: rgba(15,23,42,.35); border-color: rgba(148,163,184,.22); }
+  .add .tag{ background: rgba(148,163,184,.16); color:#e2e8f0; }
+  .add .oh-row{ background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.12); }
+  .add .oh-note{ background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.12); }
+  .add .form-actions .btn.ghost{
+    background: rgba(11,15,18,.6); border-color: rgba(255,255,255,.06);
   }
 }
