@@ -300,3 +300,128 @@
     background: rgba(11,15,18,.6); border-color: rgba(255,255,255,.06);
   }
 }
+
+/* === Cardless 表單風格（只覆蓋，不動 HTML/JS） === */
+:root{
+  --ink:#0f172a; --muted:#64748b; --line:rgba(15,23,42,.08);
+  --brand:#2E5E4E; --bg:#FAFAF7; --panel:#fff;
+}
+
+.add{ background: var(--bg); }
+.add h1{ font-size:26px; font-weight:800; letter-spacing:.2px; margin:10px 2px 18px; }
+
+/* 取消厚卡、改成輕面板或平面 */
+.add .card{
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0 2px 18px;
+  box-shadow: none;
+  position: relative;
+}
+.add .card + .card::before{
+  content:"";
+  display:block;
+  height:1px; background: var(--line);
+  margin: 10px 0 18px;
+}
+
+/* 區塊標題：小型分組標籤 */
+.add .card-hd{
+  display:inline-flex; align-items:center; gap:8px;
+  font: 700 12px/1 var(--font, ui-sans-serif);
+  letter-spacing:.12em; text-transform:uppercase;
+  color: var(--muted);
+  padding: 6px 10px;
+  background: rgba(15,23,42,.04);
+  border:1px solid rgba(15,23,42,.06);
+  border-radius: 999px;
+  margin: 2px 0 14px;
+}
+
+/* Grid 間距更鬆 */
+.add .grid{ gap:14px; }
+
+/* Label 與欄位排版 */
+.add .k{ color:var(--ink); font-size:13px; font-weight:700; }
+.add .k b{ color:#dc2626; }
+
+/* Input：邊框淡、內陰影取消，聚焦帶品牌色 */
+.add input[type="text"], .add input[type="tel"], .add input[type="url"],
+.add textarea, .add select{
+  background: #fff;
+  border: 1px solid rgba(15,23,42,.12);
+  border-radius: 12px;
+  padding: 12px 12px;
+  font-size: 15px;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.add input:focus, .add textarea:focus, .add select:focus{
+  border-color: color-mix(in oklab, var(--brand) 40%, #0000);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 16%, #0000);
+}
+
+/* 錯誤提示：位置固定、字色淡紅 */
+.add .err{ min-height:16px; color:#b91c1c; opacity:.9; }
+
+/* Chips：改成半透明膠囊、選中用實心 */
+.add .chips-line{ gap:8px; }
+.add .chip{
+  border:1px solid rgba(15,23,42,.12);
+  background: rgba(255,255,255,.75);
+  border-radius:999px; padding:8px 12px; font-weight:700; font-size:13px;
+  transition: background .15s, border-color .15s, transform .06s;
+}
+.add .chip.is-on{
+  background: color-mix(in oklab, var(--brand) 18%, #fff);
+  border-color: color-mix(in oklab, var(--brand) 36%, #fff);
+  color:#18362E;
+}
+
+/* Tags 區改成輕量 token 欄 */
+.add .tagbox{
+  padding: 8px; border-radius:12px; border:1px dashed rgba(15,23,42,.16);
+  background:#fff;
+}
+.add .tag{ background:#f3f4f6; border-radius:999px; padding:6px 10px; font-size:12px; font-weight:700; }
+
+/* Opening Hours：一列一張「輕卡」 */
+.add .oh-row{
+  background:#fff; border:1px solid rgba(15,23,42,.1);
+  border-radius:12px; padding:10px; gap:10px;
+}
+.add .oh-day{ width:auto; min-width:36px; font-weight:800; color:#0f172a; }
+.add .oh-mode{ background:#f7f8f9; border:1px solid rgba(15,23,42,.12); border-radius:10px; }
+
+/* Photos：縮圖改更圓、badge 小字 */
+.add .photo-grid{ gap:10px; }
+.add .ph{ border-radius:14px; }
+.add .ph .badge{ font-size:10px; padding:3px 6px; }
+
+/* 置底行動列：毛玻璃、細邊框 */
+.add .form-actions[data-sticky]{
+  backdrop-filter: blur(10px);
+  padding: 12px;
+}
+.add .form-actions .btn{
+  height: 48px; border-radius: 14px; font-weight:800;
+}
+.add .form-actions .btn.ghost{
+  background: rgba(255,255,255,.7);
+  border:1px solid rgba(15,23,42,.08);
+}
+.add .form-actions .btn.primary{
+  background: var(--brand); color:#fff; border:0;
+}
+
+/* 深色模式微調 */
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0B0F12; --line:rgba(255,255,255,.08); --ink:#E5EAF0; --muted:#9AA6B2; }
+  .add .card + .card::before{ background: var(--line); }
+  .add .card-hd{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.08); color:#cfd8e3; }
+  .add input, .add textarea, .add select{ background: rgba(255,255,255,.04); color:#fff; border-color: rgba(255,255,255,.16); }
+  .add .tagbox{ background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.16); }
+  .add .tag{ background: rgba(255,255,255,.08); color:#e5e7eb; }
+  .add .oh-row{ background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.12); }
+  .add .form-actions .btn.ghost{ background: rgba(11,15,18,.6); border-color: rgba(255,255,255,.06); }
+}
