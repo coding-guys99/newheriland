@@ -1,4 +1,4 @@
-<!-- 在你的頁尾 scripts 加載（app.js / explore.js 之後） -->
+//在你的頁尾 scripts 加載（app.js / explore.js 之後）
 import { supabase } from './app.js';
 
 const $  = (s, r=document)=>r.querySelector(s);
