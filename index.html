@@ -393,12 +393,53 @@
   </div>
 </section>
 
-    <!-- Map 
-    <section data-page="map" aria-labelledby="h-map" class="section" hidden>
-      <h1 id="h-map" data-focusable-heading>Map</h1>
-      <p>地圖容器（此頁可維持自身狀態）。</p>
-      <div class="card">地圖 placeholder</div>
-    </section>-->
+    <!-- ===================== Posts (Community Feed) ===================== -->
+<section data-page="posts" class="posts" hidden aria-labelledby="h-posts">
+  <!-- Sticky AppBar（沿用你現有 appbar 風格也可拿掉） -->
+  <header class="p-appbar">
+    <h1 id="h-posts" class="p-title">Community</h1>
+    <div class="p-actions">
+      <button class="icon-btn" id="btnPostsRefresh" aria-label="Refresh">⟲</button>
+    </div>
+  </header>
+
+  <div class="p-scroll">
+    <!-- 工具列：排序 + #Tag 捲動列（可選） -->
+    <div class="p-toolbar" role="region" aria-label="Posts tools">
+      <div class="p-sort">
+        <button class="chip is-on" data-sort="latest" aria-pressed="true">Latest</button>
+        <button class="chip" data-sort="hot" aria-pressed="false">Popular</button>
+      </div>
+      <div class="p-tags" id="postsTagBar" aria-label="Filter by tag">
+        <!-- JS 注入熱度標籤；範例： -->
+        <!-- <button class="tag" data-tag="food">#food</button> -->
+      </div>
+    </div>
+
+    <!-- 列表 -->
+    <div id="postsSk" class="p-skeleton" aria-hidden="true">
+      <div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div>
+    </div>
+
+    <div id="postsError" class="p-error" hidden>
+      <p>無法載入貼文，請稍後再試。</p>
+      <button id="btnPostsRetry" class="btn ghost">Retry</button>
+    </div>
+
+    <div id="postsEmpty" class="p-empty" hidden>
+      <p>還沒有任何貼文。去 <a href="#add">發佈第一篇</a> 吧！</p>
+    </div>
+
+    <div id="postsList" class="p-list" aria-live="polite"></div>
+
+    <div id="postsMoreWrap" class="p-more" hidden>
+      <button id="btnPostsMore" class="btn">載入更多</button>
+      <div id="postsMoreSk" class="p-more-sk" hidden></div>
+    </div>
+
+    <div class="p-safe"></div>
+  </div>
+</section>
 
     <!-- Profile -->
 <section data-page="profile" aria-labelledby="h-profile" class="section" hidden>
