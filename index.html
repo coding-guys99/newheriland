@@ -834,7 +834,8 @@
           <div class="ch-sub">Up to 10. First one becomes cover.</div>
         </div>
         <div class="ch-right">
-          <input id="postPhotosInput" type="file" accept="image/*" capture="environment" multiple hidden />
+          <!-- 原本 #postPhotosInput 改成支持照片 + 影片；移除 capture 才会开启相册/图库 -->
+          <input id="postPhotosInput" type="file" accept="image/*,video/*" multiple hidden>
           <button type="button" class="btn" id="btnPostPickPhotos">Add photos</button>
         </div>
       </div>
