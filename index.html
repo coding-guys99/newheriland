@@ -823,235 +823,203 @@
 
     <!-- ===================== Add (Create Merchant) ===================== -->
 <section data-page="add" class="add" hidden aria-labelledby="h-add">
-  <div class="page"><!-- 內層容器：統一邊距 / safe-area -->
+  <h1 id="h-add" data-focusable-heading>Add a place</h1>
 
-    <h1 id="h-add" data-focusable-heading>Add a place</h1>
+  <form id="addForm" novalidate>
+    <!-- 基本資料 -->
+    <div class="card">
+      <div class="card-hd">Basic</div>
+      <div class="grid">
+        <label class="fld">
+          <span class="k">Name <b>*</b></span>
+          <input id="fName" name="name" type="text" placeholder="Brilliant Creative Florist" required maxlength="80" />
+          <small class="err" data-err-for="name"></small>
+        </label>
 
-    <form id="addForm" novalidate>
-      <!-- 基本資料 -->
-      <div class="card">
-        <div class="card-hd">Basic</div>
+        <label class="fld">
+          <span class="k">City <b>*</b></span>
+          <select id="fCity" name="city_id" required></select>
+          <small class="err" data-err-for="city_id"></small>
+        </label>
 
-        <div class="grid grid-2">
-          <label class="fld field">
-            <span class="k label">Name <b class="req">*</b></span>
-            <input id="fName" name="name" type="text" placeholder="Brilliant Creative Florist" required maxlength="80" />
-            <small class="err hint" data-err-for="name"></small>
-          </label>
+        <label class="fld">
+          <span class="k">Category <b>*</b></span>
+          <div id="catChips" class="chips-line" role="group" aria-label="Category">
+            <button type="button" class="chip" data-cat="Taste">🍽️ Taste</button>
+            <button type="button" class="chip" data-cat="Nature">🏖️ Nature</button>
+            <button type="button" class="chip" data-cat="Culture">🏛️ Culture</button>
+            <button type="button" class="chip" data-cat="Stay">🏠 Stay</button>
+            <button type="button" class="chip" data-cat="Local">🛍️ Local</button>
+            <button type="button" class="chip" data-cat="Experience">💡 Experience</button>
+          </div>
+          <input id="fCategory" name="category" type="hidden" required />
+          <small class="err" data-err-for="category"></small>
+        </label>
 
-          <label class="fld field">
-            <span class="k label">City <b class="req">*</b></span>
-            <select id="fCity" name="city_id" required></select>
-            <small class="err hint" data-err-for="city_id"></small>
-          </label>
+        <label class="fld">
+          <span class="k">Tags</span>
+          <div id="tagBox" class="tagbox" aria-label="Tags input">
+            <input id="fTagInput" type="text" placeholder="Type and press Enter…" />
+          </div>
+          <input id="fTags" name="tags" type="hidden" />
+        </label>
 
-          <label class="fld field span-2">
-            <span class="k label">Category <b class="req">*</b></span>
-            <div id="catChips" class="chips chips-line" role="group" aria-label="Select a category">
-              <button type="button" class="chip" data-cat="Taste">🍽️ Taste</button>
-              <button type="button" class="chip" data-cat="Nature">🏖️ Nature</button>
-              <button type="button" class="chip" data-cat="Culture">🏛️ Culture</button>
-              <button type="button" class="chip" data-cat="Stay">🏠 Stay</button>
-              <button type="button" class="chip" data-cat="Local">🛍️ Local</button>
-              <button type="button" class="chip" data-cat="Experience">💡 Experience</button>
-            </div>
-            <input id="fCategory" name="category" type="hidden" required />
-            <small class="err hint" data-err-for="category"></small>
-          </label>
+        <label class="fld span-2">
+          <span class="k">Description</span>
+          <textarea id="fDesc" name="description" rows="4" placeholder="Short description (10–600 chars)"></textarea>
+        </label>
+      </div>
+    </div>
 
-          <label class="fld field span-2">
-            <span class="k label">Tags</span>
-            <div id="tagBox" class="tagbox" aria-label="Tags input">
-              <input id="fTagInput" type="text" placeholder="Type and press Enter…" />
-            </div>
-            <input id="fTags" name="tags" type="hidden" />
-          </label>
+    <!-- 地址與聯絡 -->
+    <div class="grid">
+      <label class="fld span-2">
+        <span class="k">Address <b>*</b></span>
+        <input id="fAddress" name="address" type="text" placeholder="No. 2, Jalan Lanang, Sibu, Sarawak" required />
+        <small class="err" data-err-for="address"></small>
+      </label>
+      <label class="fld">
+        <span class="k">Phone</span>
+        <input id="fPhone" name="phone" type="tel" placeholder="+60 84-xxxxx" />
+      </label>
+      <label class="fld">
+        <span class="k">WhatsApp</span>
+        <input id="fWhatsApp" name="whatsapp" type="tel" placeholder="+60 12-3456789" />
+      </label>
+      <label class="fld">
+        <span class="k">Website</span>
+        <input id="fWebsite" name="website" type="url" placeholder="https://example.com" />
+      </label>
+    </div>
 
-          <label class="fld field span-2">
-            <span class="k label">Description</span>
-            <textarea id="fDesc" name="description" rows="4" placeholder="Short description (10–600 chars)"></textarea>
-          </label>
+    <!-- 營業時間 -->
+    <div class="card">
+      <div class="card-hd">Opening hours</div>
+
+      <!-- 快速套用 -->
+      <div class="oh-toolbar" role="group" aria-label="Quick presets">
+        <button type="button" class="btn ghost" id="btnOH247">24/7</button>
+        <button type="button" class="btn ghost" id="btnOHWeekday">Mon–Fri</button>
+        <button type="button" class="btn ghost" id="btnOHWeekend">Sat–Sun</button>
+        <button type="button" class="btn ghost" id="btnOHClear">Clear all</button>
+      </div>
+
+      <!-- 編輯器 -->
+      <div id="ohTable" class="oh-table" role="group" aria-label="Opening hours editor">
+        <div class="oh-row" data-day="mon">
+          <div class="oh-day">Mon</div>
+          <select class="oh-mode" aria-label="Mon mode">
+            <option value="open">Open</option><option value="24h">24H</option>
+            <option value="closed">Closed</option><option value="special">Special</option>
+          </select>
+          <div class="oh-ranges"></div>
+          <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Mon note">
+        </div>
+        <div class="oh-row" data-day="tue">
+          <div class="oh-day">Tue</div>
+          <select class="oh-mode" aria-label="Tue mode">
+            <option value="open">Open</option><option value="24h">24H</option>
+            <option value="closed">Closed</option><option value="special">Special</option>
+          </select>
+          <div class="oh-ranges"></div>
+          <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Tue note">
+        </div>
+        <div class="oh-row" data-day="wed">
+          <div class="oh-day">Wed</div>
+          <select class="oh-mode" aria-label="Wed mode">
+            <option value="open">Open</option><option value="24h">24H</option>
+            <option value="closed">Closed</option><option value="special">Special</option>
+          </select>
+          <div class="oh-ranges"></div>
+          <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Wed note">
+        </div>
+        <div class="oh-row" data-day="thu">
+          <div class="oh-day">Thu</div>
+          <select class="oh-mode" aria-label="Thu mode">
+            <option value="open">Open</option><option value="24h">24H</option>
+            <option value="closed">Closed</option><option value="special">Special</option>
+          </select>
+          <div class="oh-ranges"></div>
+          <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Thu note">
+        </div>
+        <div class="oh-row" data-day="fri">
+          <div class="oh-day">Fri</div>
+          <select class="oh-mode" aria-label="Fri mode">
+            <option value="open">Open</option><option value="24h">24H</option>
+            <option value="closed">Closed</option><option value="special">Special</option>
+          </select>
+          <div class="oh-ranges"></div>
+          <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Fri note">
+        </div>
+        <div class="oh-row" data-day="sat">
+          <div class="oh-day">Sat</div>
+          <select class="oh-mode" aria-label="Sat mode">
+            <option value="open">Open</option><option value="24h">24H</option>
+            <option value="closed">Closed</option><option value="special">Special</option>
+          </select>
+          <div class="oh-ranges"></div>
+          <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Sat note">
+        </div>
+        <div class="oh-row" data-day="sun">
+          <div class="oh-day">Sun</div>
+          <select class="oh-mode" aria-label="Sun mode">
+            <option value="open">Open</option><option value="24h">24H</option>
+            <option value="closed">Closed</option><option value="special">Special</option>
+          </select>
+          <div class="oh-ranges"></div>
+          <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Sun note">
         </div>
       </div>
 
-      <!-- 地址與聯絡 -->
-      <div class="card">
-        <div class="grid grid-2">
-          <label class="fld field span-2">
-            <span class="k label">Address <b class="req">*</b></span>
-            <input id="fAddress" name="address" type="text" placeholder="No. 2, Jalan Lanang, Sibu, Sarawak" required />
-            <small class="err hint" data-err-for="address"></small>
-          </label>
+      <input id="fOpenDays" name="open_days" type="hidden" />
+    </div>
 
-          <label class="fld field">
-            <span class="k label">Phone</span>
-            <input id="fPhone" name="phone" type="tel" placeholder="+60 84-xxxxx" />
-          </label>
-
-          <label class="fld field">
-            <span class="k label">WhatsApp</span>
-            <input id="fWhatsApp" name="whatsapp" type="tel" placeholder="+60 12-3456789" />
-          </label>
-
-          <label class="fld field span-2">
-            <span class="k label">Website</span>
-            <input id="fWebsite" name="website" type="url" placeholder="https://example.com" />
-          </label>
-        </div>
+    <!-- 圖片 -->
+    <div class="card">
+      <div class="card-hd">Photos</div>
+      <div class="photos-bar">
+        <input id="fPhotos" type="file" accept="image/*" capture="environment" multiple hidden />
+        <button type="button" class="btn" id="btnPickPhotos">Add photos</button>
+        <span class="muted">Up to 10. First one is the cover.</span>
       </div>
+      <div id="photoGrid" class="photo-grid" aria-live="polite"></div>
+    </div>
 
-      <!-- 營業時間（週別、Google 風格） -->
-      <div class="card">
-        <div class="card-hd">Opening hours</div>
-
-        <!-- 快速套用 -->
-        <div class="oh-toolbar">
-          <button type="button" class="btn ghost btn-pill" id="btnOH247">24/7</button>
-          <button type="button" class="btn ghost btn-pill" id="btnOHWeekday">Mon–Fri</button>
-          <button type="button" class="btn ghost btn-pill" id="btnOHWeekend">Sat–Sun</button>
-          <button type="button" class="btn ghost btn-pill" id="btnOHClear">Clear all</button>
-        </div>
-
-        <!-- 編輯器（JS 會塞入時間 chip） -->
-        <div id="ohTable" class="oh-table hours" role="group" aria-label="Opening hours editor">
-          <div class="oh-row hours-row" data-day="mon">
-            <div class="oh-day hours-day">Mon</div>
-            <select class="oh-mode hours-state" aria-label="Mon mode">
-              <option value="open">Open</option>
-              <option value="24h">24H</option>
-              <option value="closed">Closed</option>
-              <option value="special">Special</option>
-            </select>
-            <div class="oh-ranges hours-range"></div>
-            <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Mon note">
-          </div>
-
-          <div class="oh-row hours-row" data-day="tue">
-            <div class="oh-day hours-day">Tue</div>
-            <select class="oh-mode hours-state" aria-label="Tue mode">
-              <option value="open">Open</option>
-              <option value="24h">24H</option>
-              <option value="closed">Closed</option>
-              <option value="special">Special</option>
-            </select>
-            <div class="oh-ranges hours-range"></div>
-            <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Tue note">
-          </div>
-
-          <div class="oh-row hours-row" data-day="wed">
-            <div class="oh-day hours-day">Wed</div>
-            <select class="oh-mode hours-state" aria-label="Wed mode">
-              <option value="open">Open</option>
-              <option value="24h">24H</option>
-              <option value="closed">Closed</option>
-              <option value="special">Special</option>
-            </select>
-            <div class="oh-ranges hours-range"></div>
-            <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Wed note">
-          </div>
-
-          <div class="oh-row hours-row" data-day="thu">
-            <div class="oh-day hours-day">Thu</div>
-            <select class="oh-mode hours-state" aria-label="Thu mode">
-              <option value="open">Open</option>
-              <option value="24h">24H</option>
-              <option value="closed">Closed</option>
-              <option value="special">Special</option>
-            </select>
-            <div class="oh-ranges hours-range"></div>
-            <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Thu note">
-          </div>
-
-          <div class="oh-row hours-row" data-day="fri">
-            <div class="oh-day hours-day">Fri</div>
-            <select class="oh-mode hours-state" aria-label="Fri mode">
-              <option value="open">Open</option>
-              <option value="24h">24H</option>
-              <option value="closed">Closed</option>
-              <option value="special">Special</option>
-            </select>
-            <div class="oh-ranges hours-range"></div>
-            <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Fri note">
-          </div>
-
-          <div class="oh-row hours-row" data-day="sat">
-            <div class="oh-day hours-day">Sat</div>
-            <select class="oh-mode hours-state" aria-label="Sat mode">
-              <option value="open">Open</option>
-              <option value="24h">24H</option>
-              <option value="closed">Closed</option>
-              <option value="special">Special</option>
-            </select>
-            <div class="oh-ranges hours-range"></div>
-            <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Sat note">
-          </div>
-
-          <div class="oh-row hours-row" data-day="sun">
-            <div class="oh-day hours-day">Sun</div>
-            <select class="oh-mode hours-state" aria-label="Sun mode">
-              <option value="open">Open</option>
-              <option value="24h">24H</option>
-              <option value="closed">Closed</option>
-              <option value="special">Special</option>
-            </select>
-            <div class="oh-ranges hours-range"></div>
-            <input class="oh-note" type="text" placeholder="Note (optional)" aria-label="Sun note">
-          </div>
-        </div>
-
-        <!-- 存進表單（送出時會塞 JSON 字串） -->
-        <input id="fOpenDays" name="open_days" type="hidden" />
+    <!-- 社群 -->
+    <div class="card">
+      <div class="card-hd">Social</div>
+      <div class="grid">
+        <label class="fld">
+          <span class="k">Instagram</span>
+          <input id="fIG" name="ig" type="url" placeholder="https://instagram.com/yourpage" />
+        </label>
+        <label class="fld">
+          <span class="k">Facebook</span>
+          <input id="fFB" name="fb" type="url" placeholder="https://facebook.com/yourpage" />
+        </label>
+        <label class="fld">
+          <span class="k">TikTok</span>
+          <input id="fTT" name="tiktok" type="url" placeholder="https://tiktok.com/@yourpage" />
+        </label>
+        <label class="fld">
+          <span class="k">YouTube</span>
+          <input id="fYT" name="youtube" type="url" placeholder="https://youtube.com/@yourpage" />
+        </label>
       </div>
+    </div>
 
-      <!-- 圖片（可拍照/多張/排序） -->
-      <div class="card">
-        <div class="card-hd">Photos</div>
-        <div class="photos-bar uploader">
-          <input id="fPhotos" type="file" accept="image/*" capture="environment" multiple hidden />
-          <button type="button" class="btn btn-pill" id="btnPickPhotos">Add photos</button>
-          <span class="muted hint">Up to 10. First one is the cover.</span>
-        </div>
-        <div id="photoGrid" class="photo-grid" aria-live="polite"></div>
-      </div>
+    <!-- 送出（固定於底） -->
+    <div class="form-actions" data-sticky>
+      <button type="button" class="btn ghost" id="btnSaveDraft">Save draft</button>
+      <button type="submit" class="btn primary" id="btnSubmit">Publish</button>
+    </div>
 
-      <!-- 社群 -->
-      <div class="card">
-        <div class="card-hd">Social</div>
-        <div class="grid grid-2">
-          <label class="fld field">
-            <span class="k label">Instagram</span>
-            <input id="fIG" name="ig" type="url" placeholder="https://instagram.com/yourpage" />
-          </label>
-          <label class="fld field">
-            <span class="k label">Facebook</span>
-            <input id="fFB" name="fb" type="url" placeholder="https://facebook.com/yourpage" />
-          </label>
-          <label class="fld field">
-            <span class="k label">TikTok</span>
-            <input id="fTT" name="tiktok" type="url" placeholder="https://tiktok.com/@yourpage" />
-          </label>
-          <label class="fld field">
-            <span class="k label">YouTube</span>
-            <input id="fYT" name="youtube" type="url" placeholder="https://youtube.com/@yourpage" />
-          </label>
-        </div>
-      </div>
+    <!-- 保護底部內容不被行動列/Tabbar 擋住 -->
+    <div class="safe-bottom" aria-hidden="true"></div>
 
-      <!-- 送出 -->
-      <div class="form-actions">
-        <button type="button" class="btn ghost" id="btnSaveDraft">Save draft</button>
-        <button type="submit" class="btn primary" id="btnSubmit">Publish</button>
-      </div>
-
-      <!-- 防被固定 tabbar 擋住的 safe space -->
-      <div class="page-end-safe" aria-hidden="true"></div>
-
-      <div id="addToast" class="toast" role="status" aria-live="polite" hidden></div>
-    </form>
-
-  </div>
+    <div id="addToast" class="toast" role="status" aria-live="polite" hidden></div>
+  </form>
 </section>
-
     
 <!-- HeriLand Settings Drawer (new, embedded) -->
 <div id="hlSettingsDrawer" class="hl-set" aria-hidden="true">
@@ -1574,4 +1542,5 @@
   <script type="module" src="js/trips.js"></script>
 </body>
 </html>
+
 
