@@ -7,39 +7,36 @@
     pages: '[data-page]',
   };
 
-  // 你的 tab 對應的 hash（可視需求改）
+  // Tab 對應 hash（可調整）
   const TAB_TO_HASH = {
-  home:    '#home',
-  explore: '#explore',
-  posts:     '#posts',
-  profile: '#profile',
-  add:     '#add',
-};
-
-  // 一些路由別名 → 指到哪個 tab
-  const HASH_TO_TAB_ALIAS = {
-    detail:  'explore',   // #detail/xxx 算 explore 的延伸
-    settings:'home',      // #settings 開在 home 之上
+    home:    '#home',
+    explore: '#explore',
+    posts:   '#posts',
+    profile: '#profile',
+    add:     '#add',
   };
 
-  // 若你想讓 tabbar 直接切頁（不依賴既有 router），把這行設成 true
-  // window.__TABBAR_SIMPLE_SWITCH = true;
+  // 路由別名 → 指到哪個 tab
+  const HASH_TO_TAB_ALIAS = {
+    detail:   'explore', // #detail/xxx 算 explore 的延伸
+    settings: 'home',    // #settings 開在 home 之上
+  };
+
+  // 若要由 tabbar 直接切 data-page（不靠你的 router），把 window.__TABBAR_SIMPLE_SWITCH = true
   const SIMPLE_SWITCH = !!window.__TABBAR_SIMPLE_SWITCH;
 
   let inited = false;
 
   // 解析目前 hash 的主段（#detail/abc?x=1 → 'detail'）
   function currentSegment(){
-  const h = (location.hash || '').replace(/^#\/?/, '');
-  if (!h) return 'home';
-  return h.split(/[?\/]/)[0] || 'home';
-}
-
+    const h = (location.hash || '').replace(/^#\/?/, '');
+    if (!h) return 'home';
+    return h.split(/[?\/]/)[0] || 'home';
+  }
 
   function segToTab(seg){
-    if (TAB_TO_HASH[seg]) return seg;               // home/explore/map/saved/add
+    if (TAB_TO_HASH[seg]) return seg;                 // home/explore/posts/profile/add
     if (HASH_TO_TAB_ALIAS[seg]) return HASH_TO_TAB_ALIAS[seg]; // detail → explore...
-    // 其它未知路由 → 回退 home
     return 'home';
   }
 
@@ -55,8 +52,9 @@
     btns.forEach(b=>{
       const on = tabNameFromBtn(b) === tabName;
       b.classList.toggle('is-active', on);
-      b.setAttribute('aria-selected', on ? 'true' : 'false');
-      if (on) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current');
+      b.setAttribute('aria-selected', on ? 'true' : 'false'); // 一律字串
+      if (on) b.setAttribute('aria-current','page');
+      else b.removeAttribute('aria-current');
     });
   }
 
@@ -105,20 +103,23 @@
 
     setActiveTab(tab);
     simpleSwitchTo(tab);
+    // 通知 ink 更新
+    window.dispatchEvent(new CustomEvent('tabbar:changed', { detail:{ tab, hash: targetHash }}));
   }
 
   function onHashChange(){
-  const seg = currentSegment();
-  const tab = segToTab(seg);
-  setActiveTab(tab);
-  simpleSwitchTo(tab);
+    const seg = currentSegment();
+    const tab = segToTab(seg);
+    setActiveTab(tab);
+    simpleSwitchTo(tab);
 
-  // ← 新增這段
-  if (seg === 'settings' && typeof window.openSettingsPanel === 'function') {
-    window.openSettingsPanel();
+    if (seg === 'settings' && typeof window.openSettingsPanel === 'function') {
+      window.openSettingsPanel();
+    }
+
+    // 通知 ink（和其他聽眾）更新
+    window.dispatchEvent(new CustomEvent('tabbar:changed', { detail:{ tab, hash: location.hash } }));
   }
-}
-
 
   // 鍵盤導覽（左右切換）
   function onKeydown(e){
@@ -145,7 +146,7 @@
 
     nav.addEventListener('click', onTabClick);
     window.addEventListener('hashchange', onHashChange);
-    window.addEventListener('keydown', onKeydown, { passive: true });
+    window.addEventListener('keydown', onKeydown);
 
     // 初始狀態
     onHashChange();
@@ -164,47 +165,33 @@
 })();
 
 /* ==========================================================
-   Tabbar Ink Animation — HeriLand style
+   Tabbar Ink Animation — HeriLand style（聽 tabbar:changed）
    ========================================================== */
 (function(){
-  const tabbar = document.querySelector('.tabbar');
-  if(!tabbar) return;
-  const ink = tabbar.querySelector('.ink');
-  const tabs = Array.from(tabbar.querySelectorAll('.tab'));
+  const tabbar  = document.querySelector('.tabbar');
+  if (!tabbar) return;
+  const ink     = tabbar.querySelector('.ink');
+  const capsule = tabbar.querySelector('.capsule');
+  if (!ink || !capsule) return;
+
+  const rq = (fn)=> window.requestAnimationFrame(fn);
 
   function moveInkToActive(){
     const active = tabbar.querySelector('.tab.is-active, .tab[aria-selected="true"]');
-    if(!active || !ink) return;
-    const capsule = tabbar.querySelector('.capsule');
+    if (!active) return;
     const rectCaps = capsule.getBoundingClientRect();
-    const rectTab = active.getBoundingClientRect();
-    const left = rectTab.left - rectCaps.left + capsule.scrollLeft + 6; // padding 6px
+    const rectTab  = active.getBoundingClientRect();
+    const left  = rectTab.left - rectCaps.left + capsule.scrollLeft + 6; // padding 6px
     const width = rectTab.width - 12; // inner gap 6px * 2
-    ink.style.left = `${left}px`;
+    ink.style.left  = `${left}px`;
     ink.style.width = `${width}px`;
   }
 
-  // 初始 & resize 时更新
-  window.addEventListener('resize', moveInkToActive);
-  moveInkToActive();
+  // 等上一段 setActiveTab 完成後再移動（避免初次錯位）
+  window.addEventListener('tabbar:changed', ()=> rq(moveInkToActive));
+  window.addEventListener('hashchange',     ()=> rq(moveInkToActive)); // 備援
+  window.addEventListener('resize',         ()=> rq(moveInkToActive));
 
-  // 點擊 tab 時移動 ink
-  tabs.forEach(tab=>{
-    tab.addEventListener('click', ()=>{
-      tabs.forEach(t=>t.classList.remove('is-active'));
-      tab.classList.add('is-active');
-      moveInkToActive();
-    });
-  });
-
-  // 若你的 router 會用 hash (#home/#explore...)，也自動偵測
-  window.addEventListener('hashchange', ()=>{
-    const hash = location.hash.replace('#','');
-    tabs.forEach(t=>{
-      const match = t.dataset.hash?.includes(`#${hash}`);
-      t.classList.toggle('is-active', match);
-      t.setAttribute('aria-selected', match);
-    });
-    moveInkToActive();
-  });
+  // 首次定位
+  rq(moveInkToActive);
 })();
