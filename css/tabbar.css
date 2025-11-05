@@ -64,7 +64,7 @@
 .tabbar .ink{
   position: absolute;
   bottom: 6px; top: 6px;
-  left: 6px; width: calc(25% - 6px);   /* 没有 JS 时的稳态：占 1/4 */
+  left: 6px; width: calc(20% - 6px);   /* 没有 JS 时的稳态：占 1/4 */
   background: var(--tb-ink);
   border: 1px solid var(--tb-ink-border);
   border-radius: calc(var(--tb-radius) - 6px);
