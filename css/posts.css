@@ -1,0 +1,150 @@
+/* ============== Posts Page ============== */
+.posts{
+  --bg:#f7f8f9;
+  --card:#fff;
+  --ink:#0f172a;
+  --muted:#6b7280;
+  --line:rgba(15,23,42,.08);
+  --radius:14px;
+  background: var(--bg);
+  min-height: 100dvh;
+}
+
+/* AppBar */
+.posts .p-appbar{
+  position: sticky; top: 0; z-index: 10;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding: 10px 12px;
+  background: color-mix(in oklab, #fff 86%, transparent);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(8px);
+}
+.posts .p-title{ font-size:18px; font-weight:800; margin:0; color:var(--ink); }
+.posts .p-actions .icon-btn{ font-size:18px; }
+
+/* Scroll area */
+.posts .p-scroll{ padding: 8px 10px 16px; }
+
+/* 工具列 */
+.posts .p-toolbar{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding: 2px 2px 8px;
+}
+.posts .p-sort{ display:flex; gap:8px; }
+.posts .chip{
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:12px; font-weight:800; color:var(--ink);
+  cursor:pointer;
+}
+.posts .chip.is-on{
+  background: color-mix(in oklab, #2E5E4E 18%, #fff);
+  border-color: color-mix(in oklab, #2E5E4E 36%, #fff);
+  color:#18362E;
+}
+.posts .p-tags{
+  display:flex; gap:8px; overflow:auto; padding-bottom:4px;
+  scrollbar-width:none;
+}
+.posts .p-tags::-webkit-scrollbar{ display:none; }
+.posts .p-tags .tag{
+  background:#eef2f6; color:#0f172a;
+  border-radius:999px; padding:6px 10px; font-size:12px; font-weight:800;
+  border:1px solid rgba(15,23,42,.08);
+  white-space:nowrap; cursor:pointer;
+}
+.posts .p-tags .tag.is-on{
+  background: #0f172a; color:#fff; border-color:#0f172a;
+}
+
+/* 列表 */
+.posts .p-list{
+  display:grid; gap:10px;
+  grid-template-columns: 1fr;
+  padding: 2px;
+}
+@media (min-width: 560px){
+  .posts .p-list{ grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 900px){
+  .posts .p-list{ grid-template-columns: 1fr 1fr 1fr; }
+}
+
+/* 卡片 */
+.posts .p-card{
+  display:grid; grid-template-rows: auto 1fr; gap:8px;
+  background: var(--card);
+  border:1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.04);
+}
+.posts .p-media{
+  position:relative; overflow:hidden; border-radius:12px;
+  aspect-ratio: 4 / 5;         /* IG 風：想要 16/9 改這裡 */
+  background:#e5e7eb center/cover no-repeat;
+}
+.posts .p-media img,
+.posts .p-media video{
+  width:100%; height:100%; display:block; object-fit:cover;
+}
+.posts .p-badge{
+  position:absolute; left:6px; top:6px;
+  background: rgba(0,0,0,.55); color:#fff; font-size:11px; padding:2px 6px; border-radius:999px;
+}
+
+/* 內文 */
+.posts .p-body{ display:grid; gap:6px; min-height: 64px; }
+.posts .p-titleline{
+  font-weight:800; font-size:14px; color:var(--ink);
+  display:-webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow:hidden;
+}
+.posts .p-meta{
+  font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+}
+.posts .p-meta .dot::before{
+  content:"·"; margin: 0 4px; color: var(--muted);
+}
+.posts .p-tagsline{
+  display:flex; gap:6px; flex-wrap:wrap;
+}
+.posts .p-tagsline .t{
+  font-size:11px; padding:3px 8px; border-radius:999px; background:#f1f5f9; color:#0f172a; font-weight:700;
+}
+
+/* 骨架 */
+.posts .p-skeleton{ display:grid; gap:10px; grid-template-columns:1fr; padding:2px; }
+.posts .sk-card{
+  height: 280px; border-radius:14px;
+  background: linear-gradient(90deg, rgba(0,0,0,.06), rgba(0,0,0,.12), rgba(0,0,0,.06));
+  background-size:200% 100%; animation: postsShimmer 1.1s linear infinite;
+}
+@keyframes postsShimmer{ to{ background-position:-200% 0; } }
+
+/* 空狀態 / 錯誤 */
+.posts .p-empty, .posts .p-error{
+  text-align:center; color:var(--muted); padding: 30px 6px;
+}
+.posts .p-error .btn{ margin-top: 10px; }
+
+/* 載入更多 */
+.posts .p-more{ display:grid; place-items:center; padding: 8px 0; }
+.posts .p-more .btn{ border:1px solid var(--line); border-radius:12px; padding:8px 12px; font-weight:800; }
+.posts .p-more-sk{
+  width: 44px; height: 44px; border-radius:999px; border: 3px solid rgba(0,0,0,.1);
+  border-top-color: #0f172a; animation: spin 1s linear infinite;
+}
+@keyframes spin{ to{ transform: rotate(360deg); } }
+
+.posts .p-safe{ height: 16px; }
+
+/* Dark mode */
+@media (prefers-color-scheme: dark){
+  .posts{ --bg:#0b0f12; --card:rgba(13,17,23,.6); --ink:#e5e7eb; --muted:#9aa3ad; --line:rgba(255,255,255,.06); }
+  .posts .p-appbar{ background: color-mix(in oklab, #0b0f12 86%, transparent); border-bottom-color: var(--line); }
+  .posts .p-tags .tag{ background: rgba(148,163,184,.18); color:#e5e7eb; border-color: var(--line); }
+  .posts .p-card{ box-shadow: 0 12px 32px rgba(0,0,0,.35); }
+  .posts .p-media{ background:#111827; }
+}
