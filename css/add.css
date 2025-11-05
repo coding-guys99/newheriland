@@ -620,3 +620,32 @@
 #postPhotosGrid .ph-cover { left: 6px; font-size: 18px; color: gold; }
 #postPhotosGrid .ph-del:hover,
 #postPhotosGrid .ph-cover:hover { background: rgba(0,0,0,.55); }
+
+/* --- 讓 Add/Post 的底部操作列不被 tabbar 擋住 --- */
+
+/* 你的 tabbar 目前 z-index: 200，所以這裡拉高到 300+ */
+.add .form-actions,
+.add-post .form-actions{
+  position: sticky;
+  /* 預留 tabbar 高度（你在 tabbar.css 定義了 --tb-height），再加一點間距 */
+  bottom: calc(var(--tb-height, 62px) + 8px);
+  z-index: 300;
+}
+
+/* 若有用到安全區，底部再吃一下 safe-area，避免被 iPhone 的 home bar 擋到 */
+.add .form-actions,
+.add-post .form-actions{
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+}
+
+/* 如果有個全局的 .tabbar 指定 z-index 更高，這段可作為保險再拉高 */
+@media (min-width:0){
+  .add .form-actions,
+  .add-post .form-actions{ z-index: 500; }
+}
+
+/* 內容本體預留 tabbar 高度，避免最後一塊內容被壓住 */
+.add form,
+.add-post .p-scroll{
+  padding-bottom: calc(var(--tb-height, 62px) + 80px + env(safe-area-inset-bottom));
+}
