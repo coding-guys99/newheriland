@@ -93,19 +93,20 @@ function initMedia(){
       cell.className = 'ph';
       cell.dataset.id = item.id;
 
-      if (item.kind === 'image'){
-        cell.style.backgroundImage = `url("${item.url}")`;
-        cell.classList.add('ph-img');
-      }else{
-        cell.classList.add('ph-vid');
-        const v = document.createElement('video');
-        v.src = item.url;
-        v.muted = true;
-        v.loop = true;
-        v.playsInline = true;
-        v.autoplay = true;
-        cell.appendChild(v);
-      }
+      if (item.kind === 'image') {
+  cell.classList.add('ph-img');
+  cell.style.backgroundImage = `url("${item.url}")`;
+} else {
+  cell.classList.add('ph-vid');
+  const v = document.createElement('video');
+  v.src = item.url;
+  v.muted = true;
+  v.loop = true;
+  v.playsInline = true;                 // iOS 內嵌播放
+  v.setAttribute('webkit-playsinline', 'true');
+  v.autoplay = true;                    // 預覽短循環
+  cell.appendChild(v);                  // CSS 會讓它 cover 填滿
+}
 
       // 封面徽章
       const badge = document.createElement('button');
