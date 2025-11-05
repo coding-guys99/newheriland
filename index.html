@@ -822,92 +822,90 @@
 </section>
 
  <!-- ===================== Contribute — Post ===================== -->
-<section data-page="add" class="add add-post" hidden aria-labelledby="h-post">
-  <h1 id="h-post" data-focusable-heading>Share a post</h1>
+<section data-page="add" class="add-post" hidden aria-labelledby="h-add-post">
+  <h1 id="h-add-post">Create a post</h1>
 
   <form id="postForm" novalidate>
-    <!-- Photos -->
-    <section class="composer card">
+    <!-- 媒體 -->
+    <section class="card">
       <div class="composer-hd">
-        <div class="ch-left">
-          <div class="ch-title">Photos</div>
-          <div class="ch-sub">Up to 10. First one becomes cover.</div>
+        <div>
+          <div class="ch-title">Media</div>
+          <div class="ch-sub">Upload photos or videos (max 10)</div>
         </div>
-        <div class="ch-right">
-          <!-- 原本 #postPhotosInput 改成支持照片 + 影片；移除 capture 才会开启相册/图库 -->
-          <input id="postPhotosInput" type="file" accept="image/*,video/*" multiple hidden>
-          <button type="button" class="btn" id="btnPostPickPhotos">Add photos</button>
-        </div>
+        <button type="button" class="btn ghost" id="btnPostPickPhotos">Choose files</button>
       </div>
 
-      <!-- Dropzone（可點擊整區或按上面按鈕；之後用 JS 監聽） -->
-      <div id="postDrop" class="dropzone" aria-label="Upload photos">
+      <!-- Dropzone -->
+      <div id="postDrop" class="dropzone" tabindex="0" role="button" aria-label="Upload media">
         <div class="dz-cta">
           <div class="dz-ico">📷</div>
           <div class="dz-t">Drag & drop or click to upload</div>
-          <div class="dz-s">JPG / PNG, up to 10 images</div>
+          <div class="dz-s">最多 10 個媒體 · 0/10</div>
         </div>
+        <input id="postPhotosInput" type="file"
+               accept="image/*,video/*"
+               multiple hidden />
       </div>
 
-      <!-- 預覽格 -->
+      <!-- 縮圖格 -->
       <div id="postPhotosGrid" class="photo-grid" aria-live="polite"></div>
-
-      <!-- 候補：送出時可把檔名/URL 塞入這裡 -->
-      <input id="postPhotos" name="photos" type="hidden" />
     </section>
 
-    <!-- Title / Body -->
-    <section class="composer card">
+    <!-- 文字區 -->
+    <section class="card">
       <label class="fld">
         <span class="k">Title</span>
-        <input id="postTitle" name="title" type="text" placeholder="Give your post a short title" maxlength="80" />
+        <input id="postTitle" type="text" name="title" placeholder="Write a catchy title…" maxlength="120" />
       </label>
 
       <label class="fld">
         <div class="k row">
-          <span>Story</span>
+          <span>Body</span>
           <span class="limit"><span id="postBodyCount">0</span>/500</span>
         </div>
-        <textarea id="postBody" name="body" rows="6" maxlength="500" placeholder="Share your experience… What did you try, love, tips for others?"></textarea>
-        <small class="hint">Helpful posts get more saves ✨</small>
+        <textarea id="postBody" name="body" rows="4" maxlength="500" placeholder="Share your story (max 500 chars)…"></textarea>
+        <small class="hint">可貼上網址、@提及之後再做；先支援純文字</small>
       </label>
     </section>
 
-    <!-- Tags / Place -->
-    <section class="composer card">
-      <div class="grid">
-        <label class="fld">
-          <span class="k">Tags <span class="muted">(use #)</span></span>
-          <div id="postTagBox" class="tagbox" aria-label="Add tags">
-            <input id="postTagInput" type="text" placeholder="#coffee  #seafood  #sunset" />
-          </div>
-          <input id="postTags" name="tags" type="hidden" />
-        </label>
+    <!-- 標籤 / 地點 -->
+    <section class="card">
+      <label class="fld">
+        <span class="k">Tags</span>
+        <div id="postTagBox" class="tagbox" aria-label="Hashtags input">
+          <input id="postTagInput" type="text" placeholder="Type #tags and press Enter" />
+        </div>
+        <input id="postTags" type="hidden" />
+        <small class="hint">最多 12 個；自動去除 # 與空白</small>
+      </label>
 
-        <label class="fld">
-          <span class="k">Place</span>
-          <!-- 之後可掛 autocomplete；若選到現有商家，寫入 hidden place_id -->
-          <div class="place-row">
-            <input id="postPlace" type="text" placeholder="Search a place to tag…" autocomplete="off" />
-            <button type="button" class="btn ghost" id="btnClearPlace" aria-label="Clear place" hidden>Clear</button>
-          </div>
-          <input id="postPlaceId" name="place_id" type="hidden" />
-          <div class="assist">
-            找不到商家？ <a id="linkSuggestPlace" href="#suggest" class="link-inline">Suggest a place</a>
-          </div>
-        </label>
+      <div class="fld">
+        <div class="k">Place (optional)</div>
+        <div class="place-row">
+          <input id="postPlace" type="text" placeholder="Tag a place…">
+          <button id="btnClearPlace" class="btn ghost" type="button" title="Clear" hidden>Clear</button>
+        </div>
+        <input id="postPlaceId" type="hidden" />
+        <div class="assist">
+          之後可接自動完成：選到店家後會填入 <code>place_id</code>；手動修改文字會清掉 <code>place_id</code>。
+        </div>
       </div>
     </section>
 
-    <!-- Actions -->
+    <!-- 送出 -->
     <div class="form-actions">
-      <button type="button" class="btn ghost" id="btnPostSaveDraft">Save draft</button>
-      <button type="submit" class="btn primary" id="btnPostSubmit">Publish</button>
+      <button id="btnPostSaveDraft" class="btn ghost" type="button">Save draft</button>
+      <button id="btnPostPublish" class="btn" type="submit">Publish</button>
     </div>
 
+    <!-- Toast -->
     <div id="postToast" class="toast" role="status" aria-live="polite" hidden></div>
   </form>
 </section>
+
+<!-- 建議放在頁面底部 -->
+<script type="module" src="./add-post.js"></script>
    
     
 <!-- HeriLand Settings Drawer (new, embedded) -->
