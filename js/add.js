@@ -41,6 +41,7 @@ function compact(o){
   return out;
 }
 
+/* ==================== Photos (max 10) ==================== */
 /* ==================== Media (photos + videos, max 10, append not override) ==================== */
 function initMedia(){
   const btnPick = $('#btnPostPickPhotos');      // 继续沿用你的按钮 id
@@ -306,7 +307,6 @@ function initPlace(){
   if (btnClr) btnClr.hidden = (input.value.trim()==='');
 }
 
-/* ==================== Submit / Draft ==================== */
 // 依赖：supabase、showToast、compact、makePostId、nowIso、uploadMedia
 // 以及页面初始化时传进来的 ctx：{ media }  —— ctx.media 是 initMedia() 的返回对象
 async function handleSubmit(e, ctx){
