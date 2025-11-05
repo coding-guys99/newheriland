@@ -1,4 +1,4 @@
-/* ===========================
+4/* ===========================
    HeriLand — Tabbar (Glow Capsule)
    适配 iOS/Android，含安全区 & 暗色模式
    =========================== */
@@ -54,7 +54,7 @@
   backdrop-filter: blur(var(--tb-blur));
   -webkit-backdrop-filter: blur(var(--tb-blur));
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   align-items: stretch;
   padding: 6px;
   overflow: hidden;
