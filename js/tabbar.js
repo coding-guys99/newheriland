@@ -162,3 +162,49 @@
     initOnce();
   }
 })();
+
+/* ==========================================================
+   Tabbar Ink Animation — HeriLand style
+   ========================================================== */
+(function(){
+  const tabbar = document.querySelector('.tabbar');
+  if(!tabbar) return;
+  const ink = tabbar.querySelector('.ink');
+  const tabs = Array.from(tabbar.querySelectorAll('.tab'));
+
+  function moveInkToActive(){
+    const active = tabbar.querySelector('.tab.is-active, .tab[aria-selected="true"]');
+    if(!active || !ink) return;
+    const capsule = tabbar.querySelector('.capsule');
+    const rectCaps = capsule.getBoundingClientRect();
+    const rectTab = active.getBoundingClientRect();
+    const left = rectTab.left - rectCaps.left + capsule.scrollLeft + 6; // padding 6px
+    const width = rectTab.width - 12; // inner gap 6px * 2
+    ink.style.left = `${left}px`;
+    ink.style.width = `${width}px`;
+  }
+
+  // 初始 & resize 时更新
+  window.addEventListener('resize', moveInkToActive);
+  moveInkToActive();
+
+  // 點擊 tab 時移動 ink
+  tabs.forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      tabs.forEach(t=>t.classList.remove('is-active'));
+      tab.classList.add('is-active');
+      moveInkToActive();
+    });
+  });
+
+  // 若你的 router 會用 hash (#home/#explore...)，也自動偵測
+  window.addEventListener('hashchange', ()=>{
+    const hash = location.hash.replace('#','');
+    tabs.forEach(t=>{
+      const match = t.dataset.hash?.includes(`#${hash}`);
+      t.classList.toggle('is-active', match);
+      t.setAttribute('aria-selected', match);
+    });
+    moveInkToActive();
+  });
+})();
