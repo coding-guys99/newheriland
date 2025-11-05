@@ -425,3 +425,127 @@
   .add .oh-row{ background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.12); }
   .add .form-actions .btn.ghost{ background: rgba(11,15,18,.6); border-color: rgba(255,255,255,.06); }
 }
+
+/* ============== Contribute — Post (scoped) ============== */
+.add-post {
+  --post-bg: #f7f8f9;
+  --card: #fff;
+  --line: rgba(0,0,0,.08);
+  --radius: 14px;
+  --muted: #6b7280;
+  --ink: #111827;
+}
+.add-post { background: var(--post-bg); min-height: 100dvh; }
+.add-post h1 { font-size: 20px; font-weight: 800; margin: 14px 16px 8px; }
+
+.add-post .card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin: 12px 12px;
+  padding: 14px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.04);
+}
+
+.composer-hd {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px;
+}
+.ch-title { font-weight: 800; }
+.ch-sub { font-size: 12px; color: var(--muted); }
+.btn { border: 1px solid var(--line); background: #111; color: #fff; border-radius: 10px; padding: 8px 12px; font-weight: 700; }
+.btn.ghost { background: #fff; color: var(--ink); }
+.btn:active { transform: translateY(1px); }
+.muted { color: var(--muted); font-size: 12px; }
+
+/* Fields */
+.fld { display: grid; gap: 6px; margin-bottom: 12px; }
+.fld .k { font-weight: 700; color: #111827; }
+.fld .k.row { display:flex; align-items:center; justify-content:space-between; }
+.fld input[type="text"], .fld input[type="url"], .fld textarea, .place-row input[type="text"]{
+  border: 1px solid rgba(0,0,0,.08); border-radius: 12px; padding: 10px 12px; font-size: 14px; background: #fff;
+}
+.fld textarea { resize: vertical; min-height: 120px; line-height: 1.55; }
+.fld .hint { font-size: 12px; color: var(--muted); }
+
+/* Counters */
+.limit { font-size: 12px; color: var(--muted); }
+
+/* Grid (2 columns on wide) */
+.grid { display: grid; gap: 12px; }
+@media (min-width: 720px){ .grid { grid-template-columns: 1fr 1fr; } }
+
+/* Dropzone */
+.dropzone {
+  border: 1.5px dashed rgba(0,0,0,.15);
+  border-radius: 14px;
+  background: linear-gradient(180deg,#fafafa,#f6f7f8);
+  display: grid; place-items: center;
+  padding: 22px; cursor: pointer;
+}
+.dropzone:hover { background: #f9fafb; }
+.dz-cta { text-align: center; }
+.dz-ico { font-size: 28px; margin-bottom: 6px; }
+.dz-t { font-weight: 700; }
+.dz-s { font-size: 12px; color: var(--muted); }
+
+/* Photo grid */
+.photo-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 12px; }
+@media (min-width: 480px){ .photo-grid { grid-template-columns: repeat(4,1fr); } }
+@media (min-width: 768px){ .photo-grid { grid-template-columns: repeat(5,1fr); } }
+.photo-grid .ph {
+  position: relative; width: 100%; padding-top: 100%; border-radius: 10px;
+  background: #e5e7eb center/cover no-repeat; overflow: hidden;
+}
+.photo-grid .ph .ph-badge {
+  position: absolute; left: 6px; top: 6px; font-size: 11px; padding: 2px 6px; border-radius: 999px;
+  background: rgba(0,0,0,.6); color: #fff;
+}
+.photo-grid .ph .ph-del {
+  position: absolute; right: 6px; top: 6px; border:0; background: rgba(0,0,0,.55);
+  color:#fff; border-radius: 999px; padding: 4px 6px; cursor: pointer; font-size: 12px;
+}
+
+/* Tag input (chips) */
+.tagbox {
+  display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; border: 1px solid rgba(0,0,0,.08);
+  border-radius: 12px; background: #fff;
+}
+.tagbox .tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #f1f5f9; color: #0f172a; border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 700;
+}
+.tagbox .tag button { border:0; background: transparent; font-size: 14px; line-height: 1; cursor: pointer; }
+.tagbox input { min-width: 120px; flex: 1; border:0; outline: none; font-size: 14px; }
+
+/* Place */
+.place-row { display: flex; gap: 8px; }
+.link-inline { color: #2563eb; text-decoration: none; font-size: 12px; }
+.assist { margin-top: 6px; font-size: 12px; color: var(--muted); }
+
+/* Actions */
+.form-actions {
+  position: sticky; bottom: 0; z-index: 5;
+  padding: 10px 12px; display: flex; gap: 10px; justify-content: flex-end;
+  background: color-mix(in oklab, #fff 80%, transparent);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(0,0,0,.06);
+}
+
+/* Toast */
+.toast {
+  position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
+  background: #111; color: #fff; padding: 10px 14px; border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.25);
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark){
+  .add-post { --post-bg:#0b0f12; --card:rgba(13,17,23,.6); --line:rgba(255,255,255,.06); --muted:#9aa3ad; --ink:#e5e7eb; }
+  .btn { background:#e5e7eb; color:#0b0f12; }
+  .btn.ghost { background:transparent; color:#e5e7eb; border-color: var(--line); }
+  .dropzone { background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); border-color: var(--line); }
+  .photo-grid .ph { background:#111827; }
+  .tagbox { background: transparent; }
+  .tagbox .tag { background: rgba(148,163,184,.18); color: #e5e7eb; }
+  .form-actions { background: color-mix(in oklab, #0b0f12 82%, transparent); border-top-color: var(--line); }
+}
