@@ -566,3 +566,57 @@
   line-height: 1;
 }
 .ph-cover:hover { background: rgba(0,0,0,0.5); }
+
+/* Grid：兩欄縮圖 */
+#postPhotosGrid.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* 每格：固定比例（方形），溢出裁切 */
+#postPhotosGrid .ph {
+  position: relative;
+  aspect-ratio: 1 / 1;       /* 想要 IG 風可改 4/5 或 16/9 */
+  border-radius: 12px;
+  overflow: hidden;
+  background: #eceff1;
+}
+
+/* 圖片：cover 填滿 */
+#postPhotosGrid .ph-img {
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+/* 影片：cover 填滿（不拉伸） */
+#postPhotosGrid .ph-vid video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;         /* 關鍵：避免被拉長或擠壓 */
+  pointer-events: none;      /* 預覽不互動（若要播放可改） */
+  border: 0;
+}
+
+/* 角上的按鈕 */
+#postPhotosGrid .ph-del,
+#postPhotosGrid .ph-cover {
+  position: absolute;
+  top: 6px;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0,0,0,.35);
+  color: #fff;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+#postPhotosGrid .ph-del { right: 6px; font-size: 18px; }
+#postPhotosGrid .ph-cover { left: 6px; font-size: 18px; color: gold; }
+#postPhotosGrid .ph-del:hover,
+#postPhotosGrid .ph-cover:hover { background: rgba(0,0,0,.55); }
