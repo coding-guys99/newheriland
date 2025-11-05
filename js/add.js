@@ -44,22 +44,19 @@ function compact(o){
 /* ==================== Photos (max 10) ==================== */
 /* ==================== Media (photos + videos, max 10, append not override) ==================== */
 function initMedia(){
-  const btnPick = $('#btnPostPickPhotos');      // 继续沿用你的按钮 id
-  const input   = $('#postPhotosInput');        // ↑ 改了 accept
+  const btnPick = $('#btnPostPickPhotos');
+  const input   = $('#postPhotosInput');
   const drop    = $('#postDrop');
   const grid    = $('#postPhotosGrid');
-
   if (!input || !grid || !drop) return;
 
   const MAX = 10;
-
-  // 用 state 数组维护所有已选媒体；避免 DataTransfer 覆盖 + 索引错位
-  /** @type {Array<{id:string,file:File,kind:'image'|'video',url:string}>} */
+  /** @type {Array<{id:string,file:File,kind:'image'|'video',url:string,isCover:boolean}>} */
   let state = [];
 
   const kindOf = (file)=> file.type.startsWith('video/') ? 'video' : 'image';
 
-  const addFiles = (files)=> {
+  function addFiles(files){
     const fresh = Array.from(files || []);
     for (const f of fresh){
       if (!f.type.startsWith('image/') && !f.type.startsWith('video/')) continue;
@@ -68,10 +65,11 @@ function initMedia(){
         id: crypto.randomUUID ? crypto.randomUUID() : (Date.now() + Math.random()).toString(36),
         file: f,
         kind: kindOf(f),
-        url: URL.createObjectURL(f)
+        url: URL.createObjectURL(f),
+        isCover: state.length === 0 && !state.some(x=>x.isCover) // 第一張自動封面
       });
     }
-  };
+  }
 
   const removeById = (id)=>{
     const i = state.findIndex(x=>x.id===id);
@@ -79,13 +77,21 @@ function initMedia(){
       try{ URL.revokeObjectURL(state[i].url); }catch(_){}
       state.splice(i,1);
     }
+    // 若刪掉的是封面，轉移封面給第一個
+    if (!state.some(x=>x.isCover) && state.length>0) state[0].isCover = true;
   };
 
-  const render = ()=>{
+  const setCover = (id)=>{
+    state.forEach(x=> x.isCover = (x.id===id));
+    render();
+  };
+
+  function render(){
     grid.innerHTML = '';
-    state.slice(0,MAX).forEach((item, idx)=>{
+    state.slice(0,MAX).forEach((item)=>{
       const cell = document.createElement('div');
       cell.className = 'ph';
+      cell.dataset.id = item.id;
 
       if (item.kind === 'image'){
         cell.style.backgroundImage = `url("${item.url}")`;
@@ -97,26 +103,30 @@ function initMedia(){
         v.muted = true;
         v.loop = true;
         v.playsInline = true;
-        v.autoplay = true;    // 静音可自动播
-        v.controls = false;
+        v.autoplay = true;
         cell.appendChild(v);
       }
 
-      // Cover 标记（第一个）
-      if (idx === 0){
-        const badge = document.createElement('span');
-        badge.className = 'ph-badge';
-        badge.textContent = 'Cover';
-        cell.appendChild(badge);
-      }
+      // 封面徽章
+      const badge = document.createElement('button');
+      badge.className = 'ph-cover';
+      badge.type = 'button';
+      badge.innerHTML = item.isCover ? '⭐' : '☆';
+      badge.title = item.isCover ? '封面' : '設為封面';
+      badge.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        setCover(item.id);
+      });
+      cell.appendChild(badge);
 
-      // 删除
+      // 刪除按鈕
       const del = document.createElement('button');
       del.className = 'ph-del';
       del.type = 'button';
       del.textContent = '×';
-      del.title = 'Remove';
-      del.addEventListener('click', ()=>{
+      del.title = '移除';
+      del.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
         removeById(item.id);
         render();
       });
@@ -125,22 +135,18 @@ function initMedia(){
       grid.appendChild(cell);
     });
 
-    // 更新计数提示
     const s = drop.querySelector('.dz-s');
-    if (s) s.textContent = `JPG/PNG/MP4 等，最多 ${MAX} 个 · ${Math.min(state.length, MAX)}/${MAX}`;
-  };
+    if (s) s.textContent = `最多 ${MAX} 個媒體 · ${state.length}/${MAX}`;
+  }
 
-  // 点击选取
+  // 點擊選取
   btnPick?.addEventListener('click', ()=> input.click());
-
-  // 选择后「追加」而不是覆盖
+  // 選擇檔案（追加）
   input.addEventListener('change', ()=>{
     addFiles(input.files);
-    // 清空 input.value 以允许选择同一文件再次触发 change
-    input.value = '';
+    input.value = ''; // 重置以允許同名檔案再選
     render();
   });
-
   // 拖放
   ['dragenter','dragover'].forEach(ev=>{
     drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.add('is-drag'); }, false);
@@ -155,11 +161,12 @@ function initMedia(){
     render();
   });
 
-  // 对外接口（提交与重置）
   return {
-    files: ()=> state.map(x=>x.file).slice(0,MAX),
-    clear: ()=> { state.forEach(x=>{ try{ URL.revokeObjectURL(x.url); }catch(_){}}); state = []; render(); },
-    render
+    files: ()=> state.map(x=>x.file),
+    clear: ()=> { state.forEach(x=> URL.revokeObjectURL(x.url)); state=[]; render(); },
+    coverUrl: ()=> (state.find(x=>x.isCover)?.url || ''),
+    render,
+    getState: ()=> state
   };
 }
 
@@ -332,17 +339,20 @@ async function handleSubmit(e, ctx){
     return;
   }
 
-  // 3) 上传媒体（图片 + 影片，合计最多 10 个）
-  let photos = [], videos = [], cover = '';
-  try{
-    const uploaded = await uploadMedia(media?.files()); // [{url, type}, ...]
-    // 拆分：如果你的資料表没有 videos 欄位，可直接刪掉下兩行與 payload.videos
-    photos = uploaded.filter(x => /^image\//.test(x.type)).map(x => x.url).filter(Boolean);
-    videos = uploaded.filter(x => /^video\//.test(x.type)).map(x => x.url).filter(Boolean);
-    cover  = photos[0] || videos[0] || '';              // 優先用圖片作封面
-  }catch(err){
-    console.warn('[submit] media upload failed, continue:', err);
-  }
+  // 3) 上傳媒體
+let photos = [], videos = [], cover = '';
+try{
+  const uploaded = await uploadMedia(media.files());
+  photos = uploaded.filter(x => /^image\//.test(x.type)).map(x => x.url).filter(Boolean);
+  videos = uploaded.filter(x => /^video\//.test(x.type)).map(x => x.url).filter(Boolean);
+
+  // 找對應封面的 URL
+  const coverLocalUrl = media.getState().find(x=>x.isCover)?.url;
+  const matched = uploaded.find(u => u.url === coverLocalUrl);
+  cover = matched ? matched.url : (photos[0] || videos[0] || '');
+}catch(err){
+  console.warn('[submit] media upload failed, continue:', err);
+}
 
   // 4) 地點（可選）
   const place_id   = $('#postPlaceId')?.value?.trim() || null;
@@ -421,6 +431,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // Photos
   const media = initMedia();
   photos?.render?.();
+  // 绑定提交（把 media 放进 ctx 传进去）
+document.getElementById('postForm')?.addEventListener('submit', (e)=> handleSubmit(e, { media }));
 
   // Body counter + autosize
   initBodyCounter();
