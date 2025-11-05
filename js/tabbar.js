@@ -11,7 +11,7 @@
   const TAB_TO_HASH = {
   home:    '#home',
   explore: '#explore',
-  map:     '#map',
+  posts:     '#posts',
   profile: '#profile',
   add:     '#add',
 };
