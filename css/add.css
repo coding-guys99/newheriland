@@ -549,3 +549,20 @@
   .tagbox .tag { background: rgba(148,163,184,.18); color: #e5e7eb; }
   .form-actions { background: color-mix(in oklab, #0b0f12 82%, transparent); border-top-color: var(--line); }
 }
+
+/* 封面星星 */
+.ph-cover {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 20px;
+  color: gold;
+  background: rgba(0,0,0,0.3);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  line-height: 1;
+}
+.ph-cover:hover { background: rgba(0,0,0,0.5); }
