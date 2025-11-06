@@ -217,6 +217,47 @@ if (a.avatar_url) {
   return frag;
 }
 
+// 生成/取得裝置指紋（存在 localStorage）
+function getDeviceId(){
+  let id = localStorage.getItem('hl.device_id');
+  if (!id){
+    id = (crypto.randomUUID?.() || (Date.now()+Math.random()).toString(36));
+    localStorage.setItem('hl.device_id', id);
+  }
+  return id;
+}
+
+// 觸發 +1（節流：每張卡片只打一次）
+const seenSet = new Set();
+
+async function bumpView(postId){
+  if (!postId || seenSet.has(postId)) return;
+  seenSet.add(postId);
+  try{
+    await supabase.rpc('posts_inc_view', {
+      p_post_id: postId,
+      p_fprint: getDeviceId()
+    });
+  }catch(e){
+    console.warn('[views] inc fail', e);
+  }
+}
+
+// 例：在卡片渲染後，等圖片載入或卡片進入 viewport 時呼叫
+function observeCardForView(cardEl, postId){
+  if (!('IntersectionObserver' in window)) {
+    bumpView(postId); return;
+  }
+  const io = new IntersectionObserver((entries, obs)=>{
+    if (entries.some(e=> e.isIntersecting)){
+      bumpView(postId);
+      obs.unobserve(cardEl);
+    }
+  }, { root:null, rootMargin:'200px 0px', threshold: 0.1 });
+  io.observe(cardEl);
+}
+
+
 /* ------------------ List control ------------------ */
 function setLoading(on){
   state.loading = !!on;
