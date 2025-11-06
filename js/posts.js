@@ -215,8 +215,12 @@ if (a.avatar_url) {
     location.hash = `#/posts/${encodeURIComponent(post.id)}`;
   });
 
-  const cardRoot = frag.querySelector('.post');
-observeCardForView(cardRoot, post.id);
+  // ✅ 只標記 post id，先別 observe
+  el.dataset.pid = post.id;
+
+
+ // const cardRoot = frag.querySelector('.post');
+//observeCardForView(cardRoot, post.id);
 
   return frag;
 
@@ -310,6 +314,14 @@ async function loadMore(){
   const frag = document.createDocumentFragment();
   data.forEach(p => frag.appendChild( renderPostCard(p) ));
   els.list.appendChild(frag);
+
+  // ✅ 這裡再綁 IntersectionObserver（只綁新卡）
+$$('.post:not([data-observed])', els.list).forEach(card=>{
+  const pid = card.dataset.pid;
+  if (!pid) return;
+  observeCardForView(card, pid);
+  card.setAttribute('data-observed','1');
+});
 
   if (!data || data.length < state.limit){
     state.done = true;
