@@ -396,70 +396,89 @@
 
     <!-- ===================== Posts (Community Feed) ===================== -->
 <section data-page="posts" class="posts" hidden aria-labelledby="h-posts">
-  <!-- Sticky AppBar（沿用你現有 appbar 風格也可拿掉） -->
+  <!-- Sticky AppBar -->
   <header class="p-appbar">
-    <h1 id="h-posts" class="p-title" data-focusable-heading >Community</h1>
+    <h1 id="h-posts" class="p-title" data-focusable-heading>Community</h1>
     <div class="p-actions">
       <button class="icon-btn" id="btnPostsRefresh" aria-label="Refresh">⟲</button>
     </div>
   </header>
 
-  <div class="p-scroll">
-    <!-- 工具列：排序 + #Tag 捲動列（可選） -->
+  <div class="p-scroll" role="region" aria-label="Community feed">
+    <!-- 工具列：排序 + #Tag 捲動列 -->
     <div class="p-toolbar" role="region" aria-label="Posts tools">
       <div class="p-sort" role="group" aria-label="Sort posts">
         <button class="chip is-on" data-sort="latest" aria-pressed="true">Latest</button>
         <button class="chip" data-sort="hot" aria-pressed="false">Popular</button>
       </div>
-      <div class="p-tags" id="postsTagBar" aria-label="Filter by tag">
-        <!-- JS 注入熱度標籤；範例： -->
-        <!-- <button class="tag" data-tag="food">#food</button> -->
-      </div>
+      <div class="p-tags" id="postsTagBar" aria-label="Filter by tag"></div>
     </div>
 
-    <!-- 列表 -->
+    <!-- Skeleton -->
     <div id="postsSk" class="p-skeleton" aria-hidden="true">
       <div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div>
     </div>
 
+    <!-- Error / Empty -->
     <div id="postsError" class="p-error" hidden>
       <p>無法載入貼文，請稍後再試。</p>
       <button id="btnPostsRetry" class="btn ghost">Retry</button>
     </div>
-
     <div id="postsEmpty" class="p-empty" hidden>
       <p>還沒有任何貼文。去 <a href="#add">發佈第一篇</a> 吧！</p>
     </div>
 
+    <!-- 列表容器（雙欄瀑布流由 CSS 控制） -->
     <div id="postsList" class="p-list" aria-live="polite"></div>
 
+    <!-- 分頁載入 -->
     <div id="postsMoreWrap" class="p-more" hidden>
       <button id="btnPostsMore" class="btn">載入更多</button>
       <div id="postsMoreSk" class="p-more-sk" hidden></div>
     </div>
-    
-    <div id="postsSentinel" class="p-sentinel" aria-hidden="true"></div>
 
-    <div class="p-safe"></div>
-    
+    <div id="postsSentinel" class="p-sentinel" aria-hidden="true"></div>
+    <div class="p-safe" aria-hidden="true"></div>
+
+    <!-- ===== Card Template (Trip.com 風格) ===== -->
     <template id="postCardTpl">
-  <article class="post">
-    <header class="post-hd">
-      <div class="post-author"></div>
-      <time class="post-time" datetime=""></time>
-    </header>
-    <div class="post-media"></div>
-    <div class="post-body"></div>
-    <div class="post-tags"></div>
-    <footer class="post-ft">
-      <button class="btn ghost btn-like" type="button">♡</button>
-      <a class="link-inline btn-place" href="#" target="_blank" rel="noopener"></a>
-    </footer>
-  </article>
-</template>
-    
+      <article class="post" role="article">
+        <!-- Media 區：固定比例容器，覆蓋貼紙/角標由 CSS 置入 -->
+        <a class="post-media" href="#" aria-label="">
+          <!-- 圖片或影片縮圖由 JS 注入 -->
+          <!-- 左下：分類標籤（如 Moments/Guide/City） -->
+          <span class="pm-badge" hidden>Moments</span>
+          <!-- 右下：圓形貼紙（活動/AI 徽章，可選） -->
+          <span class="pm-sticker" hidden>AI</span>
+          <!-- 右上：影片角標 -->
+          <span class="pm-vid" hidden aria-label="Video">▶</span>
+        </a>
+
+        <!-- 標題（兩行截斷；由 JS 填入 title 或 body 摘要） -->
+        <h3 class="post-title"></h3>
+
+        <!-- Meta 行：作者 + 時間 + 右側統計/地點 -->
+        <div class="post-meta">
+          <div class="post-meta-left">
+            <img class="post-avatar" src="" alt="" hidden>
+            <span class="post-author"></span>
+            <span class="dot" aria-hidden="true">•</span>
+            <time class="post-time" datetime=""></time>
+          </div>
+          <div class="post-meta-right">
+            <span class="post-views" hidden>0</span>
+            <button class="btn-icon btn-like" type="button" aria-label="Like">♡</button>
+            <a class="btn-icon btn-place" href="#" target="_blank" rel="noopener" aria-label="Open place" hidden>📍</a>
+          </div>
+        </div>
+
+        <!-- Tags（最多顯示 2 個；超過以 +n 表示） -->
+        <div class="post-tags" aria-label="Tags"></div>
+      </article>
+    </template>
   </div>
 </section>
+
 
     <!-- Profile -->
 <section data-page="profile" aria-labelledby="h-profile" class="section" hidden>
@@ -1548,6 +1567,7 @@
   <script type="module" src="js/posts.js"></script>
 </body>
 </html>
+
 
 
 
