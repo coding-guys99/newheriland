@@ -1,241 +1,328 @@
-// posts.js — Community feed (works with your Posts HTML)
+// js/posts.js — Community feed (Trip-like cards)
 import { supabase } from './app.js';
 
-const $  = (s, r=document)=>r.querySelector(s);
-const $$ = (s, r=document)=>Array.from(r.querySelectorAll(s));
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-/* ---------------- State ---------------- */
-let cursor = null;              // keyset cursor: { key: ISO string }
-let sort   = 'latest';          // 'latest' | 'hot'
-let tag    = null;              // active #tag
-let busy   = false;             // loading guard
-
-/* ---------------- Small utils ---------------- */
-const fmtDate = (iso) => {
-  try{
-    const d = new Date(iso || Date.now());
-    return d.toLocaleDateString();
-  }catch{ return ''; }
+/* ------------------ Small utils ------------------ */
+const isArr = (v)=> Array.isArray(v) ? v : [];
+const safeStr = (v, fb='')=> (typeof v === 'string' ? v : fb);
+const clamp = (n, a, b)=> Math.max(a, Math.min(b, n));
+const numAbbr = (n)=>{
+  n = Number(n||0);
+  if (n < 1000) return String(n);
+  if (n < 1e6)  return (n/1e3).toFixed(n%1e3 ? 1:0).replace(/\.0$/,'') + 'K';
+  if (n < 1e9)  return (n/1e6).toFixed(n%1e6 ? 1:0).replace(/\.0$/,'') + 'M';
+  return (n/1e9).toFixed(n%1e9 ? 1:0).replace(/\.0$/,'') + 'B';
 };
-const has = (arr) => Array.isArray(arr) && arr.length>0;
-const isVideoUrl = (u='') => /\.(mp4|webm|mov)(\?|$)/i.test(u);
+const timeAgo = (iso)=>{
+  const d = new Date(iso||Date.now());
+  const diff = (Date.now() - d.getTime())/1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff/60)}m`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h`;
+  if (diff < 2592000) return `${Math.floor(diff/86400)}d`;
+  return d.toISOString().slice(0,10);
+};
+const on = (el, ev, fn, opt)=> el && el.addEventListener(ev, fn, opt);
 
-/* ---------------- Rendering ---------------- */
-function cardHTML(p){
-  // 取封面：cover > photos[0] > videos[0]
-  const cov = p.cover || (has(p.photos) ? p.photos[0] : '') || (has(p.videos) ? p.videos[0] : '') || '';
-  const isVideo = has(p.videos) && (p.videos.includes(cov) || isVideoUrl(cov));
+/* ------------------ State ------------------ */
+const state = {
+  sort: 'latest',   // 'latest' | 'hot'
+  tag:  null,       // '#tag'
+  page: 0,
+  limit: 12,
+  loading: false,
+  done: false,
+};
 
-  const place = p.place_text || '';
-  const time  = fmtDate(p.created_at || p.updated_at);
-  const tags  = Array.isArray(p.tags) ? p.tags : [];
+const els = {
+  list: $('#postsList'),
+  sk: $('#postsSk'),
+  err: $('#postsError'),
+  empty: $('#postsEmpty'),
+  moreWrap: $('#postsMoreWrap'),
+  moreBtn: $('#btnPostsMore'),
+  moreSk: $('#postsMoreSk'),
+  tagBar: $('#postsTagBar'),
+  refresh: $('#btnPostsRefresh'),
+  sentinel: $('#postsSentinel'),
+};
 
-  const mediaHTML = cov
-    ? (isVideo
-        ? `<video src="${cov}" muted playsinline preload="metadata"></video>`
-        : `<img src="${cov}" alt="">`)
-    : `<div class="p-media-ph">No media</div>`;
-
-  return `
-  <article class="p-card" data-id="${p.id}">
-    <a class="p-media" href="#post/${p.id}" aria-label="Open post">
-      ${mediaHTML}
-      ${isVideo ? `<span class="p-badge">Video</span>` : ``}
-    </a>
-    <div class="p-body">
-      <h3 class="p-titleline">${p.title ? escapeHtml(p.title) : '—'}</h3>
-      <div class="p-meta">
-        ${place ? `<span>${escapeHtml(place)}</span><span class="dot"></span>` : ``}
-        <span>${time}</span>
-      </div>
-      ${tags.length ? `<div class="p-tagsline">
-        ${tags.slice(0,3).map(t=>`<span class="t">#${escapeHtml(String(t))}</span>`).join('')}
-      </div>` : ``}
-    </div>
-  </article>`;
-}
-
-function renderPosts(items, { append=false } = {}){
-  const list = $('#postsList');
-  if (!list) return;
-  if (!append) list.innerHTML = '';
-  if (!items.length && !append){
-    $('#postsEmpty')?.removeAttribute('hidden');
-    return;
+/* ------------------ Fetch ------------------ */
+async function fetchPosts({ page=0, limit=12, sort='latest', tag=null }){
+  if (!supabase) {
+    // fallback: no backend
+    return { data: [], error: null };
   }
-  list.insertAdjacentHTML('beforeend', items.map(cardHTML).join(''));
+
+  // 欄位：依你 earlier schema
+  let query = supabase
+    .from('posts')
+    .select('id,title,body,tags,photos,videos,cover,place_text,created_at,author,views,likes,status', { count: 'exact' });
+
+  // 只顯示可公開的狀態（你若用 pending/approved 可自行調整）
+  query = query.in('status', ['published','approved']).or('status.is.null');
+
+  // Tag 篩選
+  if (tag) {
+    // 假設 tags 為 text[] 或 jsonb[] → 用包含字串的方式過濾
+    // 若用 jsonb，請在 DB 端建立對應的索引；這裡採最穩的包含法
+    query = query.contains ? query.contains('tags', [tag]) : query;
+  }
+
+  // 排序
+  if (sort === 'hot') {
+    query = query.order('views', { ascending: false }).order('created_at', { ascending: false });
+  } else {
+    query = query.order('created_at', { ascending: false });
+  }
+
+  const from = page * limit;
+  const to   = from + limit - 1;
+  query = query.range(from, to);
+
+  const { data, error } = await query;
+  return { data: data || [], error };
 }
 
-/* ---------------- Data ---------------- */
-async function fetchPosts({ cursor:cur=null, sort:sv='latest', tag:tg=null } = {}){
-  // UI 狀態
-  if (!cur) { $('#postsSk')?.removeAttribute('hidden'); }
-  else { $('#postsMoreSk')?.removeAttribute('hidden'); $('#btnPostsMore')?.setAttribute('disabled','true'); }
-  $('#postsError')?.setAttribute('hidden','true');
-  $('#postsEmpty')?.setAttribute('hidden','true');
+/* ------------------ Render helpers ------------------ */
+function pickMedia(post){
+  const photos = isArr(post.photos);
+  const videos = isArr(post.videos);
+  const cover  = safeStr(post.cover);
+  if (cover) return { url: cover, kind: 'image' };
+  if (photos[0]) return { url: photos[0], kind: 'image' };
+  if (videos[0]) return { url: videos[0], kind: 'video' };
+  return { url: '', kind: 'image' };
+}
 
-  try{
-    // 本地 demo
-    if (!supabase){
-      await new Promise(r=>setTimeout(r,500));
-      const mock = Array.from({length: 8}, (_,i)=>({
-        id:`m-${Date.now()}-${i}`,
-        title:`Demo post #${i+1}`,
-        cover:'https://picsum.photos/seed/'+(Math.random()*9999|0)+'/800/1000',
-        tags:['demo','food','travel'].slice(0, (i%3)+1),
-        place_text: ['Kuching','Miri','Sibu'][i%3],
-        created_at: new Date(Date.now()-i*6e5).toISOString(),
-        updated_at: new Date(Date.now()-i*6e5).toISOString(),
-        status:'published'
-      }));
-      return { ok:true, items: mock, nextCursor: { key: mock.at(-1)?.created_at } };
-    }
+function mkTagChip(t){
+  const span = document.createElement('span');
+  span.className = 'tag';
+  span.textContent = `#${t}`;
+  return span;
+}
 
-    const PAGE = 12;
-    // 依排序選用 key（保持 order 與 cursor 一致）
-    const orderKey = (sv === 'hot') ? 'updated_at' : 'created_at';
-
-    let q = supabase
-      .from('posts')
-      .select('id,title,cover,photos,videos,tags,place_text,created_at,updated_at,status')
-      .eq('status','published')
-      .order(orderKey, { ascending:false })
-      .limit(PAGE);
-
-    // tag 過濾：若為 jsonb[]
-    if (tg && typeof q.contains === 'function'){
-      q = q.contains('tags', [tg]);
-    }
-
-    // keyset：比 cursor 更舊
-    if (cur && cur.key){
-      q = q.lt(orderKey, cur.key);
-    }
-
-    const { data, error } = await q;
-    if (error) throw error;
-
-    const items = data || [];
-    const last = items[items.length-1];
-    const nextCursor = last ? { key: last[orderKey] } : null;
-
-    return { ok:true, items, nextCursor };
-  }catch(err){
-    console.warn('[posts] fetch error:', err);
-    return { ok:false, error: err };
-  }finally{
-    $('#postsSk')?.setAttribute('hidden','true');
-    $('#postsMoreSk')?.setAttribute('hidden','true');
-    $('#btnPostsMore')?.removeAttribute('disabled');
+function lazyImg(img, src){
+  img.loading = 'lazy';
+  img.decoding = 'async';
+  img.alt = img.alt || '';
+  img.src = src;
+  if (img.complete) {
+    img.setAttribute('data-loaded', '1');
+  } else {
+    img.addEventListener('load', ()=> img.setAttribute('data-loaded','1'), { once:true });
+    img.addEventListener('error', ()=> img.setAttribute('data-loaded','1'), { once:true });
   }
 }
 
-/* ---------------- Wire up ---------------- */
-async function loadFirst(){
-  if (busy) return; busy = true;
-  const res = await fetchPosts({ sort, tag:null });
-  busy = false;
+function renderPostCard(post){
+  const tpl = $('#postCardTpl');
+  const frag = tpl.content.cloneNode(true);
+  const el = frag.querySelector('.post');
 
-  if (!res.ok){
-    $('#postsError')?.removeAttribute('hidden');
-    $('#postsList') && ( $('#postsList').innerHTML = '' );
-    $('#postsMoreWrap')?.setAttribute('hidden','true');
-    return;
+  const mediaA = frag.querySelector('.post-media');
+  const badge  = frag.querySelector('.pm-badge');
+  const sticker= frag.querySelector('.pm-sticker');
+  const vidTag = frag.querySelector('.pm-vid');
+  const titleEl= frag.querySelector('.post-title');
+  const ava    = frag.querySelector('.post-avatar');
+  const author = frag.querySelector('.post-author');
+  const timeEl = frag.querySelector('.post-time');
+  const views  = frag.querySelector('.post-views');
+  const likeBtn= frag.querySelector('.btn-like');
+  const placeA = frag.querySelector('.btn-place');
+  const tagsBox= frag.querySelector('.post-tags');
+
+  // Media
+  const media = pickMedia(post);
+  mediaA.href = `#/posts/${encodeURIComponent(post.id)}`;
+  mediaA.setAttribute('aria-label', safeStr(post.title, 'View post'));
+
+  if (media.url){
+    const img = document.createElement('img');
+    lazyImg(img, media.url);
+    mediaA.appendChild(img);
   }
-  renderPosts(res.items, { append:false });
-  cursor = res.nextCursor;
-  $('#postsMoreWrap')?.toggleAttribute('hidden', !cursor);
+  if (media.kind === 'video') {
+    vidTag.hidden = false;
+  }
+
+  // 可選：分類/城市標籤
+  const cat = safeStr(post.place_text) || (isArr(post.tags)[0] || '');
+  if (cat) {
+    badge.textContent = cat.length > 14 ? cat.slice(0,12)+'…' : cat;
+    badge.hidden = false;
+  }
+
+  // 右下貼紙（預留：若你要顯示 AI / 活動）
+  // sticker.textContent = 'AI'; sticker.hidden = false; // 視需求打開
+
+  // Title（兩行截斷）
+  const title = safeStr(post.title) || safeStr(post.place_text) || 'Untitled Post';
+  titleEl.textContent = title;
+
+  // Meta 左側
+  const a = post.author || {};
+  if (a?.avatar_url){
+    ava.src = a.avatar_url;
+    ava.alt = a.display_name ? `${a.display_name}'s avatar` : 'avatar';
+    ava.hidden = false;
+  }
+  author.textContent = a?.display_name || 'Anonymous';
+  timeEl.dateTime = post.created_at || '';
+  timeEl.textContent = timeAgo(post.created_at);
+
+  // Meta 右側
+  if (post.views != null){
+    views.textContent = numAbbr(post.views);
+    views.hidden = false;
+  }
+  on(likeBtn, 'click', ()=>{
+    likeBtn.classList.toggle('is-on');
+    // 這裡可追加：調用 /rpc 或資料表更新 likes（節流/防抖）
+  });
+
+  if (post.place_text){
+    placeA.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(post.place_text)}`;
+    placeA.hidden = false;
+  }
+
+  // Tags（最多 2 顆 +n）
+  const tags = isArr(post.tags).slice(0, 8);
+  if (tags.length){
+    const max = 2;
+    tags.slice(0, max).forEach(t => tagsBox.appendChild(mkTagChip(t)));
+    const more = tags.length - max;
+    if (more > 0){
+      const moreChip = document.createElement('span');
+      moreChip.className = 'tag more';
+      moreChip.textContent = `+${more}`;
+      tagsBox.appendChild(moreChip);
+    }
+  }
+
+  // 整張卡片點擊進詳情（若不要就移除這段）
+  on(el, 'click', (ev)=>{
+    // 避免在點按鈕時觸發
+    if (ev.target.closest('.btn-icon')) return;
+    location.hash = `#/posts/${encodeURIComponent(post.id)}`;
+  });
+
+  return frag;
+}
+
+/* ------------------ List control ------------------ */
+function setLoading(on){
+  state.loading = !!on;
+  els.sk.hidden = !on && state.page > 0;
+  els.moreSk.hidden = !on || state.page === 0;
+}
+function setError(on){
+  els.err.hidden = !on;
+}
+function setEmpty(on){
+  els.empty.hidden = !on;
+}
+function clearList(){
+  els.list.innerHTML = '';
+  state.page = 0;
+  state.done = false;
 }
 
 async function loadMore(){
-  if (busy || !cursor) return;
-  busy = true;
-  const res = await fetchPosts({ cursor, sort, tag });
-  busy = false;
-  if (!res.ok) return;
-  renderPosts(res.items, { append:true });
-  cursor = res.nextCursor;
-  $('#postsMoreWrap')?.toggleAttribute('hidden', !cursor);
+  if (state.loading || state.done) return;
+  setLoading(true); setError(false);
+
+  const { data, error } = await fetchPosts({
+    page: state.page,
+    limit: state.limit,
+    sort: state.sort,
+    tag: state.tag,
+  });
+
+  setLoading(false);
+
+  if (error){
+    console.error('[posts] fetch error:', error);
+    if (state.page === 0) setError(true);
+    return;
+  }
+
+  if (state.page === 0 && (!data || data.length === 0)){
+    setEmpty(true);
+    return;
+  } else {
+    setEmpty(false);
+  }
+
+  const frag = document.createDocumentFragment();
+  data.forEach(p => frag.appendChild( renderPostCard(p) ));
+  els.list.appendChild(frag);
+
+  if (!data || data.length < state.limit){
+    state.done = true;
+    els.moreWrap.hidden = true;
+  } else {
+    state.page += 1;
+    els.moreWrap.hidden = false;
+  }
 }
 
-/* 可選：無限捲動 */
-function setupInfiniteScroll(){
-  const more = $('#btnPostsMore');
-  const sentinel = document.createElement('div');
-  sentinel.id = 'postsSentinel';
-  sentinel.style.height = '1px';
-  $('#postsMoreWrap')?.before(sentinel);
-
-  if (!('IntersectionObserver' in window)) return;
-
-  const io = new IntersectionObserver((entries)=>{
-    const en = entries[0];
-    if (en.isIntersecting && !busy && cursor){
-      loadMore();
-    }
-  }, { rootMargin: '400px 0px' });
-
-  io.observe(sentinel);
-  // 仍保留按鈕 fallback
-  more?.addEventListener('click', loadMore);
+/* ------------------ Tag bar (optional demo) ------------------ */
+function renderHotTags(hot=[]) {
+  els.tagBar.innerHTML = '';
+  hot.slice(0, 12).forEach(t=>{
+    const b = document.createElement('button');
+    b.className = 'tag';
+    b.textContent = `#${t}`;
+    on(b,'click', ()=>{
+      // 切換 tag
+      const isSame = state.tag === t;
+      state.tag = isSame ? null : t;
+      // UI 樣式
+      $$('.p-tags .tag').forEach(x=> x.classList.toggle('is-on', x === b && !isSame));
+      // 重新載入
+      clearList(); loadMore();
+    });
+    els.tagBar.appendChild(b);
+  });
 }
 
-/* Escape for texts */
-function escapeHtml(s=''){
-  return s.replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
-}
-
-/* ---------------- Boot ---------------- */
+/* ------------------ Bootstrap ------------------ */
 document.addEventListener('DOMContentLoaded', ()=>{
-  const sec = document.querySelector('[data-page="posts"]');
-  if (!sec) return;
+  const page = document.querySelector('[data-page="posts"].posts');
+  if (!page) return;
 
-  // 排序
-  $$('.p-sort .chip', sec).forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      $$('.p-sort .chip', sec).forEach(b=>{
-        b.classList.remove('is-on'); b.setAttribute('aria-pressed','false');
-      });
-      btn.classList.add('is-on'); btn.setAttribute('aria-pressed','true');
-      sort = btn.dataset.sort || 'latest';
-      cursor = null;
-      loadFirst();
+  // 排序切換
+  $$('.p-sort .chip').forEach(ch=>{
+    on(ch,'click', ()=>{
+      $$('.p-sort .chip').forEach(x=> x.classList.remove('is-on'));
+      ch.classList.add('is-on');
+      state.sort = ch.dataset.sort || 'latest';
+      clearList(); loadMore();
     });
   });
 
-  // 標籤（先靜態幾個，之後可由後端熱門標籤填充）
-  const tagbar = $('#postsTagBar');
-  if (tagbar){
-    ['food','travel','culture','local'].forEach(t=>{
-      const b = document.createElement('button');
-      b.className = 'tag'; b.dataset.tag = t; b.textContent = '#'+t;
-      b.addEventListener('click', ()=>{
-        $$('.p-tags .tag', sec).forEach(x=> x.classList.toggle('is-on', x===b));
-        tag = t; cursor = null; loadFirst();
-      });
-      tagbar.appendChild(b);
-    });
+  // Refresh
+  on(els.refresh,'click', ()=>{ clearList(); loadMore(); });
+
+  // Load more（按鈕）
+  on(els.moreBtn,'click', loadMore);
+
+  // 無限滾動（sentinel）
+  if ('IntersectionObserver' in window && els.sentinel){
+    const io = new IntersectionObserver((entries)=>{
+      if (entries.some(e=> e.isIntersecting)) loadMore();
+    }, { root: null, rootMargin: '800px 0px', threshold: 0 });
+    io.observe(els.sentinel);
   }
 
-  // 更多/重試/刷新
-  $('#btnPostsMore')?.addEventListener('click', loadMore);
-  $('#btnPostsRetry')?.addEventListener('click', loadFirst);
-  $('#btnPostsRefresh')?.addEventListener('click', ()=>{ cursor=null; loadFirst(); });
+  // 熱門標籤（可改成從後端抓）
+  renderHotTags(['kuching','food','nature','museum','cafe','viewpoint','sarawak']);
 
-  // 初次進來若就是 #posts，載入一次
-  const runIfActive = ()=>{
-    const seg = (location.hash || '#home').replace(/^#\/?/, '').split(/[/?]/)[0] || 'home';
-    if (seg === 'posts'){
-      // 你的全域 router 會切頁；這裡保險顯示
-      document.querySelectorAll('[data-page]').forEach(p=> p.hidden = (p!==sec));
-      loadFirst();
-    }
-  };
-  window.addEventListener('hashchange', runIfActive);
-  runIfActive();
-
-  // 無限捲動（可關）
-  setupInfiniteScroll();
+  // 首次載入
+  clearList();
+  loadMore();
 });
