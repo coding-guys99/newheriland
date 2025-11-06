@@ -59,7 +59,7 @@ async function fetchPosts({ page=0, limit=12, sort='latest', tag=null }){
   // 欄位：依你 earlier schema
   let query = supabase
     .from('posts')
-    .select('id,title,body,tags,photos,videos,cover,place_text,created_at,author,views,likes,status', { count: 'exact' });
+    .select('id,title,body,tags,photos,videos,cover,place_text,created_at,author,views,likes,status', { count: 'exact' })
 
   // 只顯示可公開的狀態（你若用 pending/approved 可自行調整）
   query = query.in('status', ['published','approved']).or('status.is.null');
