@@ -1210,6 +1210,66 @@
     
   </main>
 
+  <!-- ===== Global Publish Modal ===== -->
+<div id="modalBackdrop" class="hl-modal-backdrop" hidden></div>
+
+<div id="publishModal" class="hl-modal" role="dialog" aria-modal="true" aria-labelledby="pmTitle" hidden>
+  <div class="hl-modal-card">
+    <header class="hl-modal-hd">
+      <h2 id="pmTitle" class="hl-modal-title">Ready to publish?</h2>
+    </header>
+
+    <div id="pmBody" class="hl-modal-body">
+      <!-- 1) 確認態 -->
+      <div data-state="confirm">
+        <p>Make sure your title, photos and tags look good.</p>
+      </div>
+
+      <!-- 2) 上傳/發布中（不關閉） -->
+      <div data-state="progress" hidden>
+        <div class="pm-spinner" aria-hidden="true"></div>
+        <p id="pmProgressText">Publishing…</p>
+      </div>
+
+      <!-- 3) 成功 -->
+      <div data-state="success" hidden>
+        <p>Published successfully.</p>
+      </div>
+
+      <!-- 4) 失敗 -->
+      <div data-state="error" hidden>
+        <p id="pmErrText">Something went wrong.</p>
+      </div>
+    </div>
+
+    <footer class="hl-modal-ft">
+      <!-- 確認態按鈕 -->
+      <div data-state="confirm">
+        <button id="pmCancel" class="btn ghost" type="button">Cancel</button>
+        <button id="pmOk" class="btn" type="button">Publish</button>
+      </div>
+
+      <!-- 進行中（禁用交互） -->
+      <div data-state="progress" hidden>
+        <button class="btn" type="button" disabled>Publishing…</button>
+      </div>
+
+      <!-- 成功 -->
+      <div data-state="success" hidden>
+        <a id="pmView" class="btn" href="#posts">View post</a>
+        <button id="pmDone" class="btn ghost" type="button">OK</button>
+      </div>
+
+      <!-- 失敗 -->
+      <div data-state="error" hidden>
+        <button id="pmRetry" class="btn" type="button">Retry</button>
+        <button id="pmCloseErr" class="btn ghost" type="button">Close</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+
   <!-- ====== Edit Profile（會員資料編輯） ====== -->
 <section id="p-edit-profile" class="overlay-page hl-edit" hidden aria-labelledby="h-edit-profile" aria-modal="true" role="dialog">
   <!-- Header -->
@@ -1488,6 +1548,7 @@
   <script type="module" src="js/posts.js"></script>
 </body>
 </html>
+
 
 
 
