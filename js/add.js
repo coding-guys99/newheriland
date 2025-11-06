@@ -218,40 +218,94 @@ function initPlace(){
 
 /* ==================== Submit / Draft ==================== */
 async function handleSubmit(e, ctx){
-  e.preventDefault();
-  const form=e.currentTarget; const media=ctx?.media;
-  const title=$('#postTitle')?.value?.trim()||''; const body=$('#postBody')?.value?.trim()||'';
-  const tags=(()=>{try{return JSON.parse($('#postTags')?.value||'[]');}catch{return[];}})();
-  const mediaCount=media?.files()?.length||0;
-  if(!title && !body && mediaCount===0){$('#postTitle')?.focus();showToast('至少需要標題、內文或照片其一','error');throw new Error('empty');}
-  if(body.length>500){$('#postBody')?.focus();showToast('內文最多500字','error');throw new Error('too-long');}
+  // 防呆：事件可能已失效
+  if (e?.preventDefault) e.preventDefault();
 
-  let photos=[],videos=[],cover='';
-  try{
-    const state=media.getState();
-    const uploaded=await uploadMedia(state);
-    photos=uploaded.filter(x=>x.kind==='image'&&x.url).map(x=>x.url);
-    videos=uploaded.filter(x=>x.kind==='video'&&x.url).map(x=>x.url);
-    const coverLocal=state.find(x=>x.isCover)?.url;
-    cover=(uploaded.find(u=>u.local===coverLocal)?.url)||photos[0]||videos[0]||'';
-  }catch(err){console.warn('[submit] upload fail:',err);}
-
-  const place_id=$('#postPlaceId')?.value?.trim()||null;
-  const place_text=$('#postPlace')?.value?.trim()||'';
-  const payload=compact({
-    id:makePostId(title),title:title||null,body:body||null,tags,photos,videos,cover:cover||null,
-    place_id,place_text,status:'pending',created_at:nowIso(),updated_at:nowIso(),
-  });
-
-  if(!supabase){
-    const key='add_queue_posts'; const q=JSON.parse(localStorage.getItem(key)||'[]'); q.push(payload);
-    localStorage.setItem(key,JSON.stringify(q)); showToast('已暫存於本地','success'); form.reset(); media?.clear?.(); $('#postBodyCount')&&($('#postBodyCount').textContent='0'); return;
+  // 先取得 form（事件失效就用 DOM 抓）
+  const form = e?.currentTarget || document.querySelector('#postForm');
+  if (!form) {
+    showToast('表單節點不存在（#postForm）','error');
+    throw new Error('form-not-found');
   }
 
+  // 取用傳入的 media（可能為 undefined）
+  const media = ctx?.media;
+
+  // 讀取欄位
+  const title = $('#postTitle')?.value?.trim() || '';
+  const body  = $('#postBody')?.value?.trim()  || '';
+  const tags  = (()=>{ try{ return JSON.parse($('#postTags')?.value || '[]'); }catch{ return []; } })();
+
+  // 最低條件檢查
+  const mediaCount = media?.files?.()?.length || 0;
+  if (!title && !body && mediaCount === 0){
+    $('#postTitle')?.focus();
+    showToast('至少需要標題、內文或照片其一','error');
+    throw new Error('empty');
+  }
+  if (body.length > 500){
+    $('#postBody')?.focus();
+    showToast('內文最多500字','error');
+    throw new Error('too-long');
+  }
+
+  // 上傳媒體
+  let photos = [], videos = [], cover = '';
+  try{
+    const state = media?.getState?.() || [];
+    const uploaded = await uploadMedia(state);
+    photos = uploaded.filter(x => x.kind === 'image' && x.url).map(x => x.url);
+    videos = uploaded.filter(x => x.kind === 'video' && x.url).map(x => x.url);
+
+    const coverLocal = state.find(x=>x.isCover)?.url;
+    cover = (uploaded.find(u => u.local === coverLocal)?.url) || photos[0] || videos[0] || '';
+  }catch(err){
+    console.warn('[submit] media upload failed, continue:', err);
+  }
+
+  // 地點
+  const place_id   = $('#postPlaceId')?.value?.trim() || null;
+  const place_text = $('#postPlace')?.value?.trim()   || '';
+
+  // 組 payload
+  const payload = compact({
+    id: makePostId(title),
+    title: title || null,
+    body:  body  || null,
+    tags,
+    photos,
+    videos,                 // 若資料表沒有此欄位可移除
+    cover: cover || null,
+    place_id,
+    place_text,
+    status: 'pending',
+    created_at: nowIso(),
+    updated_at: nowIso(),
+  });
+
+  // 無後端：暫存本地
+  if (!supabase){
+    const key = 'add_queue_posts';
+    const q = JSON.parse(localStorage.getItem(key) || '[]');
+    q.push(payload);
+    localStorage.setItem(key, JSON.stringify(q));
+    showToast('已暫存於本地（未連接後端）','success');
+    form.reset?.();
+    media?.clear?.();
+    if ($('#postBodyCount')) $('#postBodyCount').textContent = '0';
+    return;
+  }
+
+  // 寫入資料庫
   const { error } = await supabase.from('posts').insert(payload);
-  if(error) throw error;
-  form.reset(); media?.clear?.(); $('#postBodyCount')&&($('#postBodyCount').textContent='0');
+  if (error) throw error;
+
+  // 成功清理
+  form.reset?.();
+  media?.clear?.();
+  if ($('#postBodyCount')) $('#postBodyCount').textContent = '0';
 }
+
 
 function handleSaveDraft(){
   const title=$('#postTitle')?.value?.trim()||''; const body=$('#postBody')?.value?.trim()||'';
@@ -280,44 +334,74 @@ function setState(name){
 
 /* ==================== Bootstrap ==================== */
 document.addEventListener('DOMContentLoaded', ()=>{
-  const page=document.querySelector('[data-page="add"].add-post');
-  if(!page) return;
+  const page = document.querySelector('[data-page="add"].add-post');
+  if (!page) return;
 
-  const media=initMedia(); const form=$('#postForm');
-  let lastEvent=null;
+  const media = initMedia();
+  const form  = $('#postForm');
+  let lastForm = null;   // ✅ 改這裡
 
-  form?.addEventListener('submit', e=>{
-    e.preventDefault(); lastEvent=e; PublishModal.open('confirm');
+  // 攔截 submit，只開啟確認視窗
+  form?.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    lastForm = form;      // ✅ 保存 form 節點
+    PublishModal.open('confirm');
   });
 
-  $('#pmCancel')?.addEventListener('click',()=>PublishModal.close());
-  $('#pmDone')?.addEventListener('click',()=>PublishModal.close());
-  $('#pmCloseErr')?.addEventListener('click',()=>PublishModal.close());
+  // Modal 關閉鈕
+  $('#pmCancel')?.addEventListener('click', ()=> PublishModal.close());
+  $('#pmDone')?.addEventListener('click', ()=> PublishModal.close());
+  $('#pmCloseErr')?.addEventListener('click', ()=> PublishModal.close());
 
+  // Modal 的 Publish → 真正送出
   $('#pmOk')?.addEventListener('click', async ()=>{
     try{
       PublishModal.progress('Uploading…');
-      const state=media?.getState?.()||[]; const total=state.length||0; let done=0;
+
+      const state = media?.getState?.() || [];
+      const total = state.length || 0;
+      let done = 0;
+
       async function uploadWithStep(s){
-        const results=[]; for(const it of s){ const r=await uploadMedia([it]); results.push(...r); done++; PublishModal.progress(`Uploading ${done}/${total}…`); }
+        const results = [];
+        for (const it of s){
+          const r = await uploadMedia([it]);
+          results.push(...r);
+          done++;
+          PublishModal.progress(`Uploading ${done}/${total}…`);
+        }
         return results;
       }
-      const orig=window.uploadMedia; window.uploadMedia=(s)=>uploadWithStep(s);
+
+      const orig = window.uploadMedia;
+      window.uploadMedia = (s)=> uploadWithStep(s);
+
       PublishModal.progress('Publishing…');
-      await handleSubmit(lastEvent,{media});
-      window.uploadMedia=orig;
+
+      // ✅ 人工建立一個帶有 currentTarget 的事件物件
+      const fakeEvent = { currentTarget: lastForm, preventDefault(){} };
+      await handleSubmit(fakeEvent, { media });
+
+      window.uploadMedia = orig;
       PublishModal.success();
     }catch(err){
-      console.error(err); PublishModal.error(err?.message||'Publish failed');
+      console.error(err);
+      PublishModal.error(err?.message || 'Publish failed');
     }
   });
 
-  $('#btnPostSaveDraft')?.addEventListener('click',()=>handleSaveDraft());
-  initBodyCounter(); initTags(); initPlace();
+  // Save draft 保持原樣
+  $('#btnPostSaveDraft')?.addEventListener('click', ()=> handleSaveDraft());
+
+  // 初始化其他功能
+  initBodyCounter();
+  initTags();
+  initPlace();
 
   ['#postTitle','#postBody'].forEach(sel=>{
-    const el=$(sel);
-    el?.addEventListener('input',()=>el.classList.add('is-dirty'),{passive:true});
-    el?.addEventListener('blur',()=>el.classList.remove('is-dirty'));
+    const el = $(sel);
+    el?.addEventListener('input', ()=> el.classList.add('is-dirty'), { passive:true });
+    el?.addEventListener('blur',  ()=> el.classList.remove('is-dirty'));
   });
 });
+
