@@ -650,3 +650,47 @@
   padding-bottom: calc(var(--tb-height, 62px) + 80px + env(safe-area-inset-bottom));
 }
 
+/* ===== Global Modal (HeriLand) ===== */
+.hl-modal-backdrop{
+  position: fixed; inset: 0; z-index: 1500;
+  background: rgba(0,0,0,.45);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.hl-modal{
+  position: fixed; inset: 0; z-index: 1510;
+  display: grid; place-items: center;
+  padding: 24px;
+}
+.hl-modal[hidden], .hl-modal-backdrop[hidden]{ display: none !important; }
+
+.hl-modal-card{
+  width: min(560px, 92vw);
+  max-height: 80vh;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.25);
+  display: grid; grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+}
+@media (prefers-color-scheme: dark){
+  .hl-modal-card{ background: rgba(32,36,34,.96); color: #f2f2f2; }
+}
+.hl-modal-hd{ padding: 16px 18px; border-bottom: 1px solid rgba(0,0,0,.08); }
+.hl-modal-title{ font-size: 18px; margin: 0; }
+.hl-modal-body{ padding: 18px; overflow: auto; }
+.hl-modal-ft{ padding: 14px 18px; display:flex; gap:8px; justify-content:flex-end; border-top:1px solid rgba(0,0,0,.06); }
+
+.pm-spinner{
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 3px solid rgba(0,0,0,.2); border-top-color: #E8D6A7; 
+  animation: pmspin 1s linear infinite; margin-bottom: 8px;
+}
+@keyframes pmspin{ to{ transform: rotate(360deg); } }
+
+/* 開啟 Modal 時：鎖捲動 + 隱藏 tabbar（使用你已套用的 tabbar 覆蓋） */
+html.modal-open, body.modal-open{ overflow: hidden; }
+.modal-open .tabbar{ transform: translateY(100%); }
+
+/* Modal 內按鈕小樣式，沿用你現有 btn/ghost 即可 */
+.hl-modal .btn{ min-width: 96px; }
