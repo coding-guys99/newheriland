@@ -192,8 +192,7 @@ if (a.avatar_url) {
     placeA.hidden = false;
   }
 
-  const cardRoot = frag.querySelector('.post');
-observeCardForView(cardRoot, post.id);
+  
 
   // Tags（最多 2 顆 +n）
   const tags = isArr(post.tags).slice(0, 8);
@@ -215,6 +214,9 @@ observeCardForView(cardRoot, post.id);
     if (ev.target.closest('.btn-icon')) return;
     location.hash = `#/posts/${encodeURIComponent(post.id)}`;
   });
+
+  const cardRoot = frag.querySelector('.post');
+observeCardForView(cardRoot, post.id);
 
   return frag;
 
