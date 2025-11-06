@@ -215,6 +215,10 @@ if (a.avatar_url) {
   });
 
   return frag;
+
+  const cardRoot = frag.querySelector('.post');
+observeCardForView(cardRoot, post.id);
+
 }
 
 // 生成/取得裝置指紋（存在 localStorage）
