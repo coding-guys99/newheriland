@@ -165,11 +165,15 @@ function renderPostCard(post){
 
   // Meta 左側
   const a = post.author || {};
-  if (a?.avatar_url){
-    ava.src = a.avatar_url;
-    ava.alt = a.display_name ? `${a.display_name}'s avatar` : 'avatar';
-    ava.hidden = false;
-  }
+author.textContent = a.display_name || 'Anonymous';
+if (a.avatar_url) {
+  ava.src = a.avatar_url;
+  ava.alt = a.display_name ? `${a.display_name}'s avatar` : 'avatar';
+  ava.hidden = false;
+} else {
+  ava.hidden = true;
+}
+
   author.textContent = a?.display_name || 'Anonymous';
   timeEl.dateTime = post.created_at || '';
   timeEl.textContent = timeAgo(post.created_at);
