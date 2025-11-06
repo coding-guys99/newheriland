@@ -173,8 +173,7 @@ if (a.avatar_url) {
 } else {
   ava.hidden = true;
 }
-
-  author.textContent = a?.display_name || 'Anonymous';
+  
   timeEl.dateTime = post.created_at || '';
   timeEl.textContent = timeAgo(post.created_at);
 
@@ -192,6 +191,9 @@ if (a.avatar_url) {
     placeA.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(post.place_text)}`;
     placeA.hidden = false;
   }
+
+  const cardRoot = frag.querySelector('.post');
+observeCardForView(cardRoot, post.id);
 
   // Tags（最多 2 顆 +n）
   const tags = isArr(post.tags).slice(0, 8);
@@ -215,9 +217,6 @@ if (a.avatar_url) {
   });
 
   return frag;
-
-  const cardRoot = frag.querySelector('.post');
-observeCardForView(cardRoot, post.id);
 
 }
 
