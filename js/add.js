@@ -267,21 +267,25 @@ async function handleSubmit(e, ctx){
   const place_id   = $('#postPlaceId')?.value?.trim() || null;
   const place_text = $('#postPlace')?.value?.trim()   || '';
 
+  // 讀本地暱稱/頭像（你可以做個簡單設定頁先寫入 localStorage）
+const pseudoProfile = {
+  display_name: localStorage.getItem('hl.display_name') || 'Anonymous',
+  avatar_url: localStorage.getItem('hl.avatar_url') || ''
+};
+
   // 組 payload
   const payload = compact({
-    id: makePostId(title),
-    title: title || null,
-    body:  body  || null,
-    tags,
-    photos,
-    videos,                 // 若資料表沒有此欄位可移除
-    cover: cover || null,
-    place_id,
-    place_text,
-    status: 'pending',
-    created_at: nowIso(),
-    updated_at: nowIso(),
-  });
+  id: makePostId(title),
+  title: title || null,
+  body:  body  || null,
+  tags, photos, videos,
+  cover: cover || null,
+  place_id, place_text,
+  author: pseudoProfile,            // ← 新增
+  status: 'published',              // 或你原本用的 pending/approved
+  created_at: nowIso(),
+  updated_at: nowIso(),
+});
 
   // 無後端：暫存本地
   if (!supabase){
