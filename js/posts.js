@@ -357,6 +357,10 @@ function renderHotTags(hot=[]) {
 
 /* ------------------ Bootstrap ------------------ */
 document.addEventListener('DOMContentLoaded', ()=>{
+  // Debug / 手動呼叫支援
+window.__loadMore = loadMore;
+window.__fetchPosts = fetchPosts;
+
   console.log('[posts] boot'); 
   const page = document.querySelector('[data-page="posts"].posts');
   if (!page) return;
