@@ -112,3 +112,4 @@ document.addEventListener('DOMContentLoaded', initAppBase);
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.warn('[app] Supabase 未配置，後端功能會停用');
 }
+
