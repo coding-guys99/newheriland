@@ -26,7 +26,7 @@ const timeAgo = (iso)=>{
 const on = (el, ev, fn, opt)=> el && el.addEventListener(ev, fn, opt);
 
 /* ------------------ Config / State ------------------ */
-const SELECT_PRIMARY = 'id,title,body,tags,photos,videos,cover,place_text,created_at,author,views,likes,status';
+const SELECT_PRIMARY  = 'id,title,body,tags,photos,videos,cover,place_text,created_at,author,views,likes,status';
 const SELECT_FALLBACK = 'id,title,body,tags,photos,cover,place_text,created_at,status';
 
 const state = {
@@ -38,20 +38,7 @@ const state = {
   done: false,
 };
 
-/*const els = {
-  list: $('#postsList'),
-  sk: $('#postsSk'),
-  err: $('#postsError'),
-  empty: $('#postsEmpty'),
-  moreWrap: $('#postsMoreWrap'),
-  moreBtn: $('#btnPostsMore'),
-  moreSk: $('#postsMoreSk'),
-  tagBar: $('#postsTagBar'),
-  refresh: $('#btnPostsRefresh'),
-  sentinel: $('#postsSentinel'),
-};*/
-
-// 新增：延後再抓
+/* 延後抓元素 */
 let els = null;
 function collectEls() {
   const root = document;
@@ -76,17 +63,15 @@ async function fetchPosts({ page=0, limit=12, sort='latest', tag=null }){
   const runQuery = async (columns) => {
     let q = supabase.from('posts').select(columns, { count: 'exact' });
 
-    // 只顯示可公開的狀態；若還沒有 status 欄位，fallback 查詢會移除它
+    // 公開狀態（單一 or）
     if (columns.includes('status')) {
-      // ✅ 單一 or，把三個條件用逗號分開
-q = q.or('status.eq.published,status.eq.approved,status.is.null');
-
+      q = q.or('status.eq.published,status.eq.approved,status.is.null');
     }
-
-    if (tag && columns.includes('tags')) {
-      q = q.contains ? q.contains('tags', [tag]) : q;
+    // Tag
+    if (tag && columns.includes('tags') && q.contains) {
+      q = q.contains('tags', [tag]);
     }
-
+    // 排序
     if (sort === 'hot' && columns.includes('views')) {
       q = q.order('views', { ascending: false }).order('created_at', { ascending: false });
     } else if (columns.includes('created_at')) {
@@ -100,9 +85,8 @@ q = q.or('status.eq.published,status.eq.approved,status.is.null');
     return await q;
   };
 
-  // 先嘗試完整欄位；若資料庫尚未建立那些欄位/表，退而求其次避免整頁壞掉
   let { data, error } = await runQuery(SELECT_PRIMARY);
-  if (error && (error.code === '42703' /* undefined_column */ || error.code === '42P01' /* undefined_table */)) {
+  if (error && (error.code === '42703' || error.code === '42P01')) {
     console.warn('[posts] falling back select due to schema:', error);
     ({ data, error } = await runQuery(SELECT_FALLBACK));
   }
@@ -163,7 +147,6 @@ function renderPostCard(post){
   const media = pickMedia(post);
   mediaA.href = `#/posts/${encodeURIComponent(post.id)}`;
   mediaA.setAttribute('aria-label', safeStr(post.title, 'View post'));
-
   if (media.url){
     const img = document.createElement('img');
     lazyImg(img, media.url);
@@ -182,7 +165,7 @@ function renderPostCard(post){
   const title = safeStr(post.title) || safeStr(post.place_text) || 'Untitled Post';
   titleEl.textContent = title;
 
-  // Meta 左側（匿名方案 fallback）
+  // Meta 左側（匿名 fallback）
   const a = post.author || {};
   author.textContent = a.display_name || 'Anonymous';
   if (a.avatar_url) {
@@ -195,7 +178,7 @@ function renderPostCard(post){
   timeEl.dateTime = post.created_at || '';
   timeEl.textContent = timeAgo(post.created_at);
 
-  // Meta 右側（views 欄位可能不存在 → 僅當有值時顯示）
+  // Meta 右側（views 可能不存在）
   if (post.views != null) {
     views.textContent = numAbbr(post.views);
     views.hidden = false;
@@ -229,12 +212,10 @@ function renderPostCard(post){
 
   // 先不 observe，待插入 DOM 後在 loadMore() 綁定
   el.dataset.pid = post.id;
-
   return frag;
 }
 
 /* ------------------ Views (+1) ------------------ */
-// 生成/取得裝置指紋（存在 localStorage）
 function getDeviceId(){
   let id = localStorage.getItem('hl.device_id');
   if (!id){
@@ -243,28 +224,19 @@ function getDeviceId(){
   }
   return id;
 }
-
-// 觸發 +1（節流：每張卡片只打一次）
 const seenSet = new Set();
 async function bumpView(postId){
   if (!postId || seenSet.has(postId)) return;
   seenSet.add(postId);
   try{
-    await supabase?.rpc?.('posts_inc_view', {
-      p_post_id: postId,
-      p_fprint: getDeviceId()
-    });
+    await supabase?.rpc?.('posts_inc_view', { p_post_id: postId, p_fprint: getDeviceId() });
   }catch(e){
     console.warn('[views] inc fail', e);
   }
 }
-
-// 在卡片插入 DOM 之後再綁觀察
 function observeCardForView(cardEl, postId){
   if (!cardEl) return;
-  if (!('IntersectionObserver' in window)) {
-    bumpView(postId); return;
-  }
+  if (!('IntersectionObserver' in window)) { bumpView(postId); return; }
   const io = new IntersectionObserver((entries, obs)=>{
     if (entries.some(e=> e.isIntersecting)){
       bumpView(postId);
@@ -277,17 +249,12 @@ function observeCardForView(cardEl, postId){
 /* ------------------ List control ------------------ */
 function setLoading(on){
   state.loading = !!on;
-  // 首次載入：顯示骨架；之後翻頁：顯示小圓圈
+  // ✅ 首次載入顯示骨架；翻頁顯示小圓圈
   els.sk.hidden     = !(on && state.page === 0);
   els.moreSk.hidden = !(on && state.page > 0);
 }
-
-function setError(on){
-  els.err.hidden = !on;
-}
-function setEmpty(on){
-  els.empty.hidden = !on;
-}
+function setError(on){  els.err.hidden   = !on; }
+function setEmpty(on){  els.empty.hidden = !on; }
 function clearList(){
   els.list.innerHTML = '';
   state.page = 0;
@@ -297,13 +264,11 @@ function clearList(){
 async function loadMore(){
   if (!els || !els.list) { console.warn('[posts] els not ready'); return; }
   if (state.loading || state.done) return;
+
   setLoading(true); setError(false);
 
   const { data, error } = await fetchPosts({
-    page: state.page,
-    limit: state.limit,
-    sort: state.sort,
-    tag: state.tag,
+    page: state.page, limit: state.limit, sort: state.sort, tag: state.tag,
   });
 
   setLoading(false);
@@ -316,17 +281,21 @@ async function loadMore(){
 
   if (state.page === 0 && (!data || data.length === 0)){
     setEmpty(true);
+    // 關骨架
+    els.sk.hidden = true;
     return;
   } else {
     setEmpty(false);
   }
 
+  // 插入卡片
   const frag = document.createDocumentFragment();
   data.forEach(p => frag.appendChild( renderPostCard(p) ));
   els.list.appendChild(frag);
-  // 成功載入後關掉骨架
-  if (els.sk) els.sk.hidden = true;
 
+  // 關骨架（保險）
+  els.sk.hidden = true;
+  els.moreSk.hidden = true;
 
   // 插入後再綁觀察（只綁新卡）
   $$('.post:not([data-observed])', els.list).forEach(card=>{
@@ -362,47 +331,40 @@ function renderHotTags(hot=[]) {
   });
 }
 
-// 在 posts.js 的 bootstrap（DOMContentLoaded）裡、loadMore() 之後加
+/* ------------------ Realtime ------------------ */
 function subscribePostsRealtime() {
-  if (!window.supabase) return;
-  const ch = window.supabase.channel('posts-ins')
+  if (!supabase) return;
+  const ch = supabase.channel('posts-ins')
     .on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
       table: 'posts',
-      // 可選（你的 Supabase 版本若支援）：
-      // filter: 'status=in.(published,approved)'
     }, payload => {
       const row = payload.new || {};
-      // 前端再過一層保險
       const ok = !row.status || ['published','approved'].includes(row.status);
       if (!ok) return;
 
-      // 轉成卡片並插入列表最前面
       const frag = renderPostCard(row);
       els.list?.prepend(frag);
 
-      // 觀察 +1
       const card = els.list?.querySelector('.post');
       if (card) {
         card.dataset.pid = row.id;
         observeCardForView(card, row.id);
+        card.setAttribute('data-observed','1');
       }
-
-      // 隱藏骨架
       els.sk && (els.sk.hidden = true);
     })
     .subscribe((status) => console.log('[realtime]', status));
+  // 可視需求在離開頁面時 ch.unsubscribe()
 }
-subscribePostsRealtime();
-
 
 /* ------------------ Bootstrap ------------------ */
 document.addEventListener('DOMContentLoaded', ()=>{
-  window.__loadMore = loadMore;
+  // Debug hooks
+  window.__loadMore   = loadMore;
   window.__fetchPosts = fetchPosts;
 
-  console.log('[posts] boot'); 
   const page = document.querySelector('[data-page="posts"].posts');
   if (!page) return;
   page.hidden = false;
@@ -410,17 +372,31 @@ document.addEventListener('DOMContentLoaded', ()=>{
   els = collectEls();
   if (!els.list) { console.warn('[posts] #postsList not found'); return; }
 
-  // 排序/refresh/無限滾動...（原樣）
-  // ...
+  // 排序
+  $$('.p-sort .chip').forEach(ch=>{
+    on(ch,'click', ()=>{
+      $$('.p-sort .chip').forEach(x=> x.classList.remove('is-on'));
+      ch.classList.add('is-on');
+      state.sort = ch.dataset.sort || 'latest';
+      clearList(); loadMore();
+    });
+  });
+
+  on(els.refresh,'click', ()=>{ clearList(); loadMore(); });
+  on(els.moreBtn,'click', loadMore);
+
+  if ('IntersectionObserver' in window && els.sentinel){
+    const io = new IntersectionObserver((entries)=>{
+      if (entries.some(e=> e.isIntersecting)) loadMore();
+    }, { root: null, rootMargin: '800px 0px', threshold: 0 });
+    io.observe(els.sentinel);
+  }
 
   renderHotTags(['kuching','food','nature','museum','cafe','viewpoint','sarawak']);
 
   clearList();
   loadMore();
 
-  // ✅ 初始化完成後再訂閱（這裡才叫）
+  // ✅ 初始化完成後再訂閱
   subscribePostsRealtime();
 });
-
-
-
