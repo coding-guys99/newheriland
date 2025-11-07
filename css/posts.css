@@ -143,6 +143,12 @@ section.posts{
 
 /* Skeletons */
 .p-skeleton{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:12px; }
+/* 保證所有 hidden 元素真的隱藏 */
+[hidden] { display: none !important; }
+
+/* 或只針對骨架也行 */
+.p-skeleton[hidden] { display: none !important; }
+
 .p-skeleton .sk-card{
   height: calc(100vw * .5 * 1.25); /* 對齊 4:5 大小；0.5 來自 2 欄 */
   max-height: 360px; border-radius:18px; overflow:hidden; background:linear-gradient(90deg,#eef2f7, #f6f8fb, #eef2f7);
