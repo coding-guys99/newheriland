@@ -341,6 +341,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const page = document.querySelector('[data-page="posts"].posts');
   if (!page) return;
 
+  // ✅ 自動顯示 posts 區塊（避免預設 hidden 沒被 router 解除）
+  page.hidden = false;
+  console.log('[posts] boot');
+
+  // 排序切換
   $$('.p-sort .chip').forEach(ch=>{
     on(ch,'click', ()=>{
       $$('.p-sort .chip').forEach(x=> x.classList.remove('is-on'));
@@ -365,3 +370,4 @@ document.addEventListener('DOMContentLoaded', ()=>{
   clearList();
   loadMore();
 });
+
