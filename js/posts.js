@@ -78,7 +78,9 @@ async function fetchPosts({ page=0, limit=12, sort='latest', tag=null }){
 
     // 只顯示可公開的狀態；若還沒有 status 欄位，fallback 查詢會移除它
     if (columns.includes('status')) {
-      q = q.in('status', ['published','approved']).or('status.is.null');
+      // ✅ 單一 or，把三個條件用逗號分開
+q = q.or('status.eq.published,status.eq.approved,status.is.null');
+
     }
 
     if (tag && columns.includes('tags')) {
