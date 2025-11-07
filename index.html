@@ -479,6 +479,76 @@
   </div>
 </section>
 
+    <!-- ===================== Post Detail ===================== -->
+<section data-page="post" id="postDetail" class="post-detail" hidden aria-labelledby="h-post">
+  <!-- AppBar -->
+  <header class="p-appbar">
+    <button class="icon-btn" id="pdBack" aria-label="Back">←</button>
+    <h1 id="h-post" class="p-title">Post</h1>
+    <div class="p-actions">
+      <button class="icon-btn" id="pdRefresh" aria-label="Refresh">⟲</button>
+    </div>
+  </header>
+
+  <div class="p-scroll">
+
+    <!-- Skeleton -->
+    <div id="pdSk" class="pd-skeleton">
+      <div class="pd-sk-media"></div>
+      <div class="pd-sk-line w80"></div>
+      <div class="pd-sk-line w60"></div>
+      <div class="pd-sk-line w95"></div>
+      <div class="pd-sk-line w70"></div>
+    </div>
+
+    <!-- Error -->
+    <div id="pdErr" class="pd-error" hidden>
+      <p>無法載入貼文。</p>
+      <button id="pdRetry" class="btn">Retry</button>
+    </div>
+
+    <!-- 主體 -->
+    <article id="pdBody" class="pd-body" hidden>
+      <!-- Media carousel -->
+      <div class="pd-media" id="pdMedia" aria-label="Post media"></div>
+
+      <!-- 標題 -->
+      <h2 id="pdTitle" class="pd-title"></h2>
+
+      <!-- 作者與時間 -->
+      <div class="pd-meta">
+        <img id="pdAvatar" class="pd-avatar" alt="">
+        <div class="pd-author-wrap">
+          <div id="pdAuthor" class="pd-author">Anonymous</div>
+          <time id="pdTime" class="pd-time" datetime=""></time>
+        </div>
+        <div class="pd-stats">
+          <span id="pdViews" class="pd-chip" hidden>0</span>
+          <span id="pdLikes" class="pd-chip" hidden>0</span>
+        </div>
+      </div>
+
+      <!-- 內文 -->
+      <div id="pdContent" class="pd-content"></div>
+
+      <!-- 地點 -->
+      <a id="pdPlace" class="pd-place" href="#" target="_blank" rel="noopener" hidden>Open in Maps</a>
+
+      <!-- 標籤 -->
+      <div id="pdTags" class="pd-tags"></div>
+
+      <!-- 動作列 -->
+      <div class="pd-actions">
+        <button id="pdLikeBtn" class="btn ghost">♡ Like</button>
+        <button id="pdShareBtn" class="btn ghost">↗ Share</button>
+      </div>
+    </article>
+
+    <div class="p-safe"></div>
+  </div>
+</section>
+
+
 
     <!-- Profile -->
 <section data-page="profile" aria-labelledby="h-profile" class="section" hidden>
@@ -1567,6 +1637,7 @@
   <script type="module" src="js/posts.js"></script>
 </body>
 </html>
+
 
 
 
