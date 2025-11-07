@@ -357,6 +357,7 @@ function renderHotTags(hot=[]) {
 
 /* ------------------ Bootstrap ------------------ */
 document.addEventListener('DOMContentLoaded', ()=>{
+  console.log('[posts] boot'); 
   const page = document.querySelector('[data-page="posts"].posts');
   if (!page) return;
 
