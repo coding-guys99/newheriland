@@ -164,43 +164,83 @@ function toggleLikeUI(){
   els.likeBtn.textContent = on ? '♥ Liked' : '♡ Like';
 }
 
-/* routing */
+/* ---------- routing: 單頁切換 列表/詳情 + 滾動記憶 ---------- */
 function parseHash(){
-  // 支援 "#/posts/xxx"
   const h = location.hash || '';
   const m = h.match(/^#\/posts\/([^/?#]+)/i);
   return m ? decodeURIComponent(m[1]) : null;
 }
-async function showDetailByHash(){
-  const id = parseHash();
-  if (!id) return;            // 不是詳情路由就不處理
 
+const pages = {
+  list:   () => document.querySelector('[data-page="posts"].posts'),
+  detail: () => document.querySelector('#postDetail')
+};
+
+function showOnly(el){
+  // 顯示 el、隱藏同層頁面（只針對 posts/詳情這兩個）
+  const listEl   = pages.list();
+  const detailEl = pages.detail();
+  [listEl, detailEl].forEach(p => { if (p) p.hidden = (p !== el); });
+}
+
+/* 記住列表滾動位置（讓返回時不跳頂） */
+let postsScrollY = 0;
+function saveListScroll(){
+  const sc = pages.list()?.querySelector('.p-scroll') || document.scrollingElement;
+  postsScrollY = sc?.scrollTop || window.scrollY || 0;
+}
+function restoreListScroll(){
+  const sc = pages.list()?.querySelector('.p-scroll');
+  if (sc) sc.scrollTop = postsScrollY;
+  else window.scrollTo(0, postsScrollY);
+}
+
+async function showDetailByHash(){
   els = els || collectEls();
-  els.page.hidden = false;
+  const id = parseHash();
+
+  if (!id){
+    // ↩ 沒有 id => 回列表
+    showOnly(pages.list());
+    restoreListScroll();
+    return;
+  }
+
+  // 進入詳情
+  saveListScroll();
+  showOnly(pages.detail());
+
+  // skeleton on
   els.body.hidden = true;
   els.err.hidden  = true;
   els.sk.hidden   = false;
 
   const { data, error } = await fetchPostById(id);
   if (error || !data){
-    els.err.hidden = false; els.sk.hidden = true; els.body.hidden = true; return;
+    els.err.hidden = false; els.sk.hidden = true; els.body.hidden = true;
+    return;
   }
   renderPost(data);
-  bumpView(id);
+  els.sk.hidden = true;
+  els.body.hidden = true; // 先確保 reflow 再顯示
+  requestAnimationFrame(()=> els.body.hidden = false);
+
+  // 可選：+1 views
+  try{ await supabase?.rpc?.('posts_inc_view', { p_post_id:id, p_fprint:(localStorage.getItem('hl.device_id')||'guest') }); }catch(_){}
 }
 
-/* bootstrap */
+/* bootstrap（保留原本的） */
 document.addEventListener('DOMContentLoaded', ()=>{
   els = collectEls();
   if (!els.page) return;
 
-  // 事件
   els.backBtn?.addEventListener('click', ()=> history.back());
   els.refresh?.addEventListener('click', showDetailByHash);
   els.retry?.addEventListener('click', showDetailByHash);
   els.likeBtn?.addEventListener('click', toggleLikeUI);
 
-  // 首次與 hash 變化
   window.addEventListener('hashchange', showDetailByHash);
+
+  // 初次進來：如果有 #/posts/:id 就顯示詳情，否則顯示列表
   showDetailByHash();
 });
