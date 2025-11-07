@@ -1,217 +1,167 @@
-/* ======================= HeriLand — Posts Cards ======================= */
+/* ====== Posts page polish (drop-in) ====== */
+
+/* 基礎色彩與陰影 */
 :root{
-  --pl-gap: 12px;                 /* 卡片間距 */
-  --pl-radius: 14px;              /* 卡片圓角 */
-  --pl-shadow: 0 4px 18px rgba(0,0,0,.08);
-  --pl-shadow-hover: 0 6px 24px rgba(0,0,0,.10);
-
-  --pl-card-bg: #fff;
-  --pl-text: rgba(0,0,0,.86);
-  --pl-text-dim: rgba(0,0,0,.58);
-  --pl-border: rgba(0,0,0,.06);
-
-  --pl-badge-bg: rgba(0,0,0,.6);
-  --pl-badge-text: #fff;
-
-  --pl-accent: #E8D6A7;          /* Champagne Gold */
-  --pl-green: #294A3A;           /* Forest Green (hover重點) */
+  --p-bg:#fff;
+  --p-text:#101418;
+  --p-muted:#6b7280;
+  --p-chip:#eef2f6;
+  --p-chip-text:#111827;
+  --p-line:#eef0f3;
+  --p-card: #fff;
+  --p-shadow: 0 6px 24px rgba(16,24,40,.08);
+  --p-shadow-sm: 0 2px 10px rgba(16,24,40,.06);
+  --p-brand:#f1c24f; /* 可改你的品牌色 */
+}
+.dark{
+  --p-bg:#0c0f13;
+  --p-text:#e5e7eb;
+  --p-muted:#9aa3af;
+  --p-chip:#1a232e;
+  --p-chip-text:#e5e7eb;
+  --p-line:#15202b;
+  --p-card:#0f141a;
+  --p-shadow: 0 6px 24px rgba(0,0,0,.35);
+  --p-shadow-sm: 0 2px 10px rgba(0,0,0,.28);
 }
 
-/* 容器：雙欄瀑布流 */
-.posts .p-list{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--pl-gap);
-  padding: var(--pl-gap);
+/* Page scaffold */
+section.posts{
+  background:var(--p-bg);
+}
+.posts .p-scroll{ padding: 8px 16px 24px; }
+.posts .p-toolbar{
+  position: sticky; top: calc(var(--appbar-h,56px) + 4px);
+  background: linear-gradient(to bottom, var(--p-bg) 70%, transparent);
+  z-index: 2; padding-bottom: 8px; margin-bottom: 4px;
 }
 
-/* 大螢幕：可視需要改為三欄 */
-@media (min-width: 900px){
-  .posts .p-list{
-    grid-template-columns: repeat(3, 1fr);
-  }
+/* Sort chips */
+.p-sort{ display:flex; gap:10px; margin: 4px 0 10px; }
+.p-sort .chip{
+  appearance: none; border:0; padding:8px 14px; border-radius:20px;
+  font: 600 14px/1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background:var(--p-chip); color:var(--p-chip-text); box-shadow: var(--p-shadow-sm);
+}
+.p-sort .chip.is-on{ background:#111827; color:#fff; }
+.dark .p-sort .chip.is-on{ background:#e5e7eb; color:#111827; }
+
+/* Hot tag bar */
+.p-tags{ display:flex; gap:8px; flex-wrap:wrap; }
+.p-tags .tag{
+  border:0; background:var(--p-chip); color:var(--p-chip-text);
+  padding:6px 12px; border-radius:999px; font:500 13px/1 system-ui, -apple-system, sans-serif;
+  box-shadow: var(--p-shadow-sm);
+}
+.p-tags .tag.is-on{ outline:2px solid var(--p-brand); }
+
+/* Grid */
+.p-list{
+  --gap: 14px;
+  display:grid; grid-template-columns:repeat(2, minmax(0,1fr));
+  gap: var(--gap); margin-top: 12px;
+}
+@media (min-width:740px){
+  .p-list{ grid-template-columns:repeat(3,minmax(0,1fr)); }
 }
 
-/* 卡片 */
-.posts .post{
-  background: var(--pl-card-bg);
-  color: var(--pl-text);
-  border: 1px solid var(--pl-border);
-  border-radius: var(--pl-radius);
-  box-shadow: var(--pl-shadow);
-  overflow: hidden;
-  display: grid;
-  grid-template-rows: auto auto auto;
-  gap: 8px;
-  padding: 10px;
-  transition: box-shadow .18s ease, transform .18s ease;
+/* Card */
+.post{
+  background:var(--p-card); border-radius:18px; overflow:hidden;
+  box-shadow: var(--p-shadow); display:flex; flex-direction:column;
+  transition: transform .2s ease, box-shadow .2s ease;
 }
-.posts .post:focus-within,
-.posts .post:hover{
-  box-shadow: var(--pl-shadow-hover);
-  transform: translateY(-2px);
+.post:active{ transform: translateY(1px) scale(.998); }
+
+/* Media (4:5) */
+.post .post-media{
+  position:relative; display:block; aspect-ratio:4/5; overflow:hidden; background:#e9eef5;
+}
+.post .post-media img{
+  width:100%; height:100%; object-fit:cover; display:block;
+  opacity:0; transform:scale(1.02); transition:opacity .35s ease, transform .35s ease;
+}
+.post .post-media img[data-loaded="1"]{ opacity:1; transform:scale(1); }
+
+/* 右上分類膠囊 & 右下角貼紙 */
+.pm-badge{
+  position:absolute; top:10px; left:10px; z-index:1;
+  background:rgba(17,24,39,.85); color:#fff; padding:6px 10px; border-radius:999px;
+  font:600 12px/1 system-ui; backdrop-filter:saturate(1.2) blur(6px);
+}
+.pm-sticker{
+  position:absolute; right:10px; bottom:10px; z-index:1;
+  background:rgba(255,255,255,.9); border-radius:10px; padding:6px 8px; font:700 10px/1 system-ui;
+  box-shadow: var(--p-shadow-sm); display:none; /* 需要時再顯示 */
+}
+.pm-vid{
+  position:absolute; right:10px; top:10px; z-index:1;
+  background:rgba(0,0,0,.7); color:#fff; padding:4px 6px; border-radius:8px; font:700 11px/1;
 }
 
-/* 媒體區：固定比例 + 漸層遮罩 */
-.posts .post-media{
-  position: relative;
-  display: block;
-  border-radius: calc(var(--pl-radius) - 4px);
-  overflow: hidden;
-  background: #eee;
-  /* 手機雙欄：4:5 */
-  aspect-ratio: 4 / 5;
-  isolation: isolate;
-}
-@media (min-width: 600px){
-  /* 大螢幕/寬容器：16:9 */
-  .posts .post-media{ aspect-ratio: 16 / 9; }
+/* Body */
+.post .post-body-wrap{ padding:12px 12px 10px; display:flex; flex-direction:column; gap:10px; }
+.post .post-title{
+  font: 700 18px/1.25 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  letter-spacing:.2px; color:var(--p-text);
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
 }
 
-/* 圖片填充（若用 <img>） */
-.posts .post-media img{
-  width: 100%; height: 100%; object-fit: cover; display: block;
-  transform: scale(1.001);
-  transition: transform .25s ease, opacity .25s ease;
-  opacity: 0.001;
+/* Meta row */
+.post .post-meta{
+  display:flex; align-items:center; justify-content:space-between; gap:10px; color:var(--p-muted);
+  font: 500 12px/1 system-ui;
 }
-.posts .post-media img[data-loaded="1"]{ opacity: 1; }
-.posts .post:hover .post-media img{ transform: scale(1.02); }
-
-/* 底部漸層（加強文字對比） */
-.posts .post-media::after{
-  content: ""; position: absolute; inset: 0 0 0 0;
-  background: linear-gradient(0deg, rgba(0,0,0,.55), rgba(0,0,0,0) 56%);
-  pointer-events: none;
-  opacity: .9;
+.post .pm-left{ display:flex; align-items:center; gap:8px; min-width:0; }
+.post .post-avatar{
+  width:24px; height:24px; border-radius:50%; object-fit:cover; background:#dfe6ee;
+  box-shadow: var(--p-shadow-sm);
 }
-
-/* 左下：分類標籤 */
-.posts .pm-badge{
-  position: absolute; left: 8px; bottom: 8px;
-  z-index: 2;
-  padding: 2px 8px;
-  font-size: 12px; line-height: 18px; font-weight: 600;
-  color: var(--pl-badge-text);
-  background: var(--pl-badge-bg);
-  border-radius: 999px;
+.post .post-author{
+  max-width:90px; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;
 }
+.post .post-time{ opacity:.8; }
 
-/* 右下：圓形貼紙（活動/AI） */
-.posts .pm-sticker{
-  position: absolute; right: 8px; bottom: 8px;
-  z-index: 2;
-  width: 36px; height: 36px; border-radius: 50%;
-  display: grid; place-items: center;
-  background: #fff;
-  color: #1a1a1a;
-  font-size: 12px; font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0,0,0,.2);
+/* Action buttons */
+.btn-icon{
+  appearance:none; border:0; background:transparent; padding:8px; border-radius:10px;
+  display:inline-flex; align-items:center; justify-content:center; gap:6px; color:var(--p-muted);
 }
+.btn-like.is-on{ color:#e11d48; }
 
-/* 右上：影片角標 */
-.posts .pm-vid{
-  position: absolute; right: 8px; top: 8px;
-  z-index: 2;
-  font-size: 11px; line-height: 1;
-  color: #000;
-  background: rgba(255,255,255,.9);
-  border-radius: 6px;
-  padding: 6px 7px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+/* Place link & tags */
+.post .post-ft{ display:flex; align-items:center; justify-content:space-between; padding:0 12px 12px; }
+.post .btn-place{
+  color:var(--p-muted); text-decoration:none; font:600 12px/1 system-ui;
+  padding:6px 10px; background:var(--p-chip); border-radius:10px;
+}
+.post .post-tags{ display:flex; gap:8px; padding:0 12px 12px; flex-wrap:wrap; }
+.post .post-tags .tag{
+  background:var(--p-chip); color:var(--p-chip-text); padding:5px 10px; border-radius:999px; font:600 12px/1;
+}
+.post .post-tags .tag.more{ opacity:.8; }
+
+/* Skeletons */
+.p-skeleton{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:12px; }
+.p-skeleton .sk-card{
+  height: calc(100vw * .5 * 1.25); /* 對齊 4:5 大小；0.5 來自 2 欄 */
+  max-height: 360px; border-radius:18px; overflow:hidden; background:linear-gradient(90deg,#eef2f7, #f6f8fb, #eef2f7);
+  animation: skShine 1.2s linear infinite;
+  box-shadow: var(--p-shadow);
+}
+@keyframes skShine{
+  0%{ background-position:-200% 0; }
+  100%{ background-position:200% 0; }
 }
 
-/* 標題（兩行截斷） */
-.posts .post-title{
-  margin: 6px 2px 0; padding: 0;
-  font-size: 15.5px; font-weight: 600; line-height: 1.3;
-  color: var(--pl-text);
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-  overflow: hidden;
-}
+/* Load more spinner block */
+.p-more{ display:flex; justify-content:center; align-items:center; gap:10px; padding:14px 0; }
+.p-more-sk{ width:22px; height:22px; border-radius:50%; border:3px solid #d1d5db; border-top-color:#111827; animation:spin .9s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg);} }
 
-/* Meta 行：作者＋時間＋右側統計 */
-.posts .post-meta{
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 8px; margin: 2px 2px 4px;
-}
-.posts .post-meta-left{
-  display: inline-flex; align-items: center; gap: 6px; min-width: 0;
-  color: var(--pl-text-dim); font-size: 12.5px;
-}
-.posts .post-avatar{
-  width: 24px; height: 24px; border-radius: 50%; object-fit: cover; display: block;
-}
-.posts .post-author{
-  max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.posts .post-time{ color: var(--pl-text-dim); font-variant-numeric: tabular-nums; }
-.posts .post-meta .dot{ opacity: .5; margin: 0 2px; }
+/* Empty / error */
+.p-empty, .p-error{ padding: 40px 12px; color: var(--p-muted); text-align:center; }
+.p-empty a{ color: var(--p-brand); text-decoration: none; font-weight: 700; }
 
-.posts .post-meta-right{
-  display: inline-flex; align-items: center; gap: 8px;
-}
-.posts .btn-icon{
-  appearance: none; border: 0; background: transparent;
-  width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center;
-  color: var(--pl-text-dim); cursor: pointer;
-}
-.posts .btn-icon:hover{ background: rgba(0,0,0,.05); color: var(--pl-green); }
-.posts .btn-like.is-on{ color: var(--pl-green); }
-.posts .post-views{
-  font-size: 12.5px; color: var(--pl-text-dim);
-}
-
-/* Tags：最多 2 個，超過以 +n 表示（由 JS 生成） */
-.posts .post-tags{
-  display: flex; flex-wrap: wrap; gap: 6px; margin: 0 2px 2px;
-}
-.posts .post-tags .tag{
-  font-size: 12px; line-height: 20px;
-  color: var(--pl-text); background: rgba(0,0,0,.06);
-  border: 1px solid rgba(0,0,0,.06);
-  border-radius: 999px; padding: 0 8px; user-select: none;
-}
-.posts .post-tags .tag.more{
-  color: var(--pl-text-dim);
-}
-
-/* Skeleton */
-.posts .p-skeleton{
-  display: grid; grid-template-columns: 1fr 1fr; gap: var(--pl-gap);
-  padding: var(--pl-gap);
-}
-.posts .p-skeleton .sk-card{
-  height: 260px; border-radius: var(--pl-radius);
-  background: linear-gradient(90deg, #eee 25%, #f5f5f5 37%, #eee 63%);
-  background-size: 400% 100%; animation: psk 1.2s ease infinite;
-  box-shadow: var(--pl-shadow);
-}
-@keyframes psk{ 0%{background-position: 100% 50%} 100%{background-position: 0 50%} }
-
-/* Error / Empty 內距一致 */
-.posts .p-error, .posts .p-empty{ padding: 16px; }
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce){
-  .posts .post, .posts .post-media img{ transition: none; }
-}
-
-/* 暗色模式 */
-@media (prefers-color-scheme: dark){
-  :root{
-    --pl-card-bg: rgba(32,36,34,.96);
-    --pl-text: rgba(255,255,255,.92);
-    --pl-text-dim: rgba(255,255,255,.65);
-    --pl-border: rgba(255,255,255,.08);
-    --pl-badge-bg: rgba(0,0,0,.55);
-  }
-  .posts .btn-icon:hover{ background: rgba(255,255,255,.08); }
-  .posts .post-media{ background:#111; }
-}
-
-/* 讓整張卡片可點（可選） */
-.posts .post a.post-media{ outline: none; }
-.posts .post a.post-media:focus-visible{
-  box-shadow: 0 0 0 3px var(--pl-accent);
-}
+/* Safari 圓角裁切銳邊優化 */
+.post, .post .post-media{ -webkit-mask-image: -webkit-radial-gradient(white, black); }
