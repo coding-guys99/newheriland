@@ -38,7 +38,7 @@ const state = {
   done: false,
 };
 
-const els = {
+/*const els = {
   list: $('#postsList'),
   sk: $('#postsSk'),
   err: $('#postsError'),
@@ -49,7 +49,25 @@ const els = {
   tagBar: $('#postsTagBar'),
   refresh: $('#btnPostsRefresh'),
   sentinel: $('#postsSentinel'),
-};
+};*/
+
+// 新增：延後再抓
+let els = null;
+function collectEls() {
+  const root = document;
+  return {
+    list: root.querySelector('#postsList'),
+    sk: root.querySelector('#postsSk'),
+    err: root.querySelector('#postsError'),
+    empty: root.querySelector('#postsEmpty'),
+    moreWrap: root.querySelector('#postsMoreWrap'),
+    moreBtn: root.querySelector('#btnPostsMore'),
+    moreSk: root.querySelector('#postsMoreSk'),
+    tagBar: root.querySelector('#postsTagBar'),
+    refresh: root.querySelector('#btnPostsRefresh'),
+    sentinel: root.querySelector('#postsSentinel'),
+  };
+}
 
 /* ------------------ Fetch ------------------ */
 async function fetchPosts({ page=0, limit=12, sort='latest', tag=null }){
@@ -273,6 +291,7 @@ function clearList(){
 }
 
 async function loadMore(){
+  if (!els || !els.list) { console.warn('[posts] els not ready'); return; }
   if (state.loading || state.done) return;
   setLoading(true); setError(false);
 
@@ -341,9 +360,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const page = document.querySelector('[data-page="posts"].posts');
   if (!page) return;
 
-  // ✅ 自動顯示 posts 區塊（避免預設 hidden 沒被 router 解除）
+  // 一定把它打開（避免 hidden 把內容蓋住）
   page.hidden = false;
-  console.log('[posts] boot');
+
+  // 這裡才抓元素
+  els = collectEls();
+
+  // 防呆：若重要容器缺失，直接提示並停下
+  if (!els.list) {
+    console.warn('[posts] #postsList not found');
+    return;
+  }
 
   // 排序切換
   $$('.p-sort .chip').forEach(ch=>{
@@ -370,4 +397,5 @@ document.addEventListener('DOMContentLoaded', ()=>{
   clearList();
   loadMore();
 });
+
 
