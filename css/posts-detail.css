@@ -1,0 +1,65 @@
+/* ====== Post Detail ====== */
+.post-detail{ background:var(--p-bg); }
+.post-detail .p-scroll{ padding:8px 16px 32px; }
+
+/* Skeleton */
+.pd-skeleton{ display:grid; gap:14px; }
+.pd-sk-media{
+  width:100%; aspect-ratio:4/5; border-radius:16px;
+  background:linear-gradient(90deg,#eef2f7,#f6f8fb,#eef2f7);
+  animation: skShine 1.2s linear infinite;
+}
+.pd-sk-line{ height:14px; border-radius:8px;
+  background:linear-gradient(90deg,#eef2f7,#f6f8fb,#eef2f7);
+  animation: skShine 1.2s linear infinite;
+}
+.pd-sk-line.w80{ width:80%; } .pd-sk-line.w60{ width:60%; }
+.pd-sk-line.w95{ width:95%; } .pd-sk-line.w70{ width:70%; }
+
+/* Error */
+.pd-error{ padding:32px 8px; text-align:center; color:var(--p-muted); }
+
+/* Media carousel（純 CSS 滑動） */
+.pd-media{
+  display:flex; overflow:auto; scroll-snap-type:x mandatory; gap:8px;
+  border-radius:16px; margin-bottom:12px;
+}
+.pd-media > figure{
+  position:relative; flex:0 0 100%; scroll-snap-align: start;
+  margin:0; border-radius:16px; overflow:hidden; background:#e9eef5;
+  aspect-ratio:4/5;
+}
+.pd-media img, .pd-media video{ width:100%; height:100%; object-fit:cover; display:block; }
+.pd-media .pd-dotbar{ position:absolute; left:0; right:0; bottom:8px; display:flex; gap:6px; justify-content:center; }
+.pd-media .pd-dot{ width:7px; height:7px; border-radius:999px; background:rgba(255,255,255,.6); }
+.pd-media .pd-dot.is-on{ background:#fff; }
+
+/* Title & meta */
+.pd-title{
+  font: 800 22px/1.3 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  color: var(--p-text); margin: 4px 0 10px;
+}
+.pd-meta{ display:flex; align-items:center; gap:10px; }
+.pd-avatar{ width:36px; height:36px; border-radius:50%; background:#dfe6ee; object-fit:cover; }
+.pd-author-wrap{ display:flex; flex-direction:column; line-height:1.2; }
+.pd-author{ font-weight:700; color:var(--p-text); }
+.pd-time{ color:var(--p-muted); font-size:12px; }
+.pd-stats{ margin-left:auto; display:flex; gap:8px; }
+.pd-chip{ background:var(--p-chip); color:var(--p-chip-text); font:600 12px/1 system-ui; padding:6px 10px; border-radius:999px; }
+
+/* Content */
+.pd-content{ color:var(--p-text); margin: 14px 0; font: 500 16px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+
+/* Place & tags & actions */
+.pd-place{
+  display:inline-block; margin:4px 0 8px; text-decoration:none;
+  background:var(--p-chip); color:var(--p-chip-text); font:700 12px/1 system-ui;
+  padding:8px 12px; border-radius:10px;
+}
+.pd-tags{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 12px; }
+.pd-tags .tag{ background:var(--p-chip); color:var(--p-chip-text); padding:6px 10px; border-radius:999px; font:700 12px/1; }
+.pd-actions{ display:flex; gap:10px; }
+.pd-actions .btn{ padding:10px 14px; border-radius:12px; }
+
+/* hidden 補強 */
+[hidden]{ display:none !important; }
