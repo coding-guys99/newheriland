@@ -357,6 +357,41 @@ function renderHotTags(hot=[]) {
   });
 }
 
+// 在 posts.js 的 bootstrap（DOMContentLoaded）裡、loadMore() 之後加
+function subscribePostsRealtime() {
+  if (!window.supabase) return;
+  const ch = window.supabase.channel('posts-ins')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'posts',
+      // 可選（你的 Supabase 版本若支援）：
+      // filter: 'status=in.(published,approved)'
+    }, payload => {
+      const row = payload.new || {};
+      // 前端再過一層保險
+      const ok = !row.status || ['published','approved'].includes(row.status);
+      if (!ok) return;
+
+      // 轉成卡片並插入列表最前面
+      const frag = renderPostCard(row);
+      els.list?.prepend(frag);
+
+      // 觀察 +1
+      const card = els.list?.querySelector('.post');
+      if (card) {
+        card.dataset.pid = row.id;
+        observeCardForView(card, row.id);
+      }
+
+      // 隱藏骨架
+      els.sk && (els.sk.hidden = true);
+    })
+    .subscribe((status) => console.log('[realtime]', status));
+}
+subscribePostsRealtime();
+
+
 /* ------------------ Bootstrap ------------------ */
 document.addEventListener('DOMContentLoaded', ()=>{
   // Debug / 手動呼叫支援
