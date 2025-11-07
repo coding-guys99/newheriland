@@ -322,6 +322,9 @@ async function loadMore(){
   const frag = document.createDocumentFragment();
   data.forEach(p => frag.appendChild( renderPostCard(p) ));
   els.list.appendChild(frag);
+  // 成功載入後關掉骨架
+  if (els.sk) els.sk.hidden = true;
+
 
   // 插入後再綁觀察（只綁新卡）
   $$('.post:not([data-observed])', els.list).forEach(card=>{
